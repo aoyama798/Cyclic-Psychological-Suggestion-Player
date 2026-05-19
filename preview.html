@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>戒糖 Anki 循环播放器</title>
+
+<style>
+    *{
+        box-sizing:border-box;
+    }
+
+    body{
+        margin:0;
+        font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+        background:#0f1115;
+        color:#fff;
+        height:100vh;
+        overflow:hidden;
+        display:flex;
+        flex-direction:column;
+    }
+
+    .topbar{
+        padding:14px 20px;
+        background:#171a21;
+        border-bottom:1px solid #2a2f3a;
+        display:flex;
+        gap:12px;
+        align-items:center;
+        flex-wrap:wrap;
+    }
+
+    button{
+        background:#2f80ed;
+        border:none;
+        color:white;
+        padding:10px 16px;
+        border-radius:10px;
+        cursor:pointer;
+        font-size:14px;
+        transition:0.2s;
+    }
+
+    button:hover{
+        opacity:0.9;
+    }
+
+    button.secondary{
+        background:#3a3f4b;
+    }
+
+    input{
+        padding:10px;
+        border-radius:10px;
+        border:none;
+        background:#262b36;
+        color:white;
+        width:100px;
+    }
+
+    .container{
+        flex:1;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        padding:30px;
+    }
+
+    .card{
+        width:min(1100px,95vw);
+        min-height:420px;
+        background:#171a21;
+        border-radius:28px;
+        padding:40px;
+        box-shadow:0 10px 40px rgba(0,0,0,0.4);
+        display:flex;
+        flex-direction:column;
+        justify-content:center;
+        position:relative;
+        overflow:hidden;
+    }
+
+    .tag{
+        position:absolute;
+        top:20px;
+        right:20px;
+        background:#2f80ed;
+        color:white;
+        padding:6px 12px;
+        border-radius:999px;
+        font-size:13px;
+    }
+
+    .front{
+        font-size:2rem;
+        line-height:1.6;
+        font-weight:700;
+        white-space:pre-wrap;
+    }
+
+    .back{
+        margin-top:28px;
+        font-size:1.2rem;
+        line-height:1.9;
+        color:#d4d7dd;
+        white-space:pre-wrap;
+        display:none;
+        border-top:1px solid #2a2f3a;
+        padding-top:24px;
+    }
+
+    .progress{
+        position:absolute;
+        bottom:0;
+        left:0;
+        height:5px;
+        background:#2f80ed;
+        width:0%;
+        transition:width linear;
+    }
+
+    .info{
+        color:#aaa;
+        font-size:14px;
+    }
+
+    .big{
+        font-size:18px;
+        color:#fff;
+    }
+
+    @media(max-width:768px){
+        .front{
+            font-size:1.4rem;
+        }
+
+        .back{
+            font-size:1rem;
+        }
+
+        .card{
+            padding:24px;
+        }
+    }
+</style>
+</head>
+
+<body>
+
+<div class="topbar">
+    <button onclick="prevCard()">上一张</button>
+    <button onclick="flipCard()">显示答案</button>
+    <button onclick="nextCard()">下一张</button>
+
+    <button class="secondary" onclick="toggleAuto()">
+        自动播放
+    </button>
+
+    <span class="info">间隔(秒)</span>
+    <input type="number" id="intervalInput" value="12" min="3"/>
+
+    <span class="info big" id="counter">1 / 1</span>
+</div>
+
+<div class="container">
+    <div class="card">
+        <div class="tag">戒糖</div>
+
+        <div class="front" id="front"></div>
+
+        <div class="back" id="back"></div>
+
+        <div class="progress" id="progress"></div>
+    </div>
+</div>
+
+<script>
+/*
+    你的 Anki 卡片
+    front: 正面
+    back: 背面
+*/
+
+const cards = [
+
+{
+front:"累的时候为什么总想喝奶茶？",
+back:`因为奶茶同时满足：
+
+- 糖分 → 快速奖励
+- 冰凉刺激 → 降低疲劳感
+- 咖啡因 → 短暂兴奋
+- 香精和脂肪 → 高愉悦感
+
+这是一种“疲劳状态下的大脑奖励回路”。`
+},
+
+{
+front:"液体糖为什么最危险？",
+back:`液体食物几乎不增加饱腹感。
+
+奶茶、可乐、果茶会让你：
+- 不知不觉喝下大量糖
+- 血糖快速升高
+- 很快再次疲劳和饥饿
+
+形成循环。`
+},
+
+{
+front:"真正理想的状态是什么？",
+back:`不是完全不吃糖。
+
+而是：
+
+稳定血糖
+减少剧烈波动
+降低对高甜刺激的依赖`
+},
+
+{
+front:"为什么戒糖后会觉得以前的奶茶太甜？",
+back:`长期高糖会提高甜味阈值。
+
+戒糖后：
+- 味觉重新敏感
+- 普通甜度会变齁
+- 水果会变甜
+- 微糖都可能腻`
+},
+
+{
+front:"疲劳时如何替代奶茶？",
+back:`优先拆解需求：
+
+想要凉：
+- 冰水
+- 气泡水
+- 冷泡茶
+
+想要兴奋：
+- 无糖美式
+- 冷萃咖啡
+
+想要满足感：
+- 高蛋白食物
+- 坚果
+- 无糖酸奶`
+},
+
+{
+front:"戒糖最关键的是什么？",
+back:`不是意志力。
+
+而是：
+
+降低环境诱惑
+稳定作息
+减少疲劳
+增加蛋白质摄入
+避免血糖大起大落`
+},
+
+{
+front:"为什么高糖容易让人越来越焦虑？",
+back:`高糖 → 血糖快速上升
+
+随后：
+胰岛素大量分泌 → 血糖回落
+
+低谷时：
+- 疲劳
+- 焦虑
+- 注意力下降
+- 易怒
+
+于是大脑再次想吃糖。`
+},
+
+{
+front:"戒糖的核心目标",
+back:`摆脱：
+
+“累了 → 奶茶”
+“焦虑 → 甜食”
+“低落 → 高糖奖励”
+
+这种自动化回路。`
+}
+
+];
+
+let current = 0;
+let showingBack = false;
+let autoMode = false;
+let timer = null;
+
+const frontEl = document.getElementById("front");
+const backEl = document.getElementById("back");
+const counterEl = document.getElementById("counter");
+const progressEl = document.getElementById("progress");
+
+function renderCard(){
+    const card = cards[current];
+
+    frontEl.textContent = card.front;
+    backEl.textContent = card.back;
+
+    backEl.style.display = showingBack ? "block" : "none";
+
+    counterEl.textContent = `${current+1} / ${cards.length}`;
+}
+
+function flipCard(){
+    showingBack = !showingBack;
+    backEl.style.display = showingBack ? "block" : "none";
+}
+
+function nextCard(){
+    current = (current + 1) % cards.length;
+    showingBack = false;
+    renderCard();
+}
+
+function prevCard(){
+    current = (current - 1 + cards.length) % cards.length;
+    showingBack = false;
+    renderCard();
+}
+
+function toggleAuto(){
+
+    autoMode = !autoMode;
+
+    if(autoMode){
+
+        runProgress();
+
+        const seconds =
+            parseInt(document.getElementById("intervalInput").value) || 12;
+
+        timer = setInterval(()=>{
+
+            if(!showingBack){
+                flipCard();
+            }else{
+                nextCard();
+            }
+
+            runProgress();
+
+        }, seconds * 1000);
+
+    }else{
+        clearInterval(timer);
+        progressEl.style.width = "0%";
+    }
+}
+
+function runProgress(){
+
+    const seconds =
+        parseInt(document.getElementById("intervalInput").value) || 12;
+
+    progressEl.style.transition = "none";
+    progressEl.style.width = "0%";
+
+    setTimeout(()=>{
+        progressEl.style.transition =
+            `width ${seconds}s linear`;
+        progressEl.style.width = "100%";
+    },50);
+}
+
+document.addEventListener("keydown",(e)=>{
+
+    if(e.code === "Space"){
+        e.preventDefault();
+        flipCard();
+    }
+
+    if(e.key === "ArrowRight"){
+        nextCard();
+    }
+
+    if(e.key === "ArrowLeft"){
+        prevCard();
+    }
+});
+
+renderCard();
+</script>
+
+</body>
+</html>
