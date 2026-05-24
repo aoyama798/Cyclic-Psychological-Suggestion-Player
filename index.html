@@ -11,7 +11,14 @@
 <style>
     :root { --primary: #2f80ed; --dark: #0f1115; --card-bg: #171a21; }
     * { box-sizing: border-box; margin:0; padding:0; }
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: var(--dark); color: #fff; min-height: 100vh; overflow: hidden; }
+    body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: var(--dark);
+    color: #fff;
+    min-height: 100vh;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
     .screen { display: none; height: 100vh; flex-direction: column; }
     .screen.active { display: flex; }
 
