@@ -1,396 +1,343 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>戒糖 Anki 循环播放器</title>
+<meta charset="UTF-8">
+<title>循环暗示 - 心理重塑工具</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 
 <style>
-    *{
-        box-sizing:border-box;
+    :root { --primary: #2f80ed; --dark: #0f1115; --card-bg: #171a21; }
+    * { box-sizing: border-box; margin:0; padding:0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: var(--dark); color: #fff; min-height: 100vh; overflow: hidden; }
+    .screen { display: none; height: 100vh; flex-direction: column; }
+    .screen.active { display: flex; }
+
+    .menu { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
+    h1 { font-size: 3rem; margin-bottom: 60px; background: linear-gradient(90deg, #2f80ed, #7b68ee); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+
+    .bubbles { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 40px; max-width: 850px; }
+    .bubble {
+        width: 170px; height: 170px; background: linear-gradient(135deg, #2f80ed, #1e5aa8);
+        border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center;
+        text-align: center; font-size: 1.45rem; font-weight: 700; cursor: pointer; position: relative;
+        box-shadow: 0 15px 35px rgba(47,128,237,0.35); transition: all 0.3s;
     }
+    .bubble:hover { transform: scale(1.08); }
 
-    body{
-        margin:0;
-        font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-        background:#0f1115;
-        color:#fff;
-        height:100vh;
-        overflow:hidden;
-        display:flex;
-        flex-direction:column;
+    .action-btn {
+        position: absolute; width: 34px; height: 34px;
+        background: #333; color: white; border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 18px; cursor: pointer; z-index: 20; box-shadow: 0 3px 8px rgba(0,0,0,0.3);
     }
+    .edit-btn { top: -8px; left: -8px; background: #f39c12; }
+    .delete-btn { top: -8px; right: -8px; background: #e74c3c; }
 
-    .topbar{
-        padding:14px 20px;
-        background:#171a21;
-        border-bottom:1px solid #2a2f3a;
-        display:flex;
-        gap:12px;
-        align-items:center;
-        flex-wrap:wrap;
+    .topbar { padding:14px 20px; background:#171a21; border-bottom:1px solid #2a2f3a; display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
+    button { background:var(--primary); border:none; color:white; padding:10px 16px; border-radius:10px; cursor:pointer; }
+    button:hover { opacity:0.9; }
+    button.secondary { background:#3a3f4b; }
+
+    .container { flex:1; display:flex; align-items:center; justify-content:center; padding:30px; }
+    .card {
+        width:min(1100px,95vw); min-height:460px; background:var(--card-bg); border-radius:28px;
+        padding:40px; box-shadow:0 15px 50px rgba(0,0,0,0.5); position:relative; overflow:hidden;
+        display:flex; flex-direction:column; justify-content:center;
     }
+    .tag { position:absolute; top:20px; right:20px; background:var(--primary); padding:6px 14px; border-radius:999px; font-size:13px; }
+    .front { font-size:2.1rem; line-height:1.5; font-weight:700; white-space:pre-wrap; }
+    .back { margin-top:32px; font-size:1.25rem; line-height:1.8; color:#d4d7dd; white-space:pre-wrap; display:none; border-top:1px solid #2a2f3a; padding-top:24px; }
+    .progress { position:absolute; bottom:0; left:0; height:6px; background:linear-gradient(90deg,#2f80ed,#7b68ee); width:0%; transition:width linear; }
 
-    button{
-        background:#2f80ed;
-        border:none;
-        color:white;
-        padding:10px 16px;
-        border-radius:10px;
-        cursor:pointer;
-        font-size:14px;
-        transition:0.2s;
-    }
-
-    button:hover{
-        opacity:0.9;
-    }
-
-    button.secondary{
-        background:#3a3f4b;
-    }
-
-    input{
-        padding:10px;
-        border-radius:10px;
-        border:none;
-        background:#262b36;
-        color:white;
-        width:100px;
-    }
-
-    .container{
-        flex:1;
-        display:flex;
-        align-items:center;
-        justify-content:center;
-        padding:30px;
-    }
-
-    .card{
-        width:min(1100px,95vw);
-        min-height:420px;
-        background:#171a21;
-        border-radius:28px;
-        padding:40px;
-        box-shadow:0 10px 40px rgba(0,0,0,0.4);
-        display:flex;
-        flex-direction:column;
-        justify-content:center;
-        position:relative;
-        overflow:hidden;
-    }
-
-    .tag{
-        position:absolute;
-        top:20px;
-        right:20px;
-        background:#2f80ed;
-        color:white;
-        padding:6px 12px;
-        border-radius:999px;
-        font-size:13px;
-    }
-
-    .front{
-        font-size:2rem;
-        line-height:1.6;
-        font-weight:700;
-        white-space:pre-wrap;
-    }
-
-    .back{
-        margin-top:28px;
-        font-size:1.2rem;
-        line-height:1.9;
-        color:#d4d7dd;
-        white-space:pre-wrap;
-        display:none;
-        border-top:1px solid #2a2f3a;
-        padding-top:24px;
-    }
-
-    .progress{
-        position:absolute;
-        bottom:0;
-        left:0;
-        height:5px;
-        background:#2f80ed;
-        width:0%;
-        transition:width linear;
-    }
-
-    .info{
-        color:#aaa;
-        font-size:14px;
-    }
-
-    .big{
-        font-size:18px;
-        color:#fff;
-    }
-
-    @media(max-width:768px){
-        .front{
-            font-size:1.4rem;
-        }
-
-        .back{
-            font-size:1rem;
-        }
-
-        .card{
-            padding:24px;
-        }
-    }
+    .modal { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); display:none; align-items:center; justify-content:center; z-index:1000; }
+    .modal-content { background:#171a21; padding:30px; border-radius:20px; width:90%; max-width:500px; }
 </style>
 </head>
-
 <body>
 
-<div class="topbar">
-    <button onclick="prevCard()">上一张</button>
-    <button onclick="flipCard()">显示答案</button>
-    <button onclick="nextCard()">下一张</button>
-
-    <button class="secondary" onclick="toggleAuto()">
-        自动播放
-    </button>
-
-    <span class="info">间隔(秒)</span>
-    <input type="number" id="intervalInput" value="12" min="3"/>
-
-    <span class="info big" id="counter">1 / 1</span>
+<!-- 主菜单 -->
+<div id="mainMenu" class="screen active">
+    <div class="menu">
+        <h1>循环暗示</h1>
+        <div class="bubbles" id="bubbles"></div>
+        <div style="margin-top:60px;">
+            <button onclick="showAddDeckModal()" class="secondary">+ 新建分类</button>
+        </div>
+    </div>
 </div>
 
-<div class="container">
-    <div class="card">
-        <div class="tag">戒糖</div>
+<!-- 播放器 -->
+<div id="player" class="screen">
+    <div class="topbar">
+        <button onclick="backToMenu()">← 返回</button>
+        <button onclick="prevCard()">上一张</button>
+        <button onclick="flipCard()">显示答案</button>
+        <button onclick="nextCard()">下一张</button>
+        <button class="secondary" id="autoBtn" onclick="toggleAuto()">自动播放</button>
+        <span>间隔(秒)</span>
+        <input type="number" id="intervalInput" value="10" min="5" style="width:70px;background:#262b36;color:white;border:none;border-radius:8px;padding:8px;">
+        
+        <button onclick="document.getElementById('csvInput').click()" class="secondary">📥 批量导入 CSV</button>
+        <input type="file" id="csvInput" accept=".csv" style="display:none" onchange="importCSV(event)">
+        
+        <span id="deckTitle" style="margin-left:auto;font-weight:600;"></span>
+        <span id="counter">1 / 1</span>
+    </div>
+    <div class="container">
+        <div class="card">
+            <div class="tag" id="tag"></div>
+            <div class="front" id="front"></div>
+            <div class="back" id="back"></div>
+            <div class="progress" id="progress"></div>
+        </div>
+    </div>
+    <button onclick="showAddCardModal()" style="position:fixed;bottom:30px;right:30px;width:65px;height:65px;border-radius:50%;font-size:32px;background:var(--primary);border:none;color:white;box-shadow:0 10px 30px rgba(0,0,0,0.4);">+</button>
+</div>
 
-        <div class="front" id="front"></div>
+<!-- 分类 新建/编辑 弹窗 -->
+<div id="deckModal" class="modal">
+    <div class="modal-content">
+        <h3 id="modalTitle">新建分类</h3>
+        <input type="text" id="deckName" placeholder="分类名称" style="width:100%;padding:12px;margin:15px 0;background:#262b36;color:white;border:none;border-radius:10px;">
+        <input type="text" id="deckIcon" placeholder="图标（如 🧠）" maxlength="2" style="width:100%;padding:12px;background:#262b36;color:white;border:none;border-radius:10px;">
+        <div style="margin-top:20px;text-align:right;">
+            <button onclick="hideDeckModal()" class="secondary">取消</button>
+            <button onclick="saveDeck()" id="saveBtn">创建</button>
+        </div>
+    </div>
+</div>
 
-        <div class="back" id="back"></div>
-
-        <div class="progress" id="progress"></div>
+<!-- 添加单张卡片弹窗 -->
+<div id="addCardModal" class="modal">
+    <div class="modal-content">
+        <h3>添加新卡片</h3>
+        <textarea id="newFront" placeholder="正面（问题/暗示）" style="width:100%;height:120px;margin:15px 0;padding:12px;background:#262b36;color:white;border:none;border-radius:12px;"></textarea>
+        <textarea id="newBack" placeholder="背面（答案/解释）" style="width:100%;height:160px;padding:12px;background:#262b36;color:white;border:none;border-radius:12px;"></textarea>
+        <div style="margin-top:20px;text-align:right;">
+            <button onclick="hideAddCardModal()" class="secondary">取消</button>
+            <button onclick="addNewCard()">保存卡片</button>
+        </div>
     </div>
 </div>
 
 <script>
-/*
-    你的 Anki 卡片
-    front: 正面
-    back: 背面
-*/
+// ==================== Firebase 配置 ====================
+const firebaseConfig = {
+    apiKey: "AIzaSyAJUPZhafyM-0AS3_13h_o8LPWbupuhnro",
+    authDomain: "loop-hint.firebaseapp.com",
+    projectId: "loop-hint",
+    storageBucket: "loop-hint.firebasestorage.app",
+    messagingSenderId: "827511787053",
+    appId: "1:827511787053:web:706d5ac50a343bc78d72a4"
+};
 
-const cards = [
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
 
-{
-front:"累的时候为什么总想喝奶茶？",
-back:`因为奶茶同时满足：
-
-- 糖分 → 快速奖励
-- 冰凉刺激 → 降低疲劳感
-- 咖啡因 → 短暂兴奋
-- 香精和脂肪 → 高愉悦感
-
-这是一种“疲劳状态下的大脑奖励回路”。`
-},
-
-{
-front:"液体糖为什么最危险？",
-back:`液体食物几乎不增加饱腹感。
-
-奶茶、可乐、果茶会让你：
-- 不知不觉喝下大量糖
-- 血糖快速升高
-- 很快再次疲劳和饥饿
-
-形成循环。`
-},
-
-{
-front:"真正理想的状态是什么？",
-back:`不是完全不吃糖。
-
-而是：
-
-稳定血糖
-减少剧烈波动
-降低对高甜刺激的依赖`
-},
-
-{
-front:"为什么戒糖后会觉得以前的奶茶太甜？",
-back:`长期高糖会提高甜味阈值。
-
-戒糖后：
-- 味觉重新敏感
-- 普通甜度会变齁
-- 水果会变甜
-- 微糖都可能腻`
-},
-
-{
-front:"疲劳时如何替代奶茶？",
-back:`优先拆解需求：
-
-想要凉：
-- 冰水
-- 气泡水
-- 冷泡茶
-
-想要兴奋：
-- 无糖美式
-- 冷萃咖啡
-
-想要满足感：
-- 高蛋白食物
-- 坚果
-- 无糖酸奶`
-},
-
-{
-front:"戒糖最关键的是什么？",
-back:`不是意志力。
-
-而是：
-
-降低环境诱惑
-稳定作息
-减少疲劳
-增加蛋白质摄入
-避免血糖大起大落`
-},
-
-{
-front:"为什么高糖容易让人越来越焦虑？",
-back:`高糖 → 血糖快速上升
-
-随后：
-胰岛素大量分泌 → 血糖回落
-
-低谷时：
-- 疲劳
-- 焦虑
-- 注意力下降
-- 易怒
-
-于是大脑再次想吃糖。`
-},
-
-{
-front:"戒糖的核心目标",
-back:`摆脱：
-
-“累了 → 奶茶”
-“焦虑 → 甜食”
-“低落 → 高糖奖励”
-
-这种自动化回路。`
-}
-
-];
-
-let current = 0;
+let currentDeckKey = null;
+let currentIndex = 0;
 let showingBack = false;
 let autoMode = false;
 let timer = null;
+let currentCards = [];
+let editingDeckId = null;
 
-const frontEl = document.getElementById("front");
-const backEl = document.getElementById("back");
-const counterEl = document.getElementById("counter");
-const progressEl = document.getElementById("progress");
+// ==================== DOM ====================
+const frontEl = document.getElementById('front');
+const backEl = document.getElementById('back');
+const tagEl = document.getElementById('tag');
+const counterEl = document.getElementById('counter');
+const deckTitleEl = document.getElementById('deckTitle');
+const progressEl = document.getElementById('progress');
 
-function renderCard(){
-    const card = cards[current];
+// ==================== 分类管理 ====================
+async function loadDecks() {
+    const bubbles = document.getElementById('bubbles');
+    bubbles.innerHTML = '';
 
+    const snapshot = await db.collection('decks').get();
+    snapshot.forEach(doc => {
+        const deck = doc.data();
+        const div = document.createElement('div');
+        div.className = 'bubble';
+        div.style.background = `linear-gradient(135deg, ${deck.color || '#2f80ed'}, #1e5aa8)`;
+        
+        div.innerHTML = `
+            <span style="font-size:2.6rem; margin-bottom:8px;">${deck.icon || '📌'}</span>
+            <div>${deck.name}</div>
+            <div class="action-btn edit-btn" onclick="event.stopImmediatePropagation(); editDeck('${doc.id}', '${deck.name}', '${deck.icon || ''}')">✏️</div>
+            <div class="action-btn delete-btn" onclick="event.stopImmediatePropagation(); deleteDeck('${doc.id}')">×</div>
+        `;
+        
+        div.addEventListener('click', (e) => {
+            if (!e.target.classList.contains('action-btn')) startPlayer(doc.id, deck);
+        });
+        bubbles.appendChild(div);
+    });
+}
+
+function showAddDeckModal() {
+    editingDeckId = null;
+    document.getElementById('modalTitle').textContent = "新建分类";
+    document.getElementById('saveBtn').textContent = "创建";
+    document.getElementById('deckName').value = '';
+    document.getElementById('deckIcon').value = '';
+    document.getElementById('deckModal').style.display = 'flex';
+}
+
+function editDeck(deckId, name, icon) {
+    editingDeckId = deckId;
+    document.getElementById('modalTitle').textContent = "编辑分类";
+    document.getElementById('saveBtn').textContent = "保存修改";
+    document.getElementById('deckName').value = name;
+    document.getElementById('deckIcon').value = icon;
+    document.getElementById('deckModal').style.display = 'flex';
+}
+
+async function saveDeck() {
+    const name = document.getElementById('deckName').value.trim();
+    const icon = document.getElementById('deckIcon').value.trim() || '📌';
+    if (!name) return alert("分类名称不能为空");
+
+    try {
+        if (editingDeckId) {
+            await db.collection('decks').doc(editingDeckId).update({ name, icon });
+        } else {
+            await db.collection('decks').add({ name, icon, color: '#2f80ed', createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+        }
+        hideDeckModal();
+        loadDecks();
+    } catch (e) { alert("保存失败: " + e.message); }
+}
+
+function hideDeckModal() { document.getElementById('deckModal').style.display = 'none'; }
+
+async function deleteDeck(deckId) {
+    if (!confirm('确定删除该分类吗？所有卡片也将被删除！')) return;
+    await db.collection('decks').doc(deckId).delete();
+    const snap = await db.collection('cards').where('deckId', '==', deckId).get();
+    snap.forEach(doc => doc.ref.delete());
+    loadDecks();
+}
+
+// ==================== CSV 批量导入 ====================
+async function importCSV(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+        const csv = event.target.result;
+        const lines = csv.split('\n').map(l => l.trim()).filter(l => l);
+        let success = 0;
+        const batch = db.batch();
+
+        for (let i = 0; i < lines.length; i++) {
+            if (i === 0 && lines[i].toLowerCase().includes('正面') || lines[i].toLowerCase().includes('front')) continue;
+            
+            const cols = lines[i].split(',').map(c => c.trim());
+            if (cols.length < 2) continue;
+
+            const front = cols[0];
+            const back = cols.slice(1).join(',');
+
+            if (front && back) {
+                const cardRef = db.collection('cards').doc();
+                batch.set(cardRef, {
+                    deckId: currentDeckKey,
+                    front: front,
+                    back: back,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                success++;
+            }
+        }
+
+        try {
+            await batch.commit();
+            alert(`✅ 成功批量导入 ${success} 张卡片！`);
+            await loadCards();
+        } catch (err) {
+            alert("导入失败：" + err.message);
+        }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+}
+
+// ==================== 播放器功能 ====================
+async function startPlayer(deckId, deck) {
+    currentDeckKey = deckId;
+    document.getElementById('mainMenu').classList.remove('active');
+    document.getElementById('player').classList.add('active');
+    deckTitleEl.textContent = deck.name;
+    tagEl.textContent = deck.name;
+    tagEl.style.background = deck.color || '#2f80ed';
+    currentIndex = 0;
+    showingBack = false;
+    await loadCards();
+}
+
+function backToMenu() {
+    if (autoMode) toggleAuto();
+    document.getElementById('player').classList.remove('active');
+    document.getElementById('mainMenu').classList.add('active');
+}
+
+async function loadCards() {
+    const snapshot = await db.collection('cards').where('deckId', '==', currentDeckKey).get();
+    currentCards = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    renderCard();
+}
+
+function renderCard() {
+    if (currentCards.length === 0) {
+        frontEl.textContent = "暂无卡片，请添加卡片";
+        backEl.style.display = "none";
+        counterEl.textContent = "0 / 0";
+        return;
+    }
+    const card = currentCards[currentIndex];
     frontEl.textContent = card.front;
     backEl.textContent = card.back;
-
     backEl.style.display = showingBack ? "block" : "none";
-
-    counterEl.textContent = `${current+1} / ${cards.length}`;
+    counterEl.textContent = `${currentIndex + 1} / ${currentCards.length}`;
 }
 
-function flipCard(){
-    showingBack = !showingBack;
-    backEl.style.display = showingBack ? "block" : "none";
-}
+function flipCard() { showingBack = !showingBack; backEl.style.display = showingBack ? "block" : "none"; }
+function nextCard() { currentIndex = (currentIndex + 1) % currentCards.length; showingBack = false; renderCard(); }
+function prevCard() { currentIndex = (currentIndex - 1 + currentCards.length) % currentCards.length; showingBack = false; renderCard(); }
 
-function nextCard(){
-    current = (current + 1) % cards.length;
-    showingBack = false;
-    renderCard();
-}
-
-function prevCard(){
-    current = (current - 1 + cards.length) % cards.length;
-    showingBack = false;
-    renderCard();
-}
-
-function toggleAuto(){
-
+function toggleAuto() {
     autoMode = !autoMode;
-
-    if(autoMode){
-
-        runProgress();
-
-        const seconds =
-            parseInt(document.getElementById("intervalInput").value) || 12;
-
-        timer = setInterval(()=>{
-
-            if(!showingBack){
-                flipCard();
-            }else{
-                nextCard();
-            }
-
-            runProgress();
-
-        }, seconds * 1000);
-
-    }else{
+    document.getElementById('autoBtn').textContent = autoMode ? "停止自动" : "自动播放";
+    if (autoMode) {
+        const sec = parseInt(document.getElementById('intervalInput').value) || 10;
+        timer = setInterval(() => !showingBack ? flipCard() : nextCard(), sec * 1000);
+    } else {
         clearInterval(timer);
         progressEl.style.width = "0%";
     }
 }
 
-function runProgress(){
+function showAddCardModal() { document.getElementById('addCardModal').style.display = 'flex'; }
+function hideAddCardModal() { document.getElementById('addCardModal').style.display = 'none'; }
 
-    const seconds =
-        parseInt(document.getElementById("intervalInput").value) || 12;
-
-    progressEl.style.transition = "none";
-    progressEl.style.width = "0%";
-
-    setTimeout(()=>{
-        progressEl.style.transition =
-            `width ${seconds}s linear`;
-        progressEl.style.width = "100%";
-    },50);
+async function addNewCard() {
+    const front = document.getElementById('newFront').value.trim();
+    const back = document.getElementById('newBack').value.trim();
+    if (!front || !back) return alert("正面和背面不能为空");
+    
+    await db.collection('cards').add({ deckId: currentDeckKey, front, back, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+    hideAddCardModal();
+    await loadCards();
 }
 
-document.addEventListener("keydown",(e)=>{
-
-    if(e.code === "Space"){
-        e.preventDefault();
-        flipCard();
-    }
-
-    if(e.key === "ArrowRight"){
-        nextCard();
-    }
-
-    if(e.key === "ArrowLeft"){
-        prevCard();
-    }
-});
-
-renderCard();
+// 初始化
+window.onload = loadDecks;
 </script>
-
 </body>
 </html>
