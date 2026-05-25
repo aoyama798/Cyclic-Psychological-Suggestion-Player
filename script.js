@@ -193,7 +193,29 @@ function renderCard() {
 }
 
 function flipCard() { showingBack = !showingBack; backEl.style.display = showingBack ? "block" : "none"; }
-function nextCard() { currentIndex = (currentIndex + 1) % currentCards.length; showingBack = false; renderCard(); }
+function nextCard() {
+
+    if (currentCards.length === 0) return;
+
+    let newIndex;
+
+    do {
+
+        newIndex = Math.floor(
+            Math.random() * currentCards.length
+        );
+
+    } while (
+        currentCards.length > 1 &&
+        newIndex === currentIndex
+    );
+
+    currentIndex = newIndex;
+
+    showingBack = false;
+
+    renderCard();
+}
 function prevCard() { currentIndex = (currentIndex - 1 + currentCards.length) % currentCards.length; showingBack = false; renderCard(); }
 
 function toggleAuto() {
@@ -358,7 +380,7 @@ async function confirmMoveCard() {
 
         await loadCards();
 
-        alert('卡片已移动');
+       
 
     } catch (e) {
         alert('移动失败：' + e.message);
