@@ -242,8 +242,6 @@
 
     font-size: 120px;
 
-    background: rgba(255, 215, 0, 0);
-
     pointer-events: none;
 
     opacity: 0;
@@ -264,7 +262,7 @@
 
         transform: scale(0.5);
 
-        background: rgba(255, 215, 0, 0);
+        
     }
 
     20% {
@@ -273,7 +271,7 @@
 
         transform: scale(1.4);
 
-        background: rgba(255, 215, 0, 0.25);
+        
     }
 
     60% {
@@ -289,7 +287,6 @@
 
         transform: scale(1);
 
-        background: rgba(255, 215, 0, 0);
     }
 }
 
