@@ -301,5 +301,68 @@ async function deleteCurrentCard() {
         alert('删除失败：' + e.message);
     }
 }
+function hideMoveCardModal() {
+    document.getElementById('moveCardModal').style.display = 'none';
+}
+
+async function moveCurrentCard() {
+
+    if (currentCards.length === 0) return;
+
+    const select = document.getElementById('moveDeckSelect');
+
+    select.innerHTML = '';
+
+    const snapshot = await db.collection('decks').get();
+
+    snapshot.forEach(doc => {
+
+        if (doc.id === currentDeckKey) return;
+
+        const deck = doc.data();
+
+        const option = document.createElement('option');
+
+        option.value = doc.id;
+        option.textContent = `${deck.icon || '📌'} ${deck.name}`;
+
+        select.appendChild(option);
+    });
+
+    document.getElementById('moveCardModal').style.display = 'flex';
+}
+
+async function confirmMoveCard() {
+
+    try {
+
+        const targetDeckId = document.getElementById('moveDeckSelect').value;
+
+        if (!targetDeckId) {
+            return alert('请选择目标分类');
+        }
+
+        const card = currentCards[currentIndex];
+
+        await db.collection('cards')
+            .doc(card.id)
+            .update({
+                deckId: targetDeckId
+            });
+
+        hideMoveCardModal();
+
+        if (currentIndex > 0) {
+            currentIndex--;
+        }
+
+        await loadCards();
+
+        alert('卡片已移动');
+
+    } catch (e) {
+        alert('移动失败：' + e.message);
+    }
+}
 // 初始化
 window.onload = loadDecks;
