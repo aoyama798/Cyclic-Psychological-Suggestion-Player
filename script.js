@@ -276,92 +276,28 @@ function renderCard() {
     if (currentCards.length === 0) {
 
         frontEl.textContent = "暂无卡片，请添加卡片";
-
-        backEl.style.display = "none";
-
         counterEl.textContent = "0 / 0";
-
         return;
     }
 
     const card = currentCards[currentIndex];
 
-    // ====================
-    // 安全处理
-    // ====================
-
-    const front =
-        card.front || '';
-
-    const back =
-        card.back || '';
-
-    // ====================
-    // 渲染内容
-    // ====================
+    const front = card.front || '';
 
     frontEl.innerHTML =
         front.replace(/\n/g, '<br>');
 
-    backEl.innerHTML =
-        back.replace(/\n/g, '<br>');
-
-    // ====================
-    // 超长文本检测
-    // ====================
-
     frontEl.classList.remove('long-text');
 
-    backEl.classList.remove('long-text');
-
     if (front.length > 180) {
-
         frontEl.classList.add('long-text');
     }
-
-    if (back.length > 180) {
-
-        backEl.classList.add('long-text');
-    }
-
-    // ====================
-    // 是否存在背面
-    // ====================
-
-    const hasBack =
-        back.trim() !== '';
-
-    backEl.style.display =
-        (showingBack && hasBack)
-            ? "block"
-            : "none";
-
-    // ====================
-    // 计数
-    // ====================
 
     counterEl.textContent =
         `${currentIndex + 1} / ${currentCards.length}`;
 
-    // ====================
-    // 工具栏
-    // ====================
-
-    document.getElementById('editCardBtn')
-        .style.display = 'block';
-
-    document.getElementById('deleteCardBtn')
-        .style.display = 'block';
-
-    // ====================
-    // 权重显示
-    // ====================
-
-    const weight =
-        card.weight || 0;
-
     document.getElementById('weightBadge')
-        .textContent = `⭐ ${weight}`;
+        .textContent = `⭐ ${card.weight || 0}`;
 }
 
 function flipCard() {
@@ -379,10 +315,7 @@ function flipCard() {
 
     showingBack = !showingBack;
 
-    backEl.style.display =
-        showingBack
-            ? "block"
-            : "none";
+    backEl.style.display = "none";
 }
 
 function handleCardAction() {
@@ -417,8 +350,6 @@ function nextCard() {
         (currentIndex + 1)
         % currentCards.length;
 
-    showingBack = false;
-
     renderCard();
 }
 
@@ -429,7 +360,7 @@ function toggleAuto() {
     document.getElementById('autoBtn').textContent = autoMode ? "Pause" : "Play";
     if (autoMode) {
         const sec = parseInt(document.getElementById('intervalInput').value) || 10;
-        timer = setInterval(() => !showingBack ? flipCard() : nextCard(), sec * 1000);
+        timer = setInterval(() => nextCard(), sec * 1000);
     } else {
         clearInterval(timer);
         progressEl.style.width = "0%";
