@@ -14,7 +14,7 @@
 <!-- 主菜单 -->
 <div id="mainMenu" class="screen active">
     <div class="menu">
-        <h1>循环暗示</h1>
+        <h1>循环暗示 - 心理重塑工具</h1>
         <div class="bubbles" id="bubbles"></div>
         <div style="margin-top:60px;">
             <button onclick="showAddDeckModal()" class="secondary">+ 新建分类</button>
@@ -82,6 +82,23 @@ box-shadow:0 10px 30px rgba(0,0,0,0.4);
 ">
 🗑️
 </button>
+<button id="moveCardBtn"
+onclick="moveCurrentCard()"
+style="
+position:fixed;
+bottom:250px;
+right:30px;
+width:55px;
+height:55px;
+border-radius:50%;
+font-size:20px;
+background:#2f80ed;
+border:none;
+color:white;
+box-shadow:0 10px 30px rgba(0,0,0,0.4);
+">
+📂
+</button>
     <button onclick="showAddCardModal()" style="position:fixed;bottom:30px;right:30px;width:65px;height:65px;border-radius:50%;font-size:32px;background:var(--primary);border:none;color:white;box-shadow:0 10px 30px rgba(0,0,0,0.4);">+</button>
 </div>
 
@@ -110,7 +127,30 @@ box-shadow:0 10px 30px rgba(0,0,0,0.4);
         </div>
     </div>
 </div>
+<!-- 移动卡片弹窗 -->
+<div id="moveCardModal" class="modal">
+    <div class="modal-content">
+        <h3>移动卡片到其它分类</h3>
 
+        <select id="moveDeckSelect"
+        style="
+        width:100%;
+        padding:12px;
+        margin-top:20px;
+        background:#262b36;
+        color:white;
+        border:none;
+        border-radius:10px;
+        font-size:16px;
+        ">
+        </select>
+
+        <div style="margin-top:20px;text-align:right;">
+            <button onclick="hideMoveCardModal()" class="secondary">取消</button>
+            <button onclick="confirmMoveCard()">移动</button>
+        </div>
+    </div>
+</div>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 <script src="script.js"></script>
