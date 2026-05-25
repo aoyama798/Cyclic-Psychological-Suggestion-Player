@@ -9,6 +9,7 @@
 
 
 </head>
+  <div id="starFlash">⭐</div>
 <body>
 
 <!-- 主菜单 -->
@@ -28,7 +29,7 @@
 
         <button onclick="backToMenu()">← 返回</button>
         <button onclick="prevCard()">上一张</button>
-        <button onclick="handleCardAction()">显示答案</button>
+      
         <button onclick="nextCard()">下一张</button>
         <button class="secondary" id="autoBtn" onclick="toggleAuto()">Play</button>
 
@@ -70,8 +71,9 @@
     <button id="deleteCardBtn" onclick="deleteCurrentCard()">🗑️</button>
 
     <button id="moveCardBtn" onclick="moveCurrentCard()">📂</button>
-    <button id="importantBtn" onclick="markImportant()">    ⭐+</button>
+    
     <button id="masteredBtn" onclick="markMastered()">⭐-</button>
+    <button id="importantBtn" onclick="markImportant()"> ⭐+</button>
     <button onclick="showAddCardModal()">➕</button>
 
 </div>
