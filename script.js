@@ -720,4 +720,32 @@ document.addEventListener('keydown', (e) => {
         handleCardAction();
     }
 });
+
+// 快捷键
+document.addEventListener("keydown", (e) => {
+
+    // 避免在输入框/textarea里误触
+    const tag = document.activeElement.tagName;
+    if (tag === "INPUT" || tag === "TEXTAREA") return;
+
+    switch (e.key) {
+
+        case "+":
+        case "=": // 防止部分键盘需要 Shift+=
+            e.preventDefault();
+            markImportant();
+            break;
+
+        case "-":
+            e.preventDefault();
+            markMastered();
+            break;
+
+        case "e":
+        case "E":
+            e.preventDefault();
+            editCurrentCard();
+            break;
+    }
+});
 window.onload = loadDecks;
