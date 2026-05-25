@@ -19,6 +19,7 @@ let autoMode = false;
 let timer = null;
 let currentCards = [];
 let editingDeckId = null;
+let editingCardId = null;
 
 // ==================== DOM ====================
 const frontEl = document.getElementById('front');
@@ -169,17 +170,26 @@ async function loadCards() {
 }
 
 function renderCard() {
+
     if (currentCards.length === 0) {
         frontEl.textContent = "暂无卡片，请添加卡片";
         backEl.style.display = "none";
         counterEl.textContent = "0 / 0";
         return;
     }
+
     const card = currentCards[currentIndex];
+
     frontEl.textContent = card.front;
     backEl.textContent = card.back;
+
     backEl.style.display = showingBack ? "block" : "none";
+
     counterEl.textContent = `${currentIndex + 1} / ${currentCards.length}`;
+
+    // 新增
+    document.getElementById('editCardBtn').style.display = 'block';
+    document.getElementById('deleteCardBtn').style.display = 'block';
 }
 
 function flipCard() { showingBack = !showingBack; backEl.style.display = showingBack ? "block" : "none"; }
@@ -198,18 +208,98 @@ function toggleAuto() {
     }
 }
 
-function showAddCardModal() { document.getElementById('addCardModal').style.display = 'flex'; }
+function showAddCardModal() {
+
+    editingCardId = null;
+
+    document.getElementById('cardModalTitle').textContent = '添加新卡片';
+
+    document.getElementById('saveCardBtn').textContent = '保存卡片';
+
+    document.getElementById('newFront').value = '';
+    document.getElementById('newBack').value = '';
+
+    document.getElementById('addCardModal').style.display = 'flex';
+}
 function hideAddCardModal() { document.getElementById('addCardModal').style.display = 'none'; }
 
-async function addNewCard() {
+async function saveCard() {
+
     const front = document.getElementById('newFront').value.trim();
     const back = document.getElementById('newBack').value.trim();
-    if (!front || !back) return alert("正面和背面不能为空");
-    
-    await db.collection('cards').add({ deckId: currentDeckKey, front, back, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
-    hideAddCardModal();
-    await loadCards();
-}
 
+    if (!front || !back) {
+        return alert("正面和背面不能为空");
+    }
+
+    try {
+
+        if (editingCardId) {
+
+            await db.collection('cards')
+                .doc(editingCardId)
+                .update({
+                    front,
+                    back
+                });
+
+        } else {
+
+            await db.collection('cards').add({
+                deckId: currentDeckKey,
+                front,
+                back,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+        }
+
+        hideAddCardModal();
+        await loadCards();
+
+    } catch (e) {
+        alert('保存失败：' + e.message);
+    }
+}
+function editCurrentCard() {
+
+    if (currentCards.length === 0) return;
+
+    const card = currentCards[currentIndex];
+
+    editingCardId = card.id;
+
+    document.getElementById('cardModalTitle').textContent = '编辑卡片';
+
+    document.getElementById('saveCardBtn').textContent = '保存修改';
+
+    document.getElementById('newFront').value = card.front;
+    document.getElementById('newBack').value = card.back;
+
+    document.getElementById('addCardModal').style.display = 'flex';
+}
+async function deleteCurrentCard() {
+
+    if (currentCards.length === 0) return;
+
+    if (!confirm('确定删除这张卡片吗？')) return;
+
+    try {
+
+        const card = currentCards[currentIndex];
+
+        await db.collection('cards')
+            .doc(card.id)
+            .delete();
+
+        if (currentIndex > 0) {
+            currentIndex--;
+        }
+
+        await loadCards();
+
+    } catch (e) {
+        alert('删除失败：' + e.message);
+    }
+}
 // 初始化
 window.onload = loadDecks;
