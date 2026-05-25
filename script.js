@@ -529,7 +529,7 @@ async function markImportant() {
         card.weight = newWeight;
 
         renderCard();
-
+        playStarAnimation();
     } catch (e) {
 
         alert('更新权重失败：' + e.message);
@@ -561,7 +561,7 @@ async function markMastered() {
         card.weight = newWeight;
         sortCardsByPriority();
         renderCard();
-
+        
     } catch (e) {
 
         alert('更新权重失败：' + e.message);
@@ -595,6 +595,19 @@ if (autoMode) {
     });
 
     document.getElementById('moveCardModal').style.display = 'flex';
+}
+
+function playStarAnimation() {
+
+    const flash =
+        document.getElementById('starFlash');
+
+    flash.classList.remove('active');
+
+    // 强制重绘
+    void flash.offsetWidth;
+
+    flash.classList.add('active');
 }
 
 async function confirmMoveCard() {
