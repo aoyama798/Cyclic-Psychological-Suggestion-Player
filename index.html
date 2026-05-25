@@ -47,6 +47,41 @@
             <div class="progress" id="progress"></div>
         </div>
     </div>
+    <button id="editCardBtn"
+onclick="editCurrentCard()"
+style="
+position:fixed;
+bottom:110px;
+right:30px;
+width:55px;
+height:55px;
+border-radius:50%;
+font-size:22px;
+background:#f39c12;
+border:none;
+color:white;
+box-shadow:0 10px 30px rgba(0,0,0,0.4);
+">
+✏️
+</button>
+
+<button id="deleteCardBtn"
+onclick="deleteCurrentCard()"
+style="
+position:fixed;
+bottom:180px;
+right:30px;
+width:55px;
+height:55px;
+border-radius:50%;
+font-size:22px;
+background:#e74c3c;
+border:none;
+color:white;
+box-shadow:0 10px 30px rgba(0,0,0,0.4);
+">
+🗑️
+</button>
     <button onclick="showAddCardModal()" style="position:fixed;bottom:30px;right:30px;width:65px;height:65px;border-radius:50%;font-size:32px;background:var(--primary);border:none;color:white;box-shadow:0 10px 30px rgba(0,0,0,0.4);">+</button>
 </div>
 
@@ -66,12 +101,12 @@
 <!-- 添加单张卡片弹窗 -->
 <div id="addCardModal" class="modal">
     <div class="modal-content">
-        <h3>添加新卡片</h3>
+        <h3 id="cardModalTitle">添加新卡片</h3>
         <textarea id="newFront" placeholder="正面（问题/暗示）" style="width:100%;height:120px;margin:15px 0;padding:12px;background:#262b36;color:white;border:none;border-radius:12px;"></textarea>
         <textarea id="newBack" placeholder="背面（答案/解释）" style="width:100%;height:160px;padding:12px;background:#262b36;color:white;border:none;border-radius:12px;"></textarea>
         <div style="margin-top:20px;text-align:right;">
             <button onclick="hideAddCardModal()" class="secondary">取消</button>
-            <button onclick="addNewCard()">保存卡片</button>
+            <button onclick="saveCard()" id="saveCardBtn">保存卡片</button>
         </div>
     </div>
 </div>
