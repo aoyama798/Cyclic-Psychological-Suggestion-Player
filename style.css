@@ -1,239 +1,121 @@
-
-    :root { --primary: #2f80ed; --dark: #0f1115; --card-bg: #171a21; }
-    * { box-sizing: border-box; margin:0; padding:0; }
-    body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    background: var(--dark);
-    color: #fff;
-    min-height: 100vh;
-    overflow-x: hidden;
-    overflow-y: auto;
-}
-    .screen { display: none; height: 100vh; flex-direction: column; }
-    .screen.active { display: flex; }
-
-    .menu { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
-    h1 { font-size: 3rem; margin-bottom: 60px; background: linear-gradient(90deg, #2f80ed, #7b68ee); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-
-    .bubbles {
-
-    display: grid;
-
-    grid-template-columns:
-        repeat(auto-fit, minmax(140px, 1fr));
-
-    gap: 24px;
-
-    width: 100%;
-
-    max-width: 1200px;
-
-    margin: 40px auto;
-
-    padding: 20px;
-}
-    .bubble {
-
-    width: 100%;
-    position: relative;
-    aspect-ratio: 1 / 1;
-
-    border-radius: 280px;
-
-    display: flex;
-
-    flex-direction: column;
-
-    justify-content: center;
-
-    align-items: center;
-
-    cursor: pointer;
-
-    transition: 0.25s;
-}
-    .bubble:hover { transform: scale(1.08); }
-
-    .action-btn {
-        position: absolute; width: 34px; height: 34px;
-        background: #333; color: white; border-radius: 50%;
-        display: flex; align-items: center; justify-content: center;
-        font-size: 18px; cursor: pointer; z-index: 20; box-shadow: 0 3px 8px rgba(0,0,0,0.3);
-    }
-    .edit-btn { top: -8px; left: -8px; background: #f39c12; }
-    .delete-btn { top: -8px; right: -8px; background: #e74c3c; }
-
-    .topbar { padding:14px 20px; background:#171a21; border-bottom:1px solid #2a2f3a; display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
-    button { background:var(--primary); border:none; color:white; padding:10px 16px; border-radius:10px; cursor:pointer; }
-    button:hover { opacity:0.9; }
-    button.secondary { background:#3a3f4b; }
-
-    .container { flex:1; display:flex; align-items:center; justify-content:center; padding:30px; }
-    .card {
-        width:min(1100px,95vw); min-height:460px; background:var(--card-bg); border-radius:28px;
-        padding:40px; box-shadow:0 15px 50px rgba(0,0,0,0.5); position:relative; overflow:hidden;
-        display:flex; flex-direction:column; justify-content:center;
-    }
-    .tag { position:absolute; top:20px; right:20px; background:var(--primary); padding:6px 14px; border-radius:999px; font-size:13px; }
-    .front { font-size:2.1rem; line-height:1.5; font-weight:700; white-space:pre-wrap; }
-    .back { margin-top:32px; font-size:1.25rem; line-height:1.8; color:#d4d7dd; white-space:pre-wrap; display:none; border-top:1px solid #2a2f3a; padding-top:24px; }
-    .progress { position:absolute; bottom:0; left:0; height:6px; background:linear-gradient(90deg,#2f80ed,#7b68ee); width:0%; transition:width linear; }
-
-    .modal { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); display:none; align-items:center; justify-content:center; z-index:1000; }
-    .modal-content { background:#171a21; padding:30px; border-radius:20px; width:90%; max-width:500px; }
-/* =========================
-   响应式布局
-========================= */
-
-/* 平板 */
-@media (max-width: 1024px) {
-
-    .topbar {
-        flex-wrap: wrap;
-        gap: 10px;
-        padding: 14px;
-    }
-
-    .card {
-        width: 92%;
-        padding: 40px 30px;
-    }
-
-    .front,
-    .back {
-        font-size: 2rem;
-    }
-
-    .bubble {
-        width: 150px;
-        height: 150px;
-        font-size: 1rem;
-    }
-}
-
-/* 手机 */
-@media (max-width: 768px) {
-
-    h1 {
-        font-size: 2rem;
-    }
-
-    .topbar {
-
-        position: relative;
-
-        flex-wrap: wrap;
-
-        justify-content: center;
-
-        gap: 8px;
-
-        padding: 10px;
-
-        height: auto;
-    }
-
-    .topbar button {
-
-        font-size: 14px;
-
-        padding: 10px 14px;
-    }
-
-    .topbar input {
-
-        width: 60px !important;
-    }
-
-    .container {
-
-        padding: 20px;
-    }
-
-    .card {
-
-        width: 100%;
-
-        min-height: 55vh;
-
-        padding: 30px 20px;
-
-        border-radius: 24px;
-    }
-
-    .front,
-    .back {
-
-        font-size: 1.6rem;
-
-        line-height: 1.6;
-    }
-
-    .bubble {
-
-        width: 120px;
-
-        height: 120px;
-
-        font-size: 0.95rem;
-
-        border-radius: 24px;
-    }
-
-    .modal-content {
-
-        width: 92%;
-
-        padding: 24px;
-    }
-
-    /* 浮动按钮 */
-
-    #editCardBtn,
-    #deleteCardBtn,
-    #moveCardBtn {
-
-        width: 48px;
-        height: 48px;
-        font-size: 18px;
-        right: 16px;
-    }
-
-    #editCardBtn {
-        bottom: 95px;
-    }
-
-    #deleteCardBtn {
-        bottom: 155px;
-    }
-
-    #moveCardBtn {
-        bottom: 215px;
-    }
-}
-
-/* 超小手机 */
-@media (max-width: 480px) {
-
-    .front,
-    .back {
-        font-size: 1.35rem;
-    }
-
-    .bubble {
-
-        width: 100px;
-        height: 100px;
-    }
-
-    h1 {
-        font-size: 1.7rem;
-    }
-
-    .topbar button {
-
-        font-size: 12px;
-
-        padding: 8px 10px;
-    }
-}
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>循环暗示 - 心理重塑工具</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="style.css">
+
+
+
+</head>
+<body>
+
+<!-- 主菜单 -->
+<div id="mainMenu" class="screen active">
+    <div class="menu">
+        <h1>循环暗示 - 心理重塑工具</h1>
+        <div class="bubbles" id="bubbles"></div>
+        <div style="margin-top:60px;">
+            <button onclick="showAddDeckModal()" class="secondary">+ 新建分类</button>
+        </div>
+    </div>
+</div>
+
+<!-- 播放器 -->
+<div id="player" class="screen">
+    <div class="topbar">
+        <button onclick="backToMenu()">← 返回</button>
+        <button onclick="prevCard()">上一张</button>
+        <button onclick="flipCard()">显示答案</button>
+        <button onclick="nextCard()">下一张</button>
+        <button class="secondary" id="autoBtn" onclick="toggleAuto()">自动播放</button>
+        <span>间隔(秒)</span>
+        <input type="number" id="intervalInput" value="1" min="5" style="width:70px;background:#262b36;color:white;border:none;border-radius:8px;padding:8px;">
+        
+        <button onclick="document.getElementById('csvInput').click()" class="secondary">📥 批量导入 CSV</button>
+        <input type="file" id="csvInput" accept=".csv" style="display:none" onchange="importCSV(event)">
+        
+        <span id="deckTitle" style="margin-left:auto;font-weight:600;"></span>
+        <span id="counter">1 / 1</span>
+    </div>
+    <div class="container">
+        <div class="card">
+            <div class="tag" id="tag"></div>
+            <div class="front" id="front"></div>
+            <div class="back" id="back"></div>
+            <div class="progress" id="progress"></div>
+        </div>
+    </div>
+  
+<div class="card-toolbar">
+
+    <button id="editCardBtn" onclick="editCurrentCard()">✏️</button>
+
+    <button id="deleteCardBtn" onclick="deleteCurrentCard()">🗑️</button>
+
+    <button id="moveCardBtn" onclick="moveCurrentCard()">📂</button>
+
+    <button onclick="showAddCardModal()">➕</button>
+
+</div>
+
+  
+    
+</div>
+
+<!-- 分类 新建/编辑 弹窗 -->
+<div id="deckModal" class="modal">
+    <div class="modal-content">
+        <h3 id="modalTitle">新建分类</h3>
+        <input type="text" id="deckName" placeholder="分类名称" style="width:100%;padding:12px;margin:15px 0;background:#262b36;color:white;border:none;border-radius:10px;">
+        <input type="text" id="deckIcon" placeholder="图标（如 🧠）" maxlength="2" style="width:100%;padding:12px;background:#262b36;color:white;border:none;border-radius:10px;">
+        <div style="margin-top:20px;text-align:right;">
+            <button onclick="hideDeckModal()" class="secondary">取消</button>
+            <button onclick="saveDeck()" id="saveBtn">创建</button>
+        </div>
+    </div>
+</div>
+
+<!-- 添加单张卡片弹窗 -->
+<div id="addCardModal" class="modal">
+    <div class="modal-content">
+        <h3 id="cardModalTitle">添加新卡片</h3>
+        <textarea id="newFront" placeholder="正面（问题/暗示）" style="width:100%;height:120px;margin:15px 0;padding:12px;background:#262b36;color:white;border:none;border-radius:12px;"></textarea>
+        <textarea id="newBack" placeholder="背面（答案/解释）" style="width:100%;height:160px;padding:12px;background:#262b36;color:white;border:none;border-radius:12px;"></textarea>
+        <div style="margin-top:20px;text-align:right;">
+            <button onclick="hideAddCardModal()" class="secondary">取消</button>
+            <button onclick="saveCard()" id="saveCardBtn">保存卡片</button>
+        </div>
+    </div>
+</div>
+<!-- 移动卡片弹窗 -->
+<div id="moveCardModal" class="modal">
+    <div class="modal-content">
+        <h3>移动卡片到其它分类</h3>
+
+        <select id="moveDeckSelect"
+        style="
+        width:100%;
+        padding:12px;
+        margin-top:20px;
+        background:#262b36;
+        color:white;
+        border:none;
+        border-radius:10px;
+        font-size:16px;
+        ">
+        </select>
+
+        <div style="margin-top:20px;text-align:right;">
+            <button onclick="hideMoveCardModal()" class="secondary">取消</button>
+            <button onclick="confirmMoveCard()">移动</button>
+        </div>
+    </div>
+</div>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script src="script.js"></script>
+    
+</body>
+</html>
