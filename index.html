@@ -25,26 +25,41 @@
 <!-- 播放器 -->
 <div id="player" class="screen">
     <div class="topbar">
+
         <button onclick="backToMenu()">← 返回</button>
         <button onclick="prevCard()">上一张</button>
-        <button onclick="flipCard()">显示答案</button>
+        <button onclick="handleCardAction()">显示答案</button>
         <button onclick="nextCard()">下一张</button>
-        <button class="secondary" id="autoBtn" onclick="toggleAuto()">自动播放</button>
-        <span>间隔(秒)</span>
-        <input type="number" id="intervalInput" value="1" min="5" style="width:70px;background:#262b36;color:white;border:none;border-radius:8px;padding:8px;">
+        <button class="secondary" id="autoBtn" onclick="toggleAuto()">Play</button>
+
+      <span>间隔(秒)</span>
+        <input type="number" id="intervalInput" value="2.5" min="5" style="width:70px;background:#262b36;color:white;border:none;border-radius:8px;padding:8px;">
         
-        <button onclick="document.getElementById('csvInput').click()" class="secondary">📥 批量导入 CSV</button>
-        <input type="file" id="csvInput" accept=".csv" style="display:none" onchange="importCSV(event)">
+        <button
+    onclick="document.getElementById('csvInput').click()"
+    class="secondary"
+>
+    📥 批量导入
+</button>
+      <div id="breathingLight"></div>
+<input
+    type="file"
+    id="csvInput"
+    accept=".csv,.txt,.tsv"
+    style="display:none"
+    onchange="importCSV(event)"
+>
         
         <span id="deckTitle" style="margin-left:auto;font-weight:600;"></span>
         <span id="counter">1 / 1</span>
     </div>
     <div class="container">
-        <div class="card">
+        <div class="card" onclick="handleCardAction()">
             
             <div class="front" id="front"></div>
             <div class="back" id="back"></div>
             <div class="progress" id="progress"></div>
+          <div id="weightBadge" class="weight-badge"></div>
         </div>
     </div>
   
@@ -55,7 +70,8 @@
     <button id="deleteCardBtn" onclick="deleteCurrentCard()">🗑️</button>
 
     <button id="moveCardBtn" onclick="moveCurrentCard()">📂</button>
-
+    <button id="importantBtn" onclick="markImportant()">    ⭐+</button>
+    <button id="masteredBtn" onclick="markMastered()">⭐-</button>
     <button onclick="showAddCardModal()">➕</button>
 
 </div>
