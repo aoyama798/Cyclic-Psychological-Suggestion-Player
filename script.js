@@ -16,6 +16,7 @@ let currentDeckKey = null;
 let currentIndex = 0;
 let showingBack = false;
 let autoMode = false;
+
 let timer = null;
 let currentCards = [];
 let editingDeckId = null;
@@ -28,6 +29,9 @@ const backEl = document.getElementById('back');
 const counterEl = document.getElementById('counter');
 const deckTitleEl = document.getElementById('deckTitle');
 const progressEl = document.getElementById('progress');
+
+document.getElementById('breathingLight')
+    .classList.toggle('active', autoMode);
 
 // ==================== 分类管理 ====================
 async function loadDecks() {
@@ -100,47 +104,145 @@ async function deleteDeck(deckId) {
 }
 
 // ==================== CSV 批量导入 ====================
+// ==================== CSV / TXT / TSV 批量导入 ====================
 async function importCSV(e) {
+
     const file = e.target.files[0];
+
     if (!file) return;
 
+    const ext = file.name
+        .split('.')
+        .pop()
+        .toLowerCase();
+
     const reader = new FileReader();
+
     reader.onload = async (event) => {
-        const csv = event.target.result;
-        const lines = csv.split('\n').map(l => l.trim()).filter(l => l);
+
+        const text = event.target.result;
+
+        const lines = text
+            .split(/\r?\n/)
+            .map(l => l.trim())
+            .filter(l => l);
+
         let success = 0;
+
         const batch = db.batch();
 
+        // 自动识别分隔符
+        let separator = ",";
+
+        if (ext === 'txt' || ext === 'tsv') {
+            separator = "\t";
+        }
+
         for (let i = 0; i < lines.length; i++) {
-            if (i === 0 && lines[i].toLowerCase().includes('正面') || lines[i].toLowerCase().includes('front')) continue;
-            
-            const cols = lines[i].split(',').map(c => c.trim());
-            if (cols.length < 2) continue;
 
-            const front = cols[0];
-            const back = cols.slice(1).join(',');
+            const line = lines[i];
 
-            if (front && back) {
-                const cardRef = db.collection('cards').doc();
-                batch.set(cardRef, {
-                    deckId: currentDeckKey,
-                    front: front,
-                    back: back,
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                });
-                success++;
+            // 跳过 Anki 配置行
+            if (line.startsWith('#')) {
+                continue;
             }
+
+            // 跳过 CSV 表头
+            const lower = line.toLowerCase();
+
+            if (
+                lower.includes('正面') ||
+                lower.includes('front')
+            ) {
+                continue;
+            }
+
+            let front = '';
+            let back = '';
+
+            // ====================
+            // TXT / TSV
+            // ====================
+            if (separator === "\t") {
+
+                const firstTab = line.indexOf("\t");
+
+                if (firstTab === -1) continue;
+
+                front = line
+                    .slice(0, firstTab)
+                    .trim();
+
+                back = line
+                    .slice(firstTab + 1)
+                    .trim();
+
+            }
+
+            // ====================
+            // CSV
+            // ====================
+            else {
+
+                const firstComma = line.indexOf(",");
+
+                if (firstComma === -1) continue;
+
+                front = line
+                    .slice(0, firstComma)
+                    .trim();
+
+                back = line
+                    .slice(firstComma + 1)
+                    .trim();
+
+                // 去掉 csv 外层引号
+                if (
+                    front.startsWith('"') &&
+                    front.endsWith('"')
+                ) {
+                    front = front.slice(1, -1);
+                }
+
+                if (
+                    back.startsWith('"') &&
+                    back.endsWith('"')
+                ) {
+                    back = back.slice(1, -1);
+                }
+            }
+
+            if (!front || !back) continue;
+
+            const cardRef = db.collection('cards').doc();
+
+            batch.set(cardRef, {
+    deckId: currentDeckKey,
+    front,
+    back,
+    weight: 0,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+});
+
+            success++;
         }
 
         try {
+
             await batch.commit();
-            alert(`✅ 成功批量导入 ${success} 张卡片！`);
+
+            alert(`✅ 成功导入 ${success} 张卡片`);
+
             await loadCards();
+
         } catch (err) {
+
             alert("导入失败：" + err.message);
         }
     };
-    reader.readAsText(file);
+
+    reader.readAsText(file, 'utf-8');
+
     e.target.value = '';
 }
 
@@ -165,61 +267,166 @@ function backToMenu() {
 async function loadCards() {
     const snapshot = await db.collection('cards').where('deckId', '==', currentDeckKey).get();
     currentCards = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  sortCardsByPriority();
     renderCard();
 }
 
 function renderCard() {
 
     if (currentCards.length === 0) {
+
         frontEl.textContent = "暂无卡片，请添加卡片";
+
         backEl.style.display = "none";
+
         counterEl.textContent = "0 / 0";
+
         return;
     }
 
     const card = currentCards[currentIndex];
 
-    frontEl.textContent = card.front;
-    backEl.textContent = card.back;
+    // ====================
+    // 安全处理
+    // ====================
 
-    backEl.style.display = showingBack ? "block" : "none";
+    const front =
+        card.front || '';
 
-    counterEl.textContent = `${currentIndex + 1} / ${currentCards.length}`;
+    const back =
+        card.back || '';
 
-    // 新增
-    document.getElementById('editCardBtn').style.display = 'block';
-    document.getElementById('deleteCardBtn').style.display = 'block';
+    // ====================
+    // 渲染内容
+    // ====================
+
+    frontEl.innerHTML =
+        front.replace(/\n/g, '<br>');
+
+    backEl.innerHTML =
+        back.replace(/\n/g, '<br>');
+
+    // ====================
+    // 超长文本检测
+    // ====================
+
+    frontEl.classList.remove('long-text');
+
+    backEl.classList.remove('long-text');
+
+    if (front.length > 180) {
+
+        frontEl.classList.add('long-text');
+    }
+
+    if (back.length > 180) {
+
+        backEl.classList.add('long-text');
+    }
+
+    // ====================
+    // 是否存在背面
+    // ====================
+
+    const hasBack =
+        back.trim() !== '';
+
+    backEl.style.display =
+        (showingBack && hasBack)
+            ? "block"
+            : "none";
+
+    // ====================
+    // 计数
+    // ====================
+
+    counterEl.textContent =
+        `${currentIndex + 1} / ${currentCards.length}`;
+
+    // ====================
+    // 工具栏
+    // ====================
+
+    document.getElementById('editCardBtn')
+        .style.display = 'block';
+
+    document.getElementById('deleteCardBtn')
+        .style.display = 'block';
+
+    // ====================
+    // 权重显示
+    // ====================
+
+    const weight =
+        card.weight || 0;
+
+    document.getElementById('weightBadge')
+        .textContent = `⭐ ${weight}`;
 }
 
-function flipCard() { showingBack = !showingBack; backEl.style.display = showingBack ? "block" : "none"; }
+function flipCard() {
+
+    if (currentCards.length === 0) return;
+
+    const card = currentCards[currentIndex];
+
+    const hasBack =
+        card.back &&
+        card.back.trim() !== '';
+
+    // 没背面 -> 不翻转
+    if (!hasBack) return;
+
+    showingBack = !showingBack;
+
+    backEl.style.display =
+        showingBack
+            ? "block"
+            : "none";
+}
+
+function handleCardAction() {
+
+    if (currentCards.length === 0) return;
+
+    const card = currentCards[currentIndex];
+
+    const hasBack =
+        card.back &&
+        card.back.trim() !== '';
+
+    // 有背面 且 当前未显示
+    if (!showingBack && hasBack) {
+
+        flipCard();
+    }
+
+    // 已显示背面
+    // 或没有背面
+    else {
+
+        nextCard();
+    }
+}
+
 function nextCard() {
 
     if (currentCards.length === 0) return;
 
-    let newIndex;
-
-    do {
-
-        newIndex = Math.floor(
-            Math.random() * currentCards.length
-        );
-
-    } while (
-        currentCards.length > 1 &&
-        newIndex === currentIndex
-    );
-
-    currentIndex = newIndex;
+    currentIndex =
+        (currentIndex + 1)
+        % currentCards.length;
 
     showingBack = false;
 
     renderCard();
 }
+
 function prevCard() { currentIndex = (currentIndex - 1 + currentCards.length) % currentCards.length; showingBack = false; renderCard(); }
 
 function toggleAuto() {
     autoMode = !autoMode;
-    document.getElementById('autoBtn').textContent = autoMode ? "停止自动" : "自动播放";
+    document.getElementById('autoBtn').textContent = autoMode ? "Pause" : "Play";
     if (autoMode) {
         const sec = parseInt(document.getElementById('intervalInput').value) || 10;
         timer = setInterval(() => !showingBack ? flipCard() : nextCard(), sec * 1000);
@@ -229,8 +436,42 @@ function toggleAuto() {
     }
 }
 
-function showAddCardModal() {
+function sortCardsByPriority() {
 
+    const now = Date.now();
+
+    currentCards.sort((a, b) => {
+
+        // 默认值
+        const weightA = a.weight || 0;
+        const weightB = b.weight || 0;
+
+        // 最近播放时间
+        const lastA = a.lastViewedAt || 0;
+        const lastB = b.lastViewedAt || 0;
+
+        // 距离上次播放多久（分钟）
+        const deltaA =
+            (now - lastA) / 1000 / 60;
+
+        const deltaB =
+            (now - lastB) / 1000 / 60;
+
+        // 核心 score
+        const scoreA =
+            weightA * 100 + deltaA;
+
+        const scoreB =
+            weightB * 100 + deltaB;
+
+        return scoreB - scoreA;
+    });
+}
+
+function showAddCardModal() {
+if (autoMode) {
+    toggleAuto();
+}
     editingCardId = null;
 
     document.getElementById('cardModalTitle').textContent = '添加新卡片';
@@ -249,9 +490,9 @@ async function saveCard() {
     const front = document.getElementById('newFront').value.trim();
     const back = document.getElementById('newBack').value.trim();
 
-    if (!front || !back) {
-        return alert("正面和背面不能为空");
-    }
+    if (!front) {
+    return alert("正面不能为空");
+}
 
     try {
 
@@ -267,11 +508,12 @@ async function saveCard() {
         } else {
 
             await db.collection('cards').add({
-                deckId: currentDeckKey,
-                front,
-                back,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp()
-            });
+    deckId: currentDeckKey,
+    front,
+    back,
+    weight: 0,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+});
         }
 
         hideAddCardModal();
@@ -282,11 +524,20 @@ async function saveCard() {
     }
 }
 function editCurrentCard() {
-
+if (autoMode) {
+    toggleAuto();
+}
     if (currentCards.length === 0) return;
 
     const card = currentCards[currentIndex];
+    card.lastViewedAt = Date.now();
 
+db.collection('cards')
+    .doc(card.id)
+    .update({
+        lastViewedAt: card.lastViewedAt
+    });
+  
     editingCardId = card.id;
 
     document.getElementById('cardModalTitle').textContent = '编辑卡片';
@@ -326,8 +577,70 @@ function hideMoveCardModal() {
     document.getElementById('moveCardModal').style.display = 'none';
 }
 
-async function moveCurrentCard() {
+async function markImportant() {
 
+    if (currentCards.length === 0) return;
+
+    try {
+
+        const card = currentCards[currentIndex];
+
+        const newWeight =
+            (card.weight || 0) + 1;
+
+        await db.collection('cards')
+            .doc(card.id)
+            .update({
+                weight: newWeight
+            });
+
+        // 本地同步
+        card.weight = newWeight;
+
+        renderCard();
+
+    } catch (e) {
+
+        alert('更新权重失败：' + e.message);
+    }
+}
+
+async function markMastered() {
+
+    if (currentCards.length === 0) return;
+
+    try {
+
+        const card = currentCards[currentIndex];
+
+        // 最低不能小于 0
+        const newWeight =
+            Math.max(
+                0,
+                (card.weight || 0) - 1
+            );
+
+        await db.collection('cards')
+            .doc(card.id)
+            .update({
+                weight: newWeight
+            });
+
+        // 本地同步
+        card.weight = newWeight;
+        sortCardsByPriority();
+        renderCard();
+
+    } catch (e) {
+
+        alert('更新权重失败：' + e.message);
+    }
+}
+
+async function moveCurrentCard() {
+if (autoMode) {
+    toggleAuto();
+}
     if (currentCards.length === 0) return;
 
     const select = document.getElementById('moveDeckSelect');
@@ -386,4 +699,25 @@ async function confirmMoveCard() {
     }
 }
 // 初始化
+// ==================== 空格键控制 ====================
+document.addEventListener('keydown', (e) => {
+
+    // 避免输入框触发
+    const tag = document.activeElement.tagName;
+
+    if (
+        tag === 'INPUT' ||
+        tag === 'TEXTAREA'
+    ) {
+        return;
+    }
+
+    // 空格键
+    if (e.code === 'Space') {
+
+        e.preventDefault();
+
+        handleCardAction();
+    }
+});
 window.onload = loadDecks;
