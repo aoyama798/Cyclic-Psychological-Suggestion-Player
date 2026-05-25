@@ -24,7 +24,7 @@ let editingCardId = null;
 // ==================== DOM ====================
 const frontEl = document.getElementById('front');
 const backEl = document.getElementById('back');
-const tagEl = document.getElementById('tag');
+
 const counterEl = document.getElementById('counter');
 const deckTitleEl = document.getElementById('deckTitle');
 const progressEl = document.getElementById('progress');
@@ -150,8 +150,7 @@ async function startPlayer(deckId, deck) {
     document.getElementById('mainMenu').classList.remove('active');
     document.getElementById('player').classList.add('active');
     deckTitleEl.textContent = deck.name;
-    tagEl.textContent = deck.name;
-    tagEl.style.background = deck.color || '#2f80ed';
+
     currentIndex = 0;
     showingBack = false;
     await loadCards();
