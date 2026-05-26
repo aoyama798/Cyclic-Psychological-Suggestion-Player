@@ -9,8 +9,9 @@
 
 
 </head>
-  <div id="starFlash">⭐</div>
 <body>
+<div id="starFlash">⭐</div>
+
 
 <!-- 主菜单 -->
 <div id="mainMenu" class="screen active">
@@ -27,22 +28,14 @@
 <div id="player" class="screen">
     <div class="topbar">
 
-        <button onclick="backToMenu()">← 返回</button>
-        <button onclick="prevCard()">上一张</button>
-      
-        <button onclick="nextCard()">下一张</button>
+        <button onclick="backToMenu()">↩</button>
+        <button onclick="prevCard()">⬅</button>
+        <button onclick="nextCard()">➡</button>
         <button class="secondary" id="autoBtn" onclick="toggleAuto()">Play</button>
-
-      <span>间隔(秒)</span>
-        <input type="number" id="intervalInput" value="2.5" min="5" style="width:70px;background:#262b36;color:white;border:none;border-radius:8px;padding:8px;">
-        
-        <button
-    onclick="document.getElementById('csvInput').click()"
-    class="secondary"
->
-    📥 批量导入
-</button>
+        <input type="number" id="intervalInput" value="2.5" min="5" style="width:55px;background:#262b36;color:white;border:none;border-radius:8px;padding:8px;">
+        <button onclick="document.getElementById('csvInput').click()" class="secondary">import</button>
       <div id="breathingLight"></div>
+      <button onclick="toggleImmersiveMode()">⛶</button>
 <input
     type="file"
     id="csvInput"
@@ -96,17 +89,108 @@
 </div>
 
 <!-- 添加单张卡片弹窗 -->
+
+<!-- 添加单张卡片弹窗 -->
 <div id="addCardModal" class="modal">
+
     <div class="modal-content">
-        <h3 id="cardModalTitle">添加新卡片</h3>
-        <textarea id="newFront" placeholder="正面（问题/暗示）" style="width:100%;height:120px;margin:15px 0;padding:12px;background:#262b36;color:white;border:none;border-radius:12px;"></textarea>
-        <textarea id="newBack" placeholder="背面（答案/解释）" style="width:100%;height:160px;padding:12px;background:#262b36;color:white;border:none;border-radius:12px;"></textarea>
-        <div style="margin-top:20px;text-align:right;">
-            <button onclick="hideAddCardModal()" class="secondary">取消</button>
-            <button onclick="saveCard()" id="saveCardBtn">保存卡片</button>
+
+        <div class="modal-header">
+
+            <h3 id="cardModalTitle">
+                添加新卡片
+            </h3>
+
+            <div class="mini-toolbar">
+
+                <button
+                    type="button"
+                    class="tool-btn red"
+                    onclick="wrapSelection('!!','!!')">
+                    红
+                </button>
+
+                <button
+                    type="button"
+                    class="tool-btn green"
+                    onclick="wrapSelection('{{','}}')">
+                    绿
+                </button>
+
+                <button
+                    type="button"
+                    class="tool-btn purple"
+                    onclick="wrapSelection('[[',']]')">
+                    大
+                </button>
+
+                <button
+                    type="button"
+                    class="tool-btn underline"
+                    onclick="wrapSelection('__','__')">
+                    U
+                </button>
+
+                <button
+                    type="button"
+                    class="clean-btn"
+                    onclick="cleanTextarea(activeTextarea)">
+                    ↵
+                </button>
+
+            </div>
+
         </div>
+
+        <textarea
+            id="newFront"
+            onfocus="activeTextarea='newFront'"
+            placeholder="正面（问题/暗示）"
+            style="
+            width:100%;
+            height:120px;
+            margin:15px 0;
+            padding:12px;
+            background:#262b36;
+            color:white;
+            border:none;
+            border-radius:12px;
+            "></textarea>
+        <textarea
+            id="newBack"
+            onfocus="activeTextarea='newBack'"
+            placeholder="背面（答案/解释）"
+            style="
+            width:100%;
+            height:160px;
+            padding:12px;
+            background:#262b36;
+            color:white;
+            border:none;
+            border-radius:12px;
+            "></textarea>
+
+        <div style="margin-top:20px;text-align:right;">
+
+            <button
+                onclick="hideAddCardModal()"
+                class="secondary">
+                取消
+            </button>
+
+            <button
+                onclick="saveCard()"
+                id="saveCardBtn">
+                保存卡片
+            </button>
+
+        </div>
+
     </div>
+
 </div>
+
+  
 <!-- 移动卡片弹窗 -->
 <div id="moveCardModal" class="modal">
     <div class="modal-content">
@@ -131,9 +215,18 @@
         </div>
     </div>
 </div>
+  <!-- 退出退出沉浸 -->
+
+  
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 <script src="script.js"></script>
-    
+
+<button
+    id="exitImmersiveBtn"
+    onclick="toggleImmersiveMode()"
+>
+    ✕
+</button>  
 </body>
 </html>
