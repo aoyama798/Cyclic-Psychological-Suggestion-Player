@@ -105,129 +105,140 @@ async function deleteDeck(deckId) {
 
 // ==================== CSV 批量导入 ====================
 // ==================== CSV / TXT / TSV 批量导入 ====================
+// ==================== 超稳健导入 ====================
 async function importCSV(e) {
 
     const file = e.target.files[0];
 
     if (!file) return;
 
-    const ext = file.name
-        .split('.')
-        .pop()
-        .toLowerCase();
-
     const reader = new FileReader();
 
     reader.onload = async (event) => {
 
-        const text = event.target.result;
-
-        const lines = text
-            .split(/\r?\n/)
-            .map(l => l.trim())
-            .filter(l => l);
-
-        let success = 0;
-
-        const batch = db.batch();
-
-        // 自动识别分隔符
-        let separator = ",";
-
-        if (ext === 'txt' || ext === 'tsv') {
-            separator = "\t";
-        }
-
-        for (let i = 0; i < lines.length; i++) {
-
-            const line = lines[i];
-
-            // 跳过 Anki 配置行
-            if (line.startsWith('#')) {
-                continue;
-            }
-
-            // 跳过 CSV 表头
-            const lower = line.toLowerCase();
-
-            if (
-                lower.includes('正面') ||
-                lower.includes('front')
-            ) {
-                continue;
-            }
-
-            let front = '';
-            let back = '';
-
-            // ====================
-            // TXT / TSV
-            // ====================
-            if (separator === "\t") {
-
-                const firstTab = line.indexOf("\t");
-
-                if (firstTab === -1) continue;
-
-                front = line
-                    .slice(0, firstTab)
-                    .trim();
-
-                back = line
-                    .slice(firstTab + 1)
-                    .trim();
-
-            }
-
-            // ====================
-            // CSV
-            // ====================
-            else {
-
-                const firstComma = line.indexOf(",");
-
-                if (firstComma === -1) continue;
-
-                front = line
-                    .slice(0, firstComma)
-                    .trim();
-
-                back = line
-                    .slice(firstComma + 1)
-                    .trim();
-
-                // 去掉 csv 外层引号
-                if (
-                    front.startsWith('"') &&
-                    front.endsWith('"')
-                ) {
-                    front = front.slice(1, -1);
-                }
-
-                if (
-                    back.startsWith('"') &&
-                    back.endsWith('"')
-                ) {
-                    back = back.slice(1, -1);
-                }
-            }
-
-            if (!front || !back) continue;
-
-            const cardRef = db.collection('cards').doc();
-
-            batch.set(cardRef, {
-    deckId: currentDeckKey,
-    front,
-    back,
-    weight: 0,
-    createdAt: firebase.firestore.FieldValue.serverTimestamp()
-});
-
-            success++;
-        }
-
         try {
+
+            // ====================
+            // 读取文本
+            // ====================
+
+            let text = event.target.result || '';
+
+            // 去 BOM
+            text = text.replace(/^\uFEFF/, '');
+
+            // 换行统一
+            const lines = text
+                .split(/\r?\n/)
+                .map(l => l.trim())
+                .filter(l => l);
+
+            if (lines.length === 0) {
+                return alert('文件为空');
+            }
+
+            let success = 0;
+
+            const batch = db.batch();
+
+            for (let rawLine of lines) {
+
+                // ====================
+                // 跳过注释
+                // ====================
+
+                if (
+                    rawLine.startsWith('#') ||
+                    rawLine.startsWith('//')
+                ) {
+                    continue;
+                }
+
+                // ====================
+                // 去外层引号
+                // ====================
+
+                let line = rawLine
+                    .replace(/^"(.*)"$/, '$1')
+                    .trim();
+
+                if (!line) continue;
+
+                // ====================
+                // 跳过表头
+                // ====================
+
+                const lower = line.toLowerCase();
+
+                if (
+                    lower === 'front' ||
+                    lower === '正面' ||
+                    lower.includes('问题')
+                ) {
+                    continue;
+                }
+
+                // ====================
+                // 自动识别分隔符
+                // ====================
+
+                let front = line;
+
+                const separators = [
+                    '\t',
+                    ',',
+                    '，',
+                    ';',
+                    '|'
+                ];
+
+                for (const sep of separators) {
+
+                    if (line.includes(sep)) {
+
+                        front = line
+                            .split(sep)[0]
+                            .trim();
+
+                        break;
+                    }
+                }
+
+                // ====================
+                // 清理 front
+                // ====================
+
+                front = front
+                    .replace(/^"(.*)"$/, '$1')
+                    .trim();
+
+                if (!front) continue;
+
+                // ====================
+                // 写入 Firebase
+                // ====================
+
+                const cardRef =
+                    db.collection('cards').doc();
+
+                batch.set(cardRef, {
+
+                    deckId: currentDeckKey,
+
+                    front,
+
+                    weight: 0,
+
+                    createdAt:
+                        firebase.firestore.FieldValue.serverTimestamp()
+                });
+
+                success++;
+            }
+
+            // ====================
+            // 提交
+            // ====================
 
             await batch.commit();
 
@@ -237,7 +248,7 @@ async function importCSV(e) {
 
         } catch (err) {
 
-            alert("导入失败：" + err.message);
+            alert('导入失败：' + err.message);
         }
     };
 
@@ -284,8 +295,36 @@ function renderCard() {
 
     const front = card.front || '';
 
-    frontEl.innerHTML =
-        front.replace(/\n/g, '<br>');
+    let html = front;
+
+// 换行
+html = html.replace(/\n/g, '<br>');
+
+// 大字
+html = html.replace(
+    /\[\[(.*?)\]\]/g,
+    '<span class="big">$1</span>'
+);
+
+// 高亮
+html = html.replace(
+    /\{\{(.*?)\}\}/g,
+    '<span class="highlight">$1</span>'
+);
+
+// 下划线
+html = html.replace(
+    /__(.*?)__/g,
+    '<span class="underline">$1</span>'
+);
+
+// 红色
+html = html.replace(
+    /!!(.*?)!!/g,
+    '<span class="danger">$1</span>'
+);
+
+frontEl.innerHTML = html;
 
     frontEl.classList.remove('long-text');
 
@@ -447,8 +486,22 @@ async function saveCard() {
 });
         }
 
-        hideAddCardModal();
         await loadCards();
+
+// 编辑模式
+if (editingCardId) {
+
+    hideAddCardModal();
+}
+
+// 新增模式
+else {
+
+    document.getElementById('newFront').value = '';
+    document.getElementById('newBack').value = '';
+
+    document.getElementById('newFront').focus();
+}
 
     } catch (e) {
         alert('保存失败：' + e.message);
@@ -692,4 +745,269 @@ document.addEventListener("keydown", (e) => {
             break;
     }
 });
+
+// 快捷键文本净化按钮
+function cleanTextarea(id) {
+
+    const el = document.getElementById(id);
+
+    let text = el.value || '';
+
+    // 去 HTML
+    text = text.replace(/<[^>]*>/g, '');
+
+    // 删除所有空白
+    text = text.replace(/\s+/g, '');
+
+    el.value = text;
+
+    // 动画
+    el.style.transform = 'scale(1.01)';
+    el.style.boxShadow = '0 0 0 2px #2f80ed';
+
+    setTimeout(() => {
+
+        el.style.transform = '';
+        el.style.boxShadow = '';
+
+    }, 180);
+}
+
+// mini fomat pack
+function wrapSelection(before, after) {
+
+    const textarea =
+        document.getElementById('newFront');
+
+    const start =
+        textarea.selectionStart;
+
+    const end =
+        textarea.selectionEnd;
+
+    const text =
+        textarea.value;
+
+    const selected =
+        text.substring(start, end);
+
+    const newText =
+        text.substring(0, start)
+        + before
+        + selected
+        + after
+        + text.substring(end);
+
+    textarea.value = newText;
+
+    textarea.focus();
+
+    textarea.setSelectionRange(
+        start + before.length,
+        end + before.length
+    );
+}
+
+let activeTextarea = 'newFront';
+
+function wrapSelection(before, after) {
+
+    const textarea =
+        document.getElementById(activeTextarea);
+
+    const start =
+        textarea.selectionStart;
+
+    const end =
+        textarea.selectionEnd;
+
+    const text =
+        textarea.value;
+
+    const selected =
+        text.slice(start, end);
+
+    textarea.value =
+        text.slice(0, start)
+        + before
+        + selected
+        + after
+        + text.slice(end);
+
+    textarea.focus();
+
+    textarea.selectionStart =
+        start + before.length;
+
+    textarea.selectionEnd =
+        end + before.length;
+}
+function renderMarkup(text){
+
+    return text
+
+        // 红色
+        .replace(
+            /!!(.*?)!!/g,
+            '<span style="color:#ff4d4f;">$1</span>'
+        )
+
+        // 绿色
+        .replace(
+            /\{\{(.*?)\}\}/g,
+            '<span style="color:#52c41a;">$1</span>'
+        )
+
+        // 放大
+        .replace(
+            /\[\[(.*?)\]\]/g,
+            '<span style="font-size:1.6em;font-weight:700;">$1</span>'
+        )
+
+        // 下划线
+        .replace(
+            /__(.*?)__/g,
+            '<u>$1</u>'
+        )
+
+        // 换行
+        .replace(/\n/g,'<br>');
+}
+function updatePreview(){
+
+    const text =
+        document.getElementById('newFront').value;
+
+    document.getElementById('previewBox')
+        .innerHTML = renderMarkup(text);
+}
+
+
+
+let immersiveMode = false;
+let uiTimer = null;
+
+function showImmersiveUI() {
+
+    document.body.classList.add(
+        'show-ui'
+    );
+
+    clearTimeout(uiTimer);
+
+    uiTimer = setTimeout(() => {
+
+        document.body.classList.remove(
+            'show-ui'
+        );
+
+    }, 1500);
+}
+
+function toggleImmersiveMode() {
+
+    immersiveMode = !immersiveMode;
+
+    document.body.classList.toggle(
+        'immersive',
+        immersiveMode
+    );
+
+    // 进入沉浸
+    if (immersiveMode) {
+
+        showImmersiveUI();
+
+        // 尝试全屏
+        if (document.documentElement.requestFullscreen) {
+
+            document.documentElement
+                .requestFullscreen()
+                .catch(err => {
+
+                    console.warn(
+                        'Fullscreen 被阻止:',
+                        err
+                    );
+                });
+        }
+    }
+
+    // 退出沉浸
+    else {
+
+        document.body.classList.remove(
+            'show-ui'
+        );
+
+        if (document.fullscreenElement) {
+
+            document.exitFullscreen()
+                .catch(err => {
+
+                    console.warn(
+                        '退出全屏失败:',
+                        err
+                    );
+                });
+        }
+    }
+}
+
+// 鼠标移动时显示 UI
+document.addEventListener(
+    'mousemove',
+    () => {
+
+        if (!immersiveMode) return;
+
+        showImmersiveUI();
+    }
+);
+
+// R 键
+document.addEventListener(
+    'keydown',
+    (e) => {
+
+        const tag =
+            document.activeElement.tagName;
+
+        if (
+            tag === 'INPUT' ||
+            tag === 'TEXTAREA'
+        ) return;
+
+        if (
+            e.key === 'r' ||
+            e.key === 'R'
+        ) {
+
+            e.preventDefault();
+
+            toggleImmersiveMode();
+        }
+    }
+);
+
+// ESC 自动同步状态
+document.addEventListener(
+    'fullscreenchange',
+    () => {
+
+        if (!document.fullscreenElement) {
+
+            immersiveMode = false;
+
+            document.body.classList.remove(
+                'immersive'
+            );
+
+            document.body.classList.remove(
+                'show-ui'
+            );
+        }
+    }
+);
+
 window.onload = loadDecks;
