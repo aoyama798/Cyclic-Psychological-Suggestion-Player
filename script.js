@@ -24,7 +24,6 @@ let editingCardId = null;
 
 // ==================== DOM ====================
 const frontEl = document.getElementById('front');
-const backEl = document.getElementById('back');
 
 const counterEl = document.getElementById('counter');
 const deckTitleEl = document.getElementById('deckTitle');
@@ -337,53 +336,30 @@ frontEl.innerHTML = html;
 
     document.getElementById('weightBadge')
         .textContent = `⭐ ${card.weight || 0}`;
+
 }
 
-function flipCard() {
 
-    if (currentCards.length === 0) return;
-
-    const card = currentCards[currentIndex];
-
-    const hasBack =
-        card.back &&
-        card.back.trim() !== '';
-
-    // 没背面 -> 不翻转
-    if (!hasBack) return;
-
-    showingBack = !showingBack;
-
-    backEl.style.display = "none";
-}
 
 function handleCardAction() {
 
-    if (currentCards.length === 0) return;
-
-    const card = currentCards[currentIndex];
-
-    const hasBack =
-        card.back &&
-        card.back.trim() !== '';
-
-    // 有背面 且 当前未显示
-    if (!showingBack && hasBack) {
-
-        flipCard();
-    }
-
-    // 已显示背面
-    // 或没有背面
-    else {
-
-        nextCard();
-    }
+    nextCard();
 }
 
 function nextCard() {
 
     if (currentCards.length === 0) return;
+
+    // 记录浏览时间
+    const card = currentCards[currentIndex];
+
+    card.lastViewedAt = Date.now();
+
+    db.collection('cards')
+        .doc(card.id)
+        .update({
+            lastViewedAt: card.lastViewedAt
+        });
 
     currentIndex =
         (currentIndex + 1)
@@ -392,7 +368,19 @@ function nextCard() {
     renderCard();
 }
 
-function prevCard() { currentIndex = (currentIndex - 1 + currentCards.length) % currentCards.length; showingBack = false; renderCard(); }
+function prevCard() {
+
+    if (currentCards.length === 0) return;
+
+    currentIndex =
+        (
+            currentIndex - 1
+            + currentCards.length
+        )
+        % currentCards.length;
+
+    renderCard();
+}
 
 function toggleAuto() {
     autoMode = !autoMode;
