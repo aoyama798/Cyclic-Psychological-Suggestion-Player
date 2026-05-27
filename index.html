@@ -27,37 +27,27 @@
 <!-- 播放器 -->
 <div id="player" class="screen">
     <div class="topbar">
-
         <button onclick="backToMenu()">↩</button>
         <button onclick="prevCard()">⬅</button>
         <button onclick="nextCard()">➡</button>
         <button class="secondary" id="autoBtn" onclick="toggleAuto()">Play</button>
         <input type="number" id="intervalInput" value="2.5" min="5" style="width:55px;background:#262b36;color:white;border:none;border-radius:8px;padding:8px;">
         <button onclick="document.getElementById('csvInput').click()" class="secondary">import</button>
-      <div id="breathingLight"></div>
-      <button onclick="toggleImmersiveMode()">⛶</button>
-<input
-    type="file"
-    id="csvInput"
-    accept=".csv,.txt,.tsv"
-    style="display:none"
-    onchange="importCSV(event)"
->
-        
+        <div id="breathingLight"></div>
+        <button onclick="toggleImmersiveMode()">⛶</button>
+        <input type="file"  id="csvInput"   accept=".csv,.txt,.tsv"  style="display:none"  onchange="importCSV(event)">
         <span id="deckTitle" style="margin-left:auto;font-weight:600;"></span>
         <span id="counter">1 / 1</span>
     </div>
-
   
-<div class="player-layout">
+   <div class="player-layout">
 
+     
     <div class="container">
-
         <div class="card" onclick="handleCardAction()">
-            <div class="front" id="front"></div>
-            
-            <div class="progress" id="progress"></div>
-          <div id="weightBadge" class="weight-badge"></div>
+        <div class="front" id="front"></div>
+        <div class="progress" id="progress"></div>
+        <div id="weightBadge" class="weight-badge"></div>
         </div>
   
 <div class="card-toolbar">
