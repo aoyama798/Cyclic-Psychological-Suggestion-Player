@@ -155,10 +155,22 @@ button {
 button:hover { opacity:0.9; }
 button.secondary { background:#3a3f4b; }
 
+
+
 /* =========================
    播放器  布局
 ========================= */
+.card {
+    position: relative;
+    width: 100%;
+    max-width: 1100px;
+    min-height: 100%;
 
+    border-radius: 28px;
+    overflow: hidden;
+
+
+}
 
 #player {
     justify-content: space-between;
@@ -214,34 +226,29 @@ button.secondary { background:#3a3f4b; }
 ========================= */
 
 
-.tag { position:absolute; top:20px; right:20px; background:var(--primary); padding:6px 14px; border-radius:999px; font-size:13px; }
+.tag { 
+  position:absolute; 
+  top:20px; right:20px;
+  background:var(--primary); 
+  padding:6px 14px; 
+  border-radius:999px; 
+  font-size:13px; 
+}
 
 .front {
-
     flex:1;
-
     overflow-y:auto;
-
     overflow-x:hidden;
-
     padding:
         clamp(28px,4vw,64px);
-
     font-size:
         clamp(22px,2.5vw,38px);
-
     line-height:1.9;
-
     word-break:break-word;
-
     white-space:pre-wrap;
-
     display:flex;
-
     justify-content:center;
-
     align-items:center;
-
   text-align: left;
 }   
 .front.long-text {
@@ -269,25 +276,15 @@ button.secondary { background:#3a3f4b; }
 
 
 .weight-badge {
-
     position: absolute;
-
-    top: 18px;
-
+    top: 0px;
     right: 20px;
-
     background: rgba(255,255,255,0.08);
-
     color: #ffd54f;
-
     padding: 6px 12px;
-
     border-radius: 999px;
-
     font-size: 14px;
-
     font-weight: 600;
-
     backdrop-filter: blur(10px);
 }
 
