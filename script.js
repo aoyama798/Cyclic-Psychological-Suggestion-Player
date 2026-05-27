@@ -437,7 +437,7 @@ if (autoMode) {
     document.getElementById('saveCardBtn').textContent = '保存卡片';
 
     document.getElementById('newFront').value = '';
-    document.getElementById('newBack').value = '';
+  
 
     document.getElementById('addCardModal').style.display = 'flex';
 }
@@ -446,7 +446,6 @@ function hideAddCardModal() { document.getElementById('addCardModal').style.disp
 async function saveCard() {
 
     const front = document.getElementById('newFront').value.trim();
-    const back = document.getElementById('newBack').value.trim();
 
     if (!front) {
     return alert("正面不能为空");
@@ -459,8 +458,7 @@ async function saveCard() {
             await db.collection('cards')
                 .doc(editingCardId)
                 .update({
-                    front,
-                    back
+                    front
                 });
 
         } else {
@@ -468,9 +466,9 @@ async function saveCard() {
             await db.collection('cards').add({
     deckId: currentDeckKey,
     front,
-    back,
     weight: 0,
-    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    createdAt:
+        firebase.firestore.FieldValue.serverTimestamp()
 });
         }
 
@@ -486,7 +484,6 @@ if (editingCardId) {
 else {
 
     document.getElementById('newFront').value = '';
-    document.getElementById('newBack').value = '';
 
     document.getElementById('newFront').focus();
 }
@@ -517,7 +514,6 @@ db.collection('cards')
     document.getElementById('saveCardBtn').textContent = '保存修改';
 
     document.getElementById('newFront').value = card.front;
-    document.getElementById('newBack').value = card.back;
 
     document.getElementById('addCardModal').style.display = 'flex';
 }
