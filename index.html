@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<title>循环暗示 - 心理重塑工具</title>
+<title>循环心理暗示工具</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="stylesheet" href="style.css">
 
@@ -16,11 +16,8 @@
 <!-- 主菜单 -->
 <div id="mainMenu" class="screen active">
     <div class="menu">
-        <h1>循环暗示 - 心理重塑工具</h1>
+        <h1 onclick="showAddDeckModal()" class="secondary">Cyclic Psychology Player</h1>
         <div class="bubbles" id="bubbles"></div>
-        <div style="margin-top:60px;">
-            <button onclick="showAddDeckModal()" class="secondary">+ 新建分类</button>
-        </div>
     </div>
 </div>
 
@@ -35,37 +32,31 @@
         <button onclick="document.getElementById('csvInput').click()" class="secondary">import</button>
         <div id="breathingLight"></div>
         <button onclick="toggleImmersiveMode()">⛶</button>
-        <input type="file"  id="csvInput"   accept=".csv,.txt,.tsv"  style="display:none"  onchange="importCSV(event)">
+        <input type="file" id="csvInput" accept=".csv,.txt,.tsv" style="display:none" onchange="importCSV(event)">
         <span id="deckTitle" style="margin-left:auto;font-weight:600;"></span>
         <span id="counter">1 / 1</span>
     </div>
-  
-   <div class="player-layout">
-
-     
-    <div class="container">
-        <div class="card" onclick="handleCardAction()">
-        <div class="front" id="front"></div>
-        <div class="progress" id="progress"></div>
-        <div id="weightBadge" class="weight-badge"></div>
+ 
+    <!-- 主要内容区域 -->
+    <div class="player-layout">
+        <div class="container">
+            <div class="card" onclick="handleCardAction()">
+                <div class="front" id="front"></div>
+                <div class="progress" id="progress"></div>
+                <div id="weightBadge" class="weight-badge"></div>
+            </div>
         </div>
-  
-<div class="card-toolbar">
+    </div>
 
-    <button id="editCardBtn" onclick="editCurrentCard()">✏️</button>
-
-    <button id="deleteCardBtn" onclick="deleteCurrentCard()">🗑️</button>
-
-    <button id="moveCardBtn" onclick="moveCurrentCard()">📂</button>
-    
-    <button id="masteredBtn" onclick="markMastered()">⭐-</button>
-    <button id="importantBtn" onclick="markImportant()"> ⭐+</button>
-    <button onclick="showAddCardModal()">➕</button>
-
-</div>
-
-  
-    
+    <!-- 独立底部工具栏（已移到最底部） -->
+    <div class="card-toolbar">
+        <button id="editCardBtn" onclick="editCurrentCard()">✏️</button>
+        <button id="deleteCardBtn" onclick="deleteCurrentCard()">🗑️</button>
+        <button id="moveCardBtn" onclick="moveCurrentCard()">📂</button>
+        <button id="masteredBtn" onclick="markMastered()">⭐-</button>
+        <button id="importantBtn" onclick="markImportant()">⭐+</button>
+        <button onclick="showAddCardModal()">➕</button>
+    </div>
 </div>
 
 
@@ -76,8 +67,8 @@
 <div id="deckModal" class="modal">
     <div class="modal-content">
         <h3 id="modalTitle">新建分类</h3>
-        <input type="text" id="deckName" placeholder="分类名称" style="width:100%;padding:12px;margin:15px 0;background:#262b36;color:white;border:none;border-radius:10px;">
-        <input type="text" id="deckIcon" placeholder="图标（如 🧠）" maxlength="2" style="width:100%;padding:12px;background:#262b36;color:white;border:none;border-radius:10px;">
+        <input type="text" id="deckName" placeholder="🐱分类名称" style="width:100%;padding:12px;margin:15px 0;background:#262b36;color:white;border:none;border-radius:10px;">
+        <input type="text" id="deckIcon" placeholder="📌图标" maxlength="2" style="width:100%;padding:12px;background:#262b36;color:white;border:none;border-radius:10px;">
         <div style="margin-top:20px;text-align:right;">
             <button onclick="hideDeckModal()" class="secondary">取消</button>
             <button onclick="saveDeck()" id="saveBtn">创建</button>
