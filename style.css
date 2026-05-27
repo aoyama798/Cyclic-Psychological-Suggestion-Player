@@ -89,43 +89,60 @@
 .topbar {
     flex-shrink: 0;
 }
-    .card {
-        width:min(1100px,95vw); min-height:460px; background:var(--card-bg); border-radius:28px;
-        padding:40px; box-shadow:0 15px 50px rgba(0,0,0,0.5); position:relative; overflow:hidden;
-        display:flex; flex-direction:column; justify-content:center;
-    }
+.card {
+
+    width:min(1100px,95vw);
+
+    height:min(82vh,900px);
+
+    background:var(--card-bg);
+
+    border-radius:28px;
+
+    padding:0;
+
+    box-shadow:0 15px 50px rgba(0,0,0,0.5);
+
+    position:relative;
+
+    overflow:hidden;
+
+    display:flex;
+}
     .tag { position:absolute; top:20px; right:20px; background:var(--primary); padding:6px 14px; border-radius:999px; font-size:13px; }
-.front,
-.back {
+.back{
+    display:none;
+}
 
-    width: 100%;
+.front {
 
-    height: 100%;
+    flex:1;
 
-    overflow-y: auto;
+    overflow-y:auto;
 
-    overflow-x: hidden;
+    overflow-x:hidden;
 
-    word-break: break-word;
+    padding:
+        clamp(28px,4vw,64px);
 
-    white-space: pre-wrap;
+    font-size:
+        clamp(22px,2.5vw,38px);
 
-    line-height: 1.7;
+    line-height:1.9;
 
-    padding: 24px;
+    word-break:break-word;
 
-    font-size: clamp(18px, 2.4vw, 34px);
+    white-space:pre-wrap;
 
-    display: flex;
+    display:flex;
 
-    align-items: center;
+    justify-content:center;
 
-    justify-content: center;
+    align-items:center;
 
-    text-align: center;
-}    
-.front.long-text,
-.back.long-text {
+    text-align:center;
+}   
+.front.long-text {
 
     align-items: flex-start;
 
@@ -133,6 +150,8 @@
 
     padding-top: 40px;
 }
+
+
 .front::-webkit-scrollbar,
 .back::-webkit-scrollbar {
     width: 8px;
@@ -476,9 +495,10 @@ body.immersive .card {
 /* 正文字体放大 */
 body.immersive .front {
 
-    font-size:2.4rem;
+    font-size:
+        clamp(24px,3vw,42px);
 
-    line-height:1.8;
+    line-height:1.9;
 }
 
 /* 工具栏半透明 */
