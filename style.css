@@ -261,18 +261,21 @@
 
     font-size: 120px;
 
-    background: rgba(255, 215, 0, 0);
-
     pointer-events: none;
 
     opacity: 0;
 
     z-index: 99999;
+
+    text-shadow:
+        0 0 12px rgba(255,215,0,.45),
+        0 0 28px rgba(255,215,0,.25);
 }
 
 #starFlash.active {
 
-    animation: starFlashAnim 0.7s ease;
+    animation:
+        starFlashAnim 0.65s ease;
 }
 
 @keyframes starFlashAnim {
@@ -281,23 +284,19 @@
 
         opacity: 0;
 
-        transform: scale(0.5);
-
-        background: rgba(255, 215, 0, 0);
+        transform: scale(0.65);
     }
 
-    20% {
+    25% {
 
         opacity: 1;
 
-        transform: scale(1.4);
-
-        background: rgba(255, 215, 0, 0.25);
+        transform: scale(1.18);
     }
 
     60% {
 
-        opacity: 1;
+        opacity: .95;
 
         transform: scale(1);
     }
@@ -306,12 +305,15 @@
 
         opacity: 0;
 
-        transform: scale(1);
-
-        background: rgba(255, 215, 0, 0);
+        transform: scale(.92);
     }
 }
 
+
+
+/* =========================
+   ★-按钮
+========================= */
 .clean-btn-wrap {
     display: flex;
     justify-content: flex-end;
