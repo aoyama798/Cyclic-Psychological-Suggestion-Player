@@ -711,13 +711,12 @@ document.addEventListener("keydown", (e) => {
 
     switch (e.key) {
 
-        case "+":
-        case "=": // 防止部分键盘需要 Shift+=
+        case "4":
             e.preventDefault();
             markImportant();
             break;
 
-        case "-":
+        case "1":
             e.preventDefault();
             markMastered();
             break;
@@ -729,7 +728,6 @@ document.addEventListener("keydown", (e) => {
             break;
     }
 });
-
 // 快捷键文本净化按钮
 function cleanTextarea(id) {
 
