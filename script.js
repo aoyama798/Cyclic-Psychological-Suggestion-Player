@@ -472,7 +472,24 @@ async function saveCard() {
 });
         }
 
-        await loadCards();
+        // 记住当前卡片 id
+const keepId = editingCardId;
+
+await loadCards();
+
+// 编辑模式下
+if (keepId) {
+
+    const idx = currentCards.findIndex(
+        c => c.id === keepId
+    );
+
+    if (idx !== -1) {
+        currentIndex = idx;
+    }
+
+    renderCard();
+}
 
 // 编辑模式
 if (editingCardId) {
