@@ -238,37 +238,26 @@ button.secondary { background:#3a3f4b; }
 
 .front {
     flex:1;
-
     display:flex;
     flex-direction:column;
-
     justify-content:center;
     align-items:center;
-
     min-height:100%;
-
     overflow-y:auto;
     overflow-x:hidden;
-
     padding:clamp(28px,4vw,64px);
-
     font-size:clamp(22px,2.5vw,38px);
-
     line-height:1.9;
     word-break:break-word;
     white-space:pre-wrap;
-
     text-align:left;
 }
 .front.long-text {
-
-    align-items: flex-start;
-
-    text-align: left;
-
-    padding-top: 40px;
+    justify-content:flex-start;
+    align-items:center;
+    text-align:left;
+    padding-top:40px;
 }
-
 
 .front::-webkit-scrollbar {
     width: 8px;
