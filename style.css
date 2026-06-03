@@ -614,75 +614,24 @@ body.immersive.show-ui
     pointer-events:auto;
 }
 
-/* =========================
-   退出沉浸按钮
-========================= */
+body.immersive .container {
 
-#exitImmersiveBtn{
+    padding: 0;
 
-    position:fixed;
+    justify-content: center;
 
-top:50px;
-    left:50%;
+    align-items: center;
 
-    z-index:999999;
-
-    width:58px;
-    height:58px;
-
-    border:none;
-
-    border-radius:50%;
-
-    background:rgba(0,0,0,.45);
-
-    color:white;
-
-    font-size:22px;
-
-    cursor:pointer;
-
-    backdrop-filter:blur(12px);
-
-    opacity:0;
-
-    pointer-events:none;
-
-    transform:
-        translate(-50%,-50%)
-        scale(.92);
-
-    transition:
-        opacity .25s,
-        transform .25s;
+    transform: translateY(-5vh);
 }
 
-body.immersive.show-ui
-#exitImmersiveBtn{
+body.immersive .card {
 
-    opacity:1;
+    width:min(90vw,1100px);
 
-    pointer-events:auto;
+    height:min(78vh,900px);
 
-    transform:
-        translate(-50%,-50%)
-        scale(1);
-}
-
-#exitImmersiveBtn:hover{
-
-    background:rgba(255,255,255,.12);
-
-    transform:
-        translate(-50%,-50%)
-        scale(1.08);
-}
-
-/* 鼠标静止时隐藏 */
-body.immersive:not(.show-ui)
-#exitImmersiveBtn{
-
-    opacity:0;
+    transform: translateY(-40px);
 }
 
 
