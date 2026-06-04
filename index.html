@@ -22,44 +22,49 @@
 </div>
 
 <!-- 播放器 -->
-<div id="player" class="screen">
-    <div class="topbar">
-        <button onclick="backToMenu()">↩</button>
-        <button onclick="prevCard()">⬅</button>
-        <button onclick="nextCard()">➡</button>
-        <button class="secondary" id="autoBtn" onclick="toggleAuto()">Play</button>
-        <input type="number" id="intervalInput" value="2.5" min="5" style="width:55px;background:#262b36;color:white;border:none;border-radius:8px;padding:8px;">
-        <button onclick="document.getElementById('csvInput').click()" class="secondary">📥</button>
-        <div id="breathingLight"></div>
-        <button onclick="toggleImmersiveMode()">⛶</button>
-        <input type="file" id="csvInput" accept=".csv,.txt,.tsv" style="display:none" onchange="importCSV(event)">
-        <span id="deckTitle" style="margin-left:auto;font-weight:600;"></span>
-        <span id="counter">1 / 1</span>
-    </div>
+  <div id="player" class="screen">
+
+
+        <!-- 顶部工具栏 -->
+       <div class="topbar">
+        <span id="deckTitle" onclick="backToMenu();" style="font-weight:600;"></span>
+         <div id="weightBadge" class="weight-badge" style="margin-left:auto;"></div>
+        <span id="counter" >1 / 1</span>
+     </div>
  
     <!-- 主要内容区域 -->
     <div class="player-layout">
         <div class="container">
             <div class="card" onclick="handleCardAction()">
                 <div class="front" id="front"></div>
-                <div id="weightBadge" class="weight-badge"></div>
             </div>
         </div>
     </div>
 
     <!-- 独立底部工具栏（已移到最底部） -->
     <div class="card-toolbar">
-        <button id="editCardBtn" onclick="editCurrentCard()">✏️</button>
-        <button id="deleteCardBtn" onclick="deleteCurrentCard()">🗑️</button>
-        <button id="moveCardBtn" onclick="moveCurrentCard()">📂</button>
+        <button onclick="prevCard()">⬅</button>
+        <button onclick="nextCard()">➡</button>
         <button id="masteredBtn" onclick="markMastered()">⭐-</button>
         <button id="importantBtn" onclick="markImportant()">⭐+</button>
-        <button onclick="showAddCardModal()">➕</button>
+         <button id="editCardBtn" onclick="editCurrentCard()">✏️</button>
+        <button id="moreBtn" onclick="toggleMenu()">⋯</button>
     </div>
 </div>
 
-
-
+<!-- 底部工具栏（二级菜单） -->
+<div id="moreMenu" class="more-menu">
+       <button onclick="showAddCardModal();closeMenu()">➕ Add</button>
+        <button id="deleteCardBtn" onclick="deleteCurrentCard();closeMenu()">🗑️ Delete</button>
+        <button id="moveCardBtn" onclick="moveCurrentCard();closeMenu()">📂 Move</button>
+        <input type="file" id="csvInput" accept=".csv,.txt,.tsv" style="display:none" onchange="importCSV(event)">
+          <button onclick="document.getElementById('csvInput').click()" class="secondary;closeMenu()">📥 Import</button>
+          <div style="display: flex;"><button class="secondary" id="autoBtn" onclick="toggleAuto();closeMenu()">▶ AutoPlay</button>
+          <input type="number" id="intervalInput" value="2.5" min="5" style="width:55px;background:#262b36;color:white;border:none;border-radius:8px;padding:8px;">
+            </div>
+          <button onclick="toggleImmersiveMode();closeMenu()">⛶ Immersive</button>
+          <button onclick="backToMenu();closeMenu()">↩ Exit</button>
+</div>
 
   
 <!-- 分类 新建/编辑 弹窗 -->
