@@ -29,8 +29,7 @@ const counterEl = document.getElementById('counter');
 const deckTitleEl = document.getElementById('deckTitle');
 const progressEl = document.getElementById('progress');
 
-document.getElementById('breathingLight')
-    .classList.toggle('active', autoMode);
+
 
 // ==================== 分类管理 ====================
 async function loadDecks() {
@@ -1008,5 +1007,38 @@ document.addEventListener(
         }
     }
 );
+
+
+function toggleMenu(){
+
+    document
+        .getElementById("moreMenu")
+        .classList
+        .toggle("show");
+}
+
+function closeMenu(){
+
+    document
+        .getElementById("moreMenu")
+        .classList
+        .remove("show");
+}
+
+document.addEventListener("click", e => {
+
+    const menu =
+        document.getElementById("moreMenu");
+
+    const moreBtn =
+        document.getElementById("moreBtn");
+
+    if(
+        !menu.contains(e.target) &&
+        !moreBtn.contains(e.target)
+    ){
+        menu.classList.remove("show");
+    }
+});
 
 window.onload = loadDecks;
