@@ -60,11 +60,14 @@ h1 {
 @media (max-width:768px){
 
     h1{
-
-        font-size:2rem;
+        font-size:1rem;
     }
 }
-/* ==================== Bubbles - iOS 风格 ==================== */
+
+
+
+
+/* ==================== 主页面菜单Bubbles - iOS 风格 ==================== */
 .bubbles {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
@@ -73,18 +76,6 @@ h1 {
     max-width: 82%;
     margin: 40px auto;
     padding: 20px;
-}
-
-
-@media (max-width:768px){
-
-    .bubbles{
-        grid-template-columns:
-            repeat(2,1fr);
-        gap:6px;
-        max-width:95%;
-          margin: 0px auto;
-    }
 }
 
 .bubble {
@@ -163,6 +154,85 @@ h1 {
 
 .edit-btn   { top: -8px; left: -8px; background: #f39c12; }
 .delete-btn { top: -8px; right: -8px; background: #e74c3c; }
+
+
+/* =========================
+   Bubbles手机端适配
+========================= */
+@media (max-width:768px){
+
+    /* 页面边距 */
+    .menu{
+        padding:12px;
+    }
+
+    /* 标题 */
+    h1{
+        font-size:2rem;
+        text-align:center;
+        margin-bottom:10px;
+    }
+
+    /* 卡片网格 */
+    .bubbles{
+
+        grid-template-columns:
+            repeat(3,1fr);
+
+        gap:10px;
+
+        max-width:100%;
+
+        margin:0 auto;
+
+        padding:8px;
+    }
+
+    /* 卡片 */
+    .bubble{
+
+        border-radius:24px;
+
+        padding:12px 0;
+
+        min-height:140px;
+    }
+
+    /* Emoji */
+    .bubble > *:first-child{
+
+        font-size:42px;
+
+        transform:scale(1.8);
+
+        margin-bottom:10px;
+    }
+
+    .bubble:hover > *:first-child{
+
+        transform:scale(2);
+    }
+
+    /* 名称 */
+    .bubble > *:nth-child(2){
+
+        font-size:13px;
+
+        padding:0 8px;
+
+        line-height:1.25;
+    }
+
+    /* 编辑删除按钮 */
+    .action-btn{
+
+        width:28px;
+        height:28px;
+
+        font-size:14px;
+    }
+}
+
 
 .topbar { 
     padding:14px 20px; 
