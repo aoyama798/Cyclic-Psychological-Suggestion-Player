@@ -312,37 +312,10 @@ button.secondary { background:#3a3f4b; }
 }
 
 
-/* 手机端拖拽优化 */
-.bubble {
-    touch-action: none;           /* 防止浏览器默认触摸行为 */
-    cursor: grab;
-}
-
-.bubble:active {
-    cursor: grabbing;
-}
-
-/* 拖拽中降低透明度 + 放大反馈 */
-.bubble.sortable-ghost {
-    opacity: 0.65 !important;
-    transform: scale(0.92);
-    box-shadow: 0 15px 30px rgba(47, 128, 237, 0.5) !important;
-}
-
-.bubble.dragging {
-    opacity: 0.5;
-    transform: scale(0.95);
-}
-
-/* 网格在手机上更友好 */
+/* 手机端不显示拖拽相关样式 */
 @media (max-width: 768px) {
-    .bubbles {
-        gap: 16px;
-        padding: 16px;
-    }
-    
     .bubble {
-        min-height: 130px;
+        cursor: pointer; /* 恢复普通指针 */
     }
 }
 
