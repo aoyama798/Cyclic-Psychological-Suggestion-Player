@@ -57,7 +57,13 @@ h1 {
     -webkit-background-clip: text; 
     -webkit-text-fill-color: transparent; 
 }
+@media (max-width:768px){
 
+    h1{
+
+        font-size:2rem;
+    }
+}
 /* ==================== Bubbles - iOS 风格 ==================== */
 .bubbles {
     display: grid;
@@ -67,6 +73,18 @@ h1 {
     max-width: 82%;
     margin: 40px auto;
     padding: 20px;
+}
+
+
+@media (max-width:768px){
+
+    .bubbles{
+        grid-template-columns:
+            repeat(2,1fr);
+        gap:6px;
+        max-width:95%;
+          margin: 0px auto;
+    }
 }
 
 .bubble {
@@ -87,7 +105,6 @@ h1 {
                 inset 0 1px 0 rgba(255,255,255,0.08);
     position: relative;
     overflow: hidden;
-    
     padding: 20px 0;                    /* 增加上下呼吸空间 */
 }
 
@@ -250,25 +267,41 @@ button.secondary { background:#3a3f4b; }
   padding:6px 14px; border-radius:999px; font-size:13px; }
 
 .front {
+
     flex:1;
+
     display:flex;
-    flex-direction:column;
+
     justify-content:center;
+
     align-items:center;
-    min-height:100%;
+
     overflow-y:auto;
+
     overflow-x:hidden;
+
     padding:clamp(28px,4vw,64px);
-    font-size:clamp(22px,2.5vw,38px);
-    line-height:1.9;
-    word-break:break-word;
-    white-space:pre-wrap;
-    text-align:left;
 }
+.front-content {
+
+    width:100%;
+
+    max-width:900px;
+
+    font-size:
+        clamp(22px,2.5vw,38px);
+
+    line-height:1.9;
+
+    text-align:center;
+
+    word-break:break-word;
+
+    white-space:pre-wrap;
+}
+
 .front.long-text {
     justify-content:flex-start;
-    align-items:center;
-    text-align:left;
     padding-top:40px;
 }
 
@@ -486,7 +519,10 @@ button.secondary { background:#3a3f4b; }
 
     font-weight: 700;
 }
-
+.bold {
+    font-size:150%;
+    font-weight: 800;
+}
 
 .mini-toolbar {
 
@@ -541,7 +577,11 @@ button.secondary { background:#3a3f4b; }
 
     background: #845ef7;
 }
+.tool-btn.bold {
 
+    background:#495057;
+    font-weight:900;
+}
 .tool-btn.underline {
 
     background: #495057;
@@ -554,9 +594,6 @@ button.secondary { background:#3a3f4b; }
 /* =========================
    二级菜单
 ========================= */
-
-
-
 .more-menu{
 
     position:fixed;
@@ -649,21 +686,27 @@ button.secondary { background:#3a3f4b; }
 ========================= */
 
 body.immersive {
-
     background:#000;
     overflow:hidden;
 }
 
 /* 顶栏隐藏 */
-body.immersive .topbar {
+/* 隐藏标题 */
+body.immersive #deckTitle{
 
     opacity:0;
-
     pointer-events:none;
+}
 
-    transform:translateY(-20px);
-
+/* 隐藏计数器 */
+body.immersive #counter{
+    opacity:0;
+    pointer-events:none;
+}
+.topbar{
+    background-color: black;
     transition:.25s;
+   border:none;
 }
 
 /* 卡片放大 */
@@ -691,19 +734,12 @@ body.immersive .front {
 body.immersive .card-toolbar {
 
     opacity:.18;
-
     transition:.2s;
 }
 
 /* hover 时恢复 */
 body.immersive .card-toolbar:hover {
 
-    opacity:1;
-}
-
-/* 权重弱化 */
-body.immersive .weight-badge {
-    top:10%;
     opacity:1;
 }
 
@@ -727,11 +763,8 @@ body.immersive .container {
 }
 
 body.immersive .card {
-
     width:min(90vw,1100px);
-
     height:min(78vh,900px);
-
     transform: translateY(-40px);
 }
 
