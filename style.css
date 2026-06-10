@@ -34,8 +34,10 @@ body {
 
 .screen {
     display: none;
-    height: 100vh;
     flex-direction: column;
+}
+#mainMenu{
+    overflow-y:auto;
 }
 .screen.active {
     display: flex;
@@ -871,3 +873,4 @@ body.immersive .card-toolbar:hover {
     background:
         rgba(255,255,255,.08);
 }
+
