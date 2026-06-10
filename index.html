@@ -5,13 +5,9 @@
 <title>循环心理暗示工具</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="stylesheet" href="style.css">
-
-
-
 </head>
 <body>
 <div id="starFlash">⭐</div>
-
 
 <!-- 主菜单 -->
 <div id="mainMenu" class="screen active">
@@ -22,31 +18,25 @@
 </div>
 
 <!-- 播放器 -->
-  <div id="player" class="screen">
-
-
-        <!-- 顶部工具栏 -->
-       <div class="topbar">
+<div id="player" class="screen">
+    <div class="topbar">
         <span id="deckTitle" onclick="backToMenu();" style="font-weight:600;"></span>
-         <div id="weightBadge" class="weight-badge" style="margin-left:auto;"></div>
-        <span id="counter" >1 / 1</span>
-     </div>
-
+        <div id="weightBadge" class="weight-badge" style="margin-left:auto;"></div>
+        <span id="counter">1 / 1</span>
+    </div>
     
-    <!-- 主要front内容区域 -->
     <div class="player-layout">
         <div class="container">
             <div class="card" onclick="handleCardAction()">
                 <div class="front" id="frontContainer">
-                  <div class="front-content" id="front">  </div>
+                    <div class="front-content" id="front"></div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- 独立底部工具栏（已移到最底部） -->
     <div class="card-toolbar">
-                 <button id="editCardBtn" onclick="editCurrentCard()">✏️</button>
+        <button id="editCardBtn" onclick="editCurrentCard()">✏️</button>
         <button onclick="prevCard()">⬅</button>
         <button onclick="nextCard()">➡</button>
         <button id="masteredBtn" onclick="markMastered()">⭐-</button>
@@ -55,24 +45,22 @@
     </div>
 </div>
 
-<!-- 底部工具栏（二级菜单） -->
+<!-- 底部菜单 -->
 <div id="moreMenu" class="more-menu">
-            <button onclick="toggleImmersiveMode();closeMenu()">⛶ Immersive</button>
-       <button onclick="showAddCardModal();closeMenu()">➕ Add</button>
-        <button id="deleteCardBtn" onclick="deleteCurrentCard();closeMenu()">🗑️ Delete</button>
-        <button id="moveCardBtn" onclick="moveCurrentCard();closeMenu()">📂 Move</button>
-        <input type="file" id="csvInput" accept=".csv,.txt,.tsv" style="display:none" onchange="importCSV(event)">
-          <button onclick="document.getElementById('csvInput').click()" class="secondary;closeMenu()">📥 Import</button>
-
-
-            <div style="display: flex;"><button class="secondary" id="autoBtn" onclick="toggleAuto();closeMenu()">▶ AutoPlay</button>
-              <input type="number" id="intervalInput" value="2.5" min="5" style="width:55px;background:#262b36;color:white;border:none;border-radius:8px;padding:8px;">
-          </div>
-          <button onclick="backToMenu();closeMenu()">↩ Exit</button>
+    <button onclick="toggleImmersiveMode();closeMenu()">⛶ Immersive</button>
+    <button onclick="showAddCardModal();closeMenu()">➕ Add</button>
+    <button id="deleteCardBtn" onclick="deleteCurrentCard();closeMenu()">🗑️ Delete</button>
+    <button id="moveCardBtn" onclick="moveCurrentCard();closeMenu()">📂 Move</button>
+    <input type="file" id="csvInput" accept=".csv,.txt,.tsv" style="display:none" onchange="importCSV(event)">
+    <button onclick="document.getElementById('csvInput').click()" class="secondary">📥 Import</button>
+    <div style="display: flex;">
+        <button class="secondary" id="autoBtn" onclick="toggleAuto();closeMenu()">▶ AutoPlay</button>
+        <input type="number" id="intervalInput" value="2.5" min="5" style="width:55px;background:#262b36;color:white;border:none;border-radius:8px;padding:8px;">
+    </div>
+    <button onclick="backToMenu();closeMenu()">↩ Exit</button>
 </div>
 
-  
-<!-- 分类 新建/编辑 弹窗 -->
+<!-- 弹窗 -->
 <div id="deckModal" class="modal">
     <div class="modal-content">
         <h3 id="modalTitle">新建分类</h3>
@@ -85,133 +73,42 @@
     </div>
 </div>
 
-<!-- 添加单张卡片弹窗 -->
-
-<!-- 添加单张卡片弹窗 -->
 <div id="addCardModal" class="modal">
-
     <div class="modal-content">
-
         <div class="modal-header">
-
-            <h3 id="cardModalTitle">
-                添加新卡片
-            </h3>
-
+            <h3 id="cardModalTitle">添加新卡片</h3>
             <div class="mini-toolbar">
-
-                <button
-                    type="button"
-                    class="tool-btn red"
-                    onclick="wrapSelection('!!','!!')">
-                    红
+                <button type="button" class="tool-btn red" onclick="wrapSelection('!!','!!')">红</button>
+                <button type="button" class="tool-btn green" onclick="wrapSelection('{{','}}')">绿</button>
+                <button type="button" class="tool-btn purple" onclick="wrapSelection('[[',']]')">大</button>
+                <button type="button" class="tool-btn bold" onclick="wrapSelection('**','**')">B</button>
+                <button type="button" class="tool-btn underline" onclick="wrapSelection('__','__')">U</button>
+                <button type="button" class="clean-btn" onclick="cleanTextarea(activeTextarea)">↵
                 </button>
-
-                <button
-                    type="button"
-                    class="tool-btn green"
-                    onclick="wrapSelection('{{','}}')">
-                    绿
-                </button>
-
-                <button
-                    type="button"
-                    class="tool-btn purple"
-                    onclick="wrapSelection('[[',']]')">
-                    大
-                </button>
-                <button
-                    type="button"
-                    class="tool-btn bold"
-                    onclick="wrapSelection('**','**')">
-                    B
-                </button>
-                <button
-                    type="button"
-                    class="tool-btn underline"
-                    onclick="wrapSelection('__','__')">
-                    U
-                </button>
-
-                <button
-                    type="button"
-                    class="clean-btn"
-                    onclick="cleanTextarea(activeTextarea)">
-                    ↵
-                </button>
-
             </div>
-
         </div>
-
-        <textarea
-            id="newFront"
-            onfocus="activeTextarea='newFront'"
-            placeholder="正面（问题/暗示）"
-            style="
-            width:100%;
-            height:120px;
-            margin:15px 0;
-            padding:12px;
-            background:#262b36;
-            color:white;
-            border:none;
-            border-radius:12px;
-            "></textarea>
-
-
+        <textarea id="newFront" onfocus="activeTextarea='newFront'" placeholder="正面（问题/暗示）" style="width:100%;height:120px;margin:15px 0;padding:12px;background:#262b36;color:white;border:none;border-radius:12px;"></textarea>
         <div style="margin-top:20px;text-align:right;">
-
-            <button
-                onclick="hideAddCardModal()"
-                class="secondary">
-                取消
-            </button>
-
-            <button
-                onclick="saveCard()"
-                id="saveCardBtn">
-                保存卡片
-            </button>
-
+            <button onclick="hideAddCardModal()" class="secondary">取消</button>
+            <button onclick="saveCard()" id="saveCardBtn">保存卡片</button>
         </div>
-
     </div>
-
 </div>
 
-  
-<!-- 移动卡片弹窗 -->
 <div id="moveCardModal" class="modal">
     <div class="modal-content">
         <h3>移动卡片到其它分类</h3>
-
-        <select id="moveDeckSelect"
-        style="
-        width:100%;
-        padding:12px;
-        margin-top:20px;
-        background:#262b36;
-        color:white;
-        border:none;
-        border-radius:10px;
-        font-size:16px;
-        ">
-        </select>
-
+        <select id="moveDeckSelect" style="width:100%;padding:12px;margin-top:20px;background:#262b36;color:white;border:none;border-radius:10px;font-size:16px;"></select>
         <div style="margin-top:20px;text-align:right;">
             <button onclick="hideMoveCardModal()" class="secondary">取消</button>
             <button onclick="confirmMoveCard()">移动</button>
         </div>
     </div>
 </div>
-  <!-- 退出退出沉浸 -->
 
-  
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.6/Sortable.min.js"></script>
 <script src="script.js"></script>
-
-  
 </body>
 </html>
