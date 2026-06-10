@@ -31,12 +31,15 @@
          <div id="weightBadge" class="weight-badge" style="margin-left:auto;"></div>
         <span id="counter" >1 / 1</span>
      </div>
- 
-    <!-- 主要内容区域 -->
+
+    
+    <!-- 主要front内容区域 -->
     <div class="player-layout">
         <div class="container">
             <div class="card" onclick="handleCardAction()">
-                <div class="front" id="front"></div>
+                <div class="front" id="frontContainer">
+                  <div class="front-content" id="front">  </div>
+                </div>
             </div>
         </div>
     </div>
@@ -54,15 +57,17 @@
 
 <!-- 底部工具栏（二级菜单） -->
 <div id="moreMenu" class="more-menu">
+            <button onclick="toggleImmersiveMode();closeMenu()">⛶ Immersive</button>
        <button onclick="showAddCardModal();closeMenu()">➕ Add</button>
         <button id="deleteCardBtn" onclick="deleteCurrentCard();closeMenu()">🗑️ Delete</button>
         <button id="moveCardBtn" onclick="moveCurrentCard();closeMenu()">📂 Move</button>
         <input type="file" id="csvInput" accept=".csv,.txt,.tsv" style="display:none" onchange="importCSV(event)">
           <button onclick="document.getElementById('csvInput').click()" class="secondary;closeMenu()">📥 Import</button>
-          <div style="display: flex;"><button class="secondary" id="autoBtn" onclick="toggleAuto();closeMenu()">▶ AutoPlay</button>
-          <input type="number" id="intervalInput" value="2.5" min="5" style="width:55px;background:#262b36;color:white;border:none;border-radius:8px;padding:8px;">
-            </div>
-          <button onclick="toggleImmersiveMode();closeMenu()">⛶ Immersive</button>
+
+
+            <div style="display: flex;"><button class="secondary" id="autoBtn" onclick="toggleAuto();closeMenu()">▶ AutoPlay</button>
+              <input type="number" id="intervalInput" value="2.5" min="5" style="width:55px;background:#262b36;color:white;border:none;border-radius:8px;padding:8px;">
+          </div>
           <button onclick="backToMenu();closeMenu()">↩ Exit</button>
 </div>
 
@@ -115,7 +120,12 @@
                     onclick="wrapSelection('[[',']]')">
                     大
                 </button>
-
+                <button
+                    type="button"
+                    class="tool-btn bold"
+                    onclick="wrapSelection('**','**')">
+                    B
+                </button>
                 <button
                     type="button"
                     class="tool-btn underline"
