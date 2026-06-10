@@ -171,60 +171,124 @@ async function deleteDeck(deckId) {
     await loadDecks();
 }
 
-// ==================== CSV 批量导入 ====================
-async function importCSV(e) {
-    const file = e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = async (event) => {
-        try {
-            let text = event.target.result || '';
-            text = text.replace(/^\uFEFF/, '');
-            const lines = text
-                .split(/\r?\n/)
-                .map(l => l.trim())
-                .filter(l => l);
-            if (lines.length === 0) {
-                return alert('文件为空');
-            }
-            let success = 0;
+// ==================== 批量导入 ====================
+function openImportModal() {
+    document.getElementById('importModal').style.display = 'flex';
+}
+
+function closeImportModal() {
+    document.getElementById('importModal').style.display = 'none';
+}
+
+async function confirmImport() {
+
+    if (!currentDeckKey) {
+        alert('请先进入一个分类');
+        return;
+    }
+
+    const text = document
+        .getElementById('importText')
+        .value;
+
+    if (!text.trim()) {
+        alert('请输入内容');
+        return;
+    }
+
+    // 预处理
+    const rawLines = text
+        .split(/\r?\n/)
+        .map(v => v.trim())
+        .filter(Boolean);
+
+    // 自动去重
+    const lines = [...new Set(rawLines)];
+
+    if (lines.length === 0) {
+        alert('没有可导入内容');
+        return;
+    }
+
+    const removedCount = rawLines.length - lines.length;
+
+    const preview = lines
+        .slice(0, 20)
+        .join('\n');
+
+    const ok = confirm(
+`准备导入
+
+原始条数：${rawLines.length}
+去重后：${lines.length}
+移除重复：${removedCount}
+
+预览：
+
+${preview}
+
+${lines.length > 20 ? '\n......' : ''}
+
+确定导入？`
+    );
+
+    if (!ok) return;
+
+    try {
+
+        // Firestore Batch 上限 500
+        const BATCH_SIZE = 500;
+
+        for (let i = 0; i < lines.length; i += BATCH_SIZE) {
+
             const batch = db.batch();
-            for (let rawLine of lines) {
-                if (rawLine.startsWith('#') || rawLine.startsWith('//')) continue;
-                let line = rawLine.replace(/^"(.*)"$/, '$1').trim();
-                if (!line) continue;
-                const lower = line.toLowerCase();
-                if (lower === 'front' || lower === '正面' || lower.includes('问题')) continue;
 
-                let front = line;
-                const separators = ['\t', ',', '，', ';', '|'];
-                for (const sep of separators) {
-                    if (line.includes(sep)) {
-                        front = line.split(sep)[0].trim();
-                        break;
-                    }
-                }
-                front = front.replace(/^"(.*)"$/, '$1').trim();
-                if (!front) continue;
+            const chunk = lines.slice(
+                i,
+                i + BATCH_SIZE
+            );
 
-                const cardRef = db.collection('cards').doc();
-                batch.set(cardRef, {
+            chunk.forEach(front => {
+
+                const ref = db.collection('cards').doc();
+
+                batch.set(ref, {
                     deckId: currentDeckKey,
                     front,
                     weight: 0,
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                    createdAt:
+                        firebase.firestore.FieldValue.serverTimestamp()
                 });
-                success++;
-            }
+
+            });
+
             await batch.commit();
-            alert(`✅ 成功导入 ${success} 张卡片`);
-            await loadCards();
-        } catch (err) {
-            alert('导入失败：' + err.message);
+
+            console.log(
+                `已提交 ${Math.min(i + BATCH_SIZE, lines.length)}/${lines.length}`
+            );
         }
-    };
-    reader.readAsText(file, 'utf-8');
-    e.target.value = '';
+
+        closeImportModal();
+
+        document.getElementById('importText').value = '';
+
+        alert(
+            `✅ 成功导入 ${lines.length} 张卡片\n\n已自动去除 ${removedCount} 条重复内容`
+        );
+
+        await loadCards();
+
+    } catch (err) {
+
+        console.error(err);
+
+        alert(
+            '导入失败：' +
+            (err.message || err)
+        );
+
+    }
 }
 
 // ==================== 播放器功能 ====================
