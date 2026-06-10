@@ -409,10 +409,7 @@ button.secondary { background:#3a3f4b; }
 .front {
     flex:1;
     display:flex;
-    justify-content:center;
-    align-items:center;
-    overflow-y:auto;
-    overflow-x:hidden;
+    justify-content:flex-start;
     padding:clamp(28px,4vw,64px);
 }
 .front-content {
@@ -424,6 +421,15 @@ button.secondary { background:#3a3f4b; }
     text-align:center;
     word-break:break-word;
     white-space:pre-wrap;
+}
+.front {
+    overflow-y:auto;
+}
+
+.front-content {
+    width:100%;
+    max-width:900px;
+    margin:auto;
 }
 @media (max-width:768px){
 .front-content {
@@ -437,10 +443,7 @@ button.secondary { background:#3a3f4b; }
     white-space:pre-wrap;
 }}
 
-.front.long-text {
-    justify-content:flex-start;
-    padding-top:40px;
-}
+
 
 .front::-webkit-scrollbar {
     width: 8px;
@@ -858,6 +861,10 @@ body.immersive .card {
     transition:.25s;
 }
 
+body.immersive .card{
+    margin-top:-5vh;
+}
+
 /* 正文字体放大 */
 body.immersive .front {
 
@@ -896,13 +903,20 @@ body.immersive .container {
 
     align-items: center;
 
-    transform: translateY(-5vh);
 }
 
 body.immersive .card {
     width:min(90vw,1100px);
     height:min(78vh,900px);
-    transform: translateY(-40px);
+}
+body.immersive .container {
+    transform:none;
 }
 
+body.immersive .card {
+    transform:none;
+}
+body.immersive .front-content {
 
+    padding-top:40px;
+}
