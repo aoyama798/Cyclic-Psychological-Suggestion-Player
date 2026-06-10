@@ -435,8 +435,7 @@ button.secondary { background:#3a3f4b; }
     text-align:left;
     word-break:break-word;
     white-space:pre-wrap;
-  
-}
+}}
 
 .front.long-text {
     justify-content:flex-start;
