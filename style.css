@@ -156,7 +156,7 @@ h1 {
 .delete-btn { top: -8px; right: -8px; background: #e74c3c; }
 
 
-/* =========================
+/* =============================================================================================================================
    Bubbles手机端适配
 ========================= */
 @media (max-width:768px){
@@ -255,9 +255,74 @@ button {
 button:hover { opacity:0.9; }
 button.secondary { background:#3a3f4b; }
 
-
-
 /* =========================
+   拖动排序功能====================================================================================================
+========================= */
+/* 在 style.css 末尾添加拖拽相关样式 */
+.bubble {
+    /* ... 现有样式 ... */
+    user-select: none;
+    -webkit-user-drag: none; /* 防止默认行为干扰 */
+}
+
+.bubble.dragging {
+    opacity: 0.4;
+    transform: scale(0.95);
+}
+
+.bubble.drag-over {
+    border: 3px dashed #2f80ed;
+    background: rgba(47, 128, 237, 0.15);
+}
+
+/* 网格布局下拖拽指示 */
+.bubbles {
+    /* 保持原有 grid */
+}
+
+
+
+/* ====================== 拖拽排序样式 ====================== */
+.bubble {
+    cursor: grab;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.bubble:active {
+    cursor: grabbing;
+}
+
+.bubble.sortable-ghost {
+    opacity: 0.6 !important;
+    background: rgba(47, 128, 237, 0.3) !important;
+    border: 3px dashed #2f80ed !important;
+    transform: scale(0.95);
+}
+
+.bubble.dragging, .bubble.chosen {
+    opacity: 0.4;
+    transform: scale(0.95);
+}
+
+/* 确保 grid 容器支持拖拽 */
+.bubbles {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)) !important;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+/* =============================================================================================================================
    播放器  布局
 ========================= */
 .card {
@@ -839,7 +904,3 @@ body.immersive .card {
 }
 
 
-
-/* =========================
-   响应式布局====================================================================================================
-========================= */
