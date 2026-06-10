@@ -61,23 +61,27 @@ async function loadDecks() {
 function initSortable() {
     if (sortableInstance) sortableInstance.destroy();
     
-    const container = document.getElementById('bubbles');
-    if (!container) return console.error("Bubbles 容器未找到");
-
-    sortableInstance = new Sortable(container, {
-        animation: 200,
+    sortableInstance = new Sortable(document.getElementById('bubbles'), {
+        animation: 180,
         ghostClass: 'sortable-ghost',
         chosenClass: 'dragging',
-        dragClass: 'dragging',
-        forceFallback: true,           // 新增：兼容性更好
-        fallbackTolerance: 3,
-        onEnd: async (evt) => {
-            console.log('拖拽结束，更新排序...');
+        
+        // ==================== 手机端优化 ====================
+        delay: 180,                    // 按住 180ms 后才开始拖拽（防误触）
+        delayOnTouchOnly: true,        // 只在触屏设备生效
+        touchStartThreshold: 8,        // 触摸移动超过8px才触发
+        forceFallback: true,
+        
+        // 只允许水平拖拽，减少垂直滑动冲突
+        direction: 'horizontal',
+        
+        // 可选：只允许按住卡片中间区域拖拽
+        // handle: '.bubble',   // 如果想更严格可以打开
+        
+        onEnd: async () => {
             await updateDeckOrders();
         }
     });
-    
-    console.log('✅ Sortable.js 初始化成功');
 }
 
 // 更新排序到 Firebase
