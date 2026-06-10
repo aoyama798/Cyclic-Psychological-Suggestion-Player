@@ -480,8 +480,8 @@ document.addEventListener("keydown", (e) => {
     const tag = document.activeElement.tagName;
     if (tag === "INPUT" || tag === "TEXTAREA") return;
     switch (e.key) {
-        case "4": markImportant(); break;
-        case "1": markMastered(); break;
+        case "1": prevCard(); break;
+        case "3": nextCard(); break;
         case "e":
         case "E": editCurrentCard(); break;
     }
