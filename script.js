@@ -268,10 +268,18 @@ function renderCard() {
     html = html.replace(/!!(.*?)!!/g, '<span class="danger">$1</span>');
 
     frontEl.innerHTML = html;
+requestAnimationFrame(() => {
+
     frontEl.classList.remove('long-text');
-    if (front.length > 180) {
+
+    if(
+        frontEl.scrollHeight >
+        frontEl.parentElement.clientHeight
+    ){
         frontEl.classList.add('long-text');
     }
+
+});
     counterEl.textContent = `${currentIndex + 1} / ${currentCards.length}`;
     document.getElementById('weightBadge').textContent = `⭐ ${card.weight || 0}`;
 }
