@@ -54,11 +54,19 @@ async function loadDecks() {
         bubbles.appendChild(div);
     });
 
-    initSortable();
+        // 延迟初始化，防止 DOM 未就绪
+    setTimeout(initSortable, 150);
 }
 
 // 初始化 Sortable.js 拖拽
+// 初始化 Sortable.js（仅桌面端启用）
 function initSortable() {
+    // 如果是手机端，则不初始化拖拽
+    if (isMobileDevice()) {
+        console.log('📱 检测到手机端，已禁用拖拽排序');
+        return;
+    }
+    
     if (sortableInstance) sortableInstance.destroy();
     
     sortableInstance = new Sortable(document.getElementById('bubbles'), {
@@ -66,22 +74,23 @@ function initSortable() {
         ghostClass: 'sortable-ghost',
         chosenClass: 'dragging',
         
-        // ==================== 手机端优化 ====================
-        delay: 180,                    // 按住 180ms 后才开始拖拽（防误触）
-        delayOnTouchOnly: true,        // 只在触屏设备生效
-        touchStartThreshold: 8,        // 触摸移动超过8px才触发
-        forceFallback: true,
-        
-        // 只允许水平拖拽，减少垂直滑动冲突
-        direction: 'horizontal',
-        
-        // 可选：只允许按住卡片中间区域拖拽
-        // handle: '.bubble',   // 如果想更严格可以打开
+        delay: 100,
+        delayOnTouchOnly: true,
         
         onEnd: async () => {
             await updateDeckOrders();
         }
     });
+    
+    console.log('💻 桌面端拖拽排序已启用');
+}
+
+// 检测是否为手机/平板
+function isMobileDevice() {
+    return (
+        /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+        window.innerWidth <= 768
+    );
 }
 
 // 更新排序到 Firebase
