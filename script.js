@@ -303,9 +303,17 @@ async function startPlayer(deckId, deck) {
 }
 
 function backToMenu() {
+
     if (autoMode) toggleAuto();
-    document.getElementById('player').classList.remove('active');
-    document.getElementById('mainMenu').classList.add('active');
+
+    sortCardsByPriority();
+    currentIndex = 0;
+
+    document.getElementById('player')
+        .classList.remove('active');
+
+    document.getElementById('mainMenu')
+        .classList.add('active');
 }
 
 async function loadCards() {
@@ -409,35 +417,61 @@ function hideAddCardModal() {
 }
 
 async function saveCard() {
-    const front = document.getElementById('newFront').value.trim();
-    if (!front) return alert("正面不能为空");
+
+    const front = document
+        .getElementById('newFront')
+        .value
+        .trim();
+
+    if (!front) {
+        return alert("正面不能为空");
+    }
 
     try {
+
+        // ===== 编辑卡片 =====
         if (editingCardId) {
-            await db.collection('cards').doc(editingCardId).update({ front });
-        } else {
-            await db.collection('cards').add({
-                deckId: currentDeckKey,
-                front,
-                weight: 0,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp()
-            });
-        }
-        const keepId = editingCardId;
-        await loadCards();
-        if (keepId) {
-            const idx = currentCards.findIndex(c => c.id === keepId);
-            if (idx !== -1) currentIndex = idx;
+
+            await db.collection('cards')
+                .doc(editingCardId)
+                .update({ front });
+
+            // 更新当前内存中的内容
+            const card = currentCards.find(
+                c => c.id === editingCardId
+            );
+
+            if (card) {
+                card.front = front;
+            }
+
             renderCard();
-        }
-        if (editingCardId) {
             hideAddCardModal();
-        } else {
-            document.getElementById('newFront').value = '';
-            document.getElementById('newFront').focus();
+
+            return;
         }
+
+        // ===== 新增卡片 =====
+        await db.collection('cards').add({
+            deckId: currentDeckKey,
+            front,
+            weight: 0,
+            createdAt:
+                firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        await loadCards();
+
+        document.getElementById('newFront').value = '';
+        document.getElementById('newFront').focus();
+
     } catch (e) {
-        alert('保存失败：' + e.message);
+
+        alert(
+            '保存失败：' +
+            e.message
+        );
+
     }
 }
 
@@ -493,7 +527,6 @@ async function markMastered() {
         const newWeight = Math.max(0, (card.weight || 0) - 1);
         await db.collection('cards').doc(card.id).update({ weight: newWeight });
         card.weight = newWeight;
-        sortCardsByPriority();
         renderCard();
     } catch (e) {
         alert('更新权重失败：' + e.message);
