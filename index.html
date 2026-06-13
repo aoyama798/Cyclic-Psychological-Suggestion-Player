@@ -27,7 +27,7 @@
     
     <div class="player-layout">
         <div class="container">
-            <div class="card" onclick="handleCardAction()">
+            <div class="card" onclick="if(!isMobileDevice()) nextCard()">
                 <div class="front" id="frontContainer">
                     <div class="front-content" id="front"></div>
                 </div>
@@ -35,29 +35,32 @@
         </div>
     </div>
 
-    <div class="card-toolbar">
-        <button id="editCardBtn" onclick="editCurrentCard()">✏️</button>
-        <button onclick="prevCard()">⬅</button>
-        <button onclick="nextCard()">➡</button>
-        <button id="masteredBtn" onclick="markMastered()">⭐-</button>
-        <button id="importantBtn" onclick="markImportant()">⭐+</button>
+   <!-- 更多按钮 --> <div class="card-toolbar">
         <button id="moreBtn" onclick="toggleMenu()">⋯</button>
     </div>
 </div>
 
 <!-- 底部菜单 -->
 <div id="moreMenu" class="more-menu">
-    <button onclick="toggleImmersiveMode();closeMenu()">⛶ Immersive</button>
+          <button id="editCardBtn" onclick="editCurrentCard()">✏️ Edit</button>
+    <button id="moveCardBtn" onclick="moveCurrentCard();closeMenu()">📂 Move</button>
+
     <button onclick="showAddCardModal();closeMenu()">➕ Add</button>
     <button id="deleteCardBtn" onclick="deleteCurrentCard();closeMenu()">🗑️ Delete</button>
-    <button id="moveCardBtn" onclick="moveCurrentCard();closeMenu()">📂 Move</button>
+
+        <button id="masteredBtn" onclick="markMastered()">⭐-</button>
+        <button id="importantBtn" onclick="markImportant()">⭐+</button>
+
+        <button onclick="prevCard()">⬅ Previous</button>
+        <button onclick="nextCard()">➡ Next</button>
+  
     <input type="file" id="csvInput" accept=".csv,.txt,.tsv" style="display:none" onchange="importCSV(event)">
     <button onclick="openImportModal();closeMenu()">📥 Import</button>
-    <div style="display: flex;">
-        <button class="secondary" id="autoBtn" onclick="toggleAuto();closeMenu()">▶ AutoPlay</button>
-        <input type="number" id="intervalInput" value="2.5" min="5" style="width:55px;background:#262b36;color:white;border:none;border-radius:8px;padding:8px;">
-    </div>
+    <button class="secondary" id="autoBtn"  onclick="toggleAuto();closeMenu()">
+        ▶ AutoPlay </button>
+  
     <button onclick="backToMenu();closeMenu()">↩ Exit</button>
+    <button onclick="toggleImmersiveMode();closeMenu()">⛶ Immersive</button>
 </div>
 
 <!-- 弹窗 -->
