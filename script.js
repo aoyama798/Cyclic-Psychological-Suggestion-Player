@@ -348,7 +348,7 @@ if(weight >= 50){
 
     cardEl.classList.add('epic');
 
-}else if(weight >= 10){
+}else if(weight >= 15){
 
     cardEl.classList.add('favorite');
 }
@@ -777,10 +777,15 @@ function initMobileGesture(){
     );
 
     console.log('📱 手势已启用');
+
+  playerCard.addEventListener(
+    'touchmove',
+    handleTouchMove,
+    { passive:true }
+);
 }
 
 function handleTouchStart(e){
-    e.preventDefault();
 
     const touch = e.changedTouches[0];
 
@@ -795,7 +800,23 @@ function handleTouchStart(e){
 
         editCurrentCard();
 
-    }, 500);
+    }, 1000);
+}
+
+function handleTouchMove(e){
+
+    const touch = e.changedTouches[0];
+
+    const dx = touch.clientX - touchStartX;
+    const dy = touch.clientY - touchStartY;
+
+    // 手指移动后取消长按
+    if(
+        Math.abs(dx) > 15 ||
+        Math.abs(dy) > 15
+    ){
+        clearTimeout(longPressTimer);
+    }
 }
 
 function handleTouchEnd(e){
@@ -805,27 +826,40 @@ function handleTouchEnd(e){
     const touch = e.changedTouches[0];
 
     const dx = touch.clientX - touchStartX;
+    const dy = touch.clientY - touchStartY;
 
     const duration =
         Date.now() - touchStartTime;
 
-    // 左右滑
-    if(Math.abs(dx) > 80){
+    // 只要发生明显移动，就不是点击
+    if(
+        Math.abs(dx) > 15 ||
+        Math.abs(dy) > 15
+    ){
 
-        if(dx > 0){
+        // 左右滑动翻页
+        if(
+            Math.abs(dx) > 80 &&
+            Math.abs(dx) > Math.abs(dy) * 1.5
+        ){
 
-            prevCard();
+            if(dx > 0){
 
-        }else{
+                prevCard();
 
-            nextCard();
+            }else{
+
+                nextCard();
+            }
+
+            navigator.vibrate?.(10);
         }
 
         return;
     }
 
-    // 长按
-    if(duration > 500){
+    // 长按触发编辑后不再执行点击逻辑
+    if(duration > 1000){
         return;
     }
 
