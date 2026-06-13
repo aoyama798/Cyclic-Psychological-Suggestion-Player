@@ -25,7 +25,6 @@ let sortableInstance = null;   // Sortable.js 实例
 const frontEl = document.getElementById('front');
 const counterEl = document.getElementById('counter');
 const deckTitleEl = document.getElementById('deckTitle');
-const progressEl = document.getElementById('progress');
 
 // ==================== 分类管理（支持拖拽排序） ====================
 async function loadDecks() {
@@ -420,13 +419,12 @@ function prevCard() {
 
 function toggleAuto() {
     autoMode = !autoMode;
-    document.getElementById('autoBtn').textContent = autoMode ? "Pause" : "Play";
+    document.getElementById('autoBtn').textContent = autoMode ? "⏸Pause" : "▶︎Play";
     if (autoMode) {
         const sec = parseInt(document.getElementById('intervalInput').value) || 10;
         timer = setInterval(() => nextCard(), sec * 1000);
     } else {
         clearInterval(timer);
-        progressEl.style.width = "0%";
     }
 }
 
