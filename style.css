@@ -257,7 +257,12 @@ button {
 }
 button:hover { opacity:0.9; }
 button.secondary { background:#3a3f4b; }
-
+#autoBtn{
+    flex: 0 0 auto;
+    padding: 0 12px;
+    width: auto;
+    min-width: 70px;
+}
 /* =========================
    bubble拖动排序功能====================================================================================================
 ========================= */
@@ -374,31 +379,44 @@ button.secondary { background:#3a3f4b; }
 }
 .card-toolbar {
     position: fixed;
+
+    right: 20px;
     bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 100;
-  
+
+    width: 56px;
+    height: 56px;
+
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 14px;                    /* 稍微加大间距，更舒适 */
-  
-    padding: 12px 20px;           /* iOS 风格更均衡的内边距 */
-    background: rgba(30, 30, 36, 0.85);   /* 半透明深色毛玻璃 */
-    backdrop-filter: blur(20px);          /* 核心：iOS 毛玻璃效果 */
+
+    background: rgba(30,30,36,.85);
+
+    backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    
-    border: 1px solid rgba(255, 255, 255, 0.08);   /* 极淡的亮边 */
-    border-radius: 38px;          /* 大圆角，更像 iOS 浮动栏 */
-  
-    width: fit-content;
-    min-width: 340px;             /* 稍微加宽，更有 iOS 工具栏感觉 */
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35), 
-                0 2px 8px rgba(0, 0, 0, 0.2);     /* iOS 风格的柔和阴影 */
+
+    border-radius: 50%;
+
+    box-shadow:
+        0 8px 32px rgba(0,0,0,.35);
+
+    z-index: 100;
 }
+#moreBtn{
 
+    width:100%;
+    height:100%;
 
+    background:none;
+
+    border:none;
+
+    color:white;
+
+    font-size:18px;
+}
+@media (max-width: 768px) {
+}
 /* =========================
 ========================= */
 
@@ -425,6 +443,8 @@ button.secondary { background:#3a3f4b; }
     word-break:break-word;
     white-space:pre-wrap;
 }
+
+
 .front {
     overflow-y:auto;
 }
@@ -459,6 +479,133 @@ button.secondary { background:#3a3f4b; }
 
     .modal { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); display:none; align-items:center; justify-content:center; z-index:1000; }
     .modal-content { background:#171a21; padding:30px; border-radius:20px; width:90%; max-width:500px; }
+
+
+.card{
+
+    touch-action: pan-y;
+
+    transition:
+        transform .18s ease,
+        opacity .18s ease;
+}
+
+/* =========================
+   卡片分级系统开始
+========================= */
+
+
+/* 收藏卡 */
+.card.favorite{
+
+    border:1px solid rgba(127,184,255,.25);
+
+    background:
+        linear-gradient(
+            180deg,
+            #151922,
+            #10141d
+        );
+
+    box-shadow:
+        0 0 25px rgba(120,180,255,.15),
+        inset 0 0 18px rgba(120,180,255,.05);
+}
+
+.card.favorite .front-content{
+
+    color:#d8e8ff;
+}
+
+.card.favorite .weight-badge{
+
+    color:#7fb8ff;
+
+    background:
+        rgba(127,184,255,.12);
+
+    border:
+        1px solid rgba(127,184,255,.25);
+}
+
+
+/* 史诗卡 */
+.card.epic{
+
+    background:
+        linear-gradient(
+            180deg,
+            #1d1528,
+            #120d1d
+        );
+
+    border:
+        1px solid rgba(201,145,255,.35);
+
+    box-shadow:
+        0 0 35px rgba(201,145,255,.25),
+        inset 0 0 24px rgba(201,145,255,.08);
+}
+
+.card.epic .front-content{
+
+    color:#f0ddff;
+}
+
+.card.epic .weight-badge{
+
+    color:#c991ff;
+
+    background:
+        rgba(201,145,255,.12);
+
+    border:
+        1px solid rgba(201,145,255,.30);
+}
+
+
+/* 神话卡 */
+.card.mythic{
+
+    background:
+        linear-gradient(
+            180deg,
+            #24180a,
+            #120d05
+        );
+
+    border:
+        1px solid rgba(255,215,0,.45);
+
+    box-shadow:
+        0 0 50px rgba(255,215,0,.25),
+        inset 0 0 30px rgba(255,215,0,.10);
+}
+
+.card.mythic .front-content{
+
+    color:#ffe8a3;
+
+    text-shadow:
+        0 0 8px rgba(255,215,0,.18);
+}
+
+.card.mythic .weight-badge{
+
+    color:#ffd54f;
+
+    background:
+        rgba(255,215,0,.12);
+
+    border:
+        1px solid rgba(255,215,0,.35);
+}
+
+/* =========================
+   卡片等级系统结束
+========================= */
+
+
 
 /* =========================
    沉浸模式开始
@@ -698,27 +845,19 @@ body.immersive .card-toolbar:hover {
 }
 
 .highlight {
-
     background: #ffd54f;
-
     color: black;
-
     padding: 2px 6px;
-
     border-radius: 6px;
 }
 
 .underline {
-
     text-decoration: underline;
-
     text-decoration-thickness: 3px;
 }
 
 .danger {
-
     color: #ff6b6b;
-
     font-weight: 700;
 }
 .bold {
@@ -792,10 +931,10 @@ body.immersive .card-toolbar:hover {
 }
 
 
-
 /* =========================
-   二级菜单
+   底部二级菜单
 ========================= */
+
 .more-menu{
 
     position:fixed;
@@ -808,30 +947,28 @@ body.immersive .card-toolbar:hover {
         translateX(-50%)
         translateY(10px);
 
-    display:flex;
-    flex-direction:column;
+    display:grid;
+    grid-template-columns:1fr 1fr;
 
-    gap:8px;
+    gap:10px;
+
+    width:300px;
 
     padding:12px;
 
-    background:
-        rgba(30,30,36,.92);
+    background:rgba(30,30,36,.92);
 
     backdrop-filter:blur(20px);
-
     -webkit-backdrop-filter:blur(20px);
 
     border-radius:20px;
 
-    border:1px solid
-        rgba(255,255,255,.08);
+    border:1px solid rgba(255,255,255,.08);
 
     box-shadow:
         0 8px 32px rgba(0,0,0,.35);
 
     opacity:0;
-
     visibility:hidden;
 
     transition:.22s;
@@ -852,7 +989,7 @@ body.immersive .card-toolbar:hover {
 
 .more-menu button{
 
-    min-width:180px;
+    width:100%;
 
     text-align:left;
 
@@ -875,6 +1012,26 @@ body.immersive .card-toolbar:hover {
         rgba(255,255,255,.08);
 }
 
+/* AutoPlay 行占满两列 */
+
+.menu-autoplay{
+
+    grid-column:1 / span 2;
+
+    display:flex;
+
+    gap:8px;
+}
+
+.menu-autoplay button{
+
+    flex:1;
+}
+
+#intervalInput{
+
+    width:60px;
+}
 /* ====================导入 Import Modal ==================== */
 
 /* ==================== Import Modal ==================== */
