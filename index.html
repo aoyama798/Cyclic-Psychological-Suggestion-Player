@@ -42,17 +42,17 @@
 
 <!-- 底部菜单 -->
 <div id="moreMenu" class="more-menu">
-          <button id="editCardBtn" onclick="editCurrentCard()">✏️ Edit</button>
+          <button id="editCardBtn" onclick="editCurrentCard();closeMenu()">✏️ Edit</button>
     <button id="moveCardBtn" onclick="moveCurrentCard();closeMenu()">📂 Move</button>
 
     <button onclick="showAddCardModal();closeMenu()">➕ Add</button>
     <button id="deleteCardBtn" onclick="deleteCurrentCard();closeMenu()">🗑️ Delete</button>
 
-        <button id="masteredBtn" onclick="markMastered()">⭐-</button>
-        <button id="importantBtn" onclick="markImportant()">⭐+</button>
+        <button id="masteredBtn" onclick="markMastered();closeMenu()">⭐-</button>
+        <button id="importantBtn" onclick="markImportant();closeMenu()">⭐+</button>
 
-        <button onclick="prevCard()">⬅ Previous</button>
-        <button onclick="nextCard()">➡ Next</button>
+        <button onclick="prevCard();closeMenu()">⬅ Previous</button>
+        <button onclick="nextCard();closeMenu()">➡ Next</button>
   
     <input type="file" id="csvInput" accept=".csv,.txt,.tsv" style="display:none" onchange="importCSV(event)">
     <button onclick="openImportModal();closeMenu()">📥 Import</button>
