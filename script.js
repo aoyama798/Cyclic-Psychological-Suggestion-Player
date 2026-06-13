@@ -44,8 +44,8 @@ async function loadDecks() {
         div.innerHTML = `
             <span style="font-size:2.6rem; margin-bottom:8px;">${deck.icon || '📌'}</span>
             <div>${deck.name}</div>
-            <div class="action-btn edit-btn" onclick="event.stopImmediatePropagation(); editDeck('${doc.id}', '${deck.name}', '${deck.icon || ''}')">✏️</div>
-            <div class="action-btn delete-btn" onclick="event.stopImmediatePropagation(); deleteDeck('${doc.id}')">×</div>
+            <div class="action-btn edit-btn" onclick="event.stopImmediatePropagation(); editDeck('${doc.id}', '${deck.name}', '${deck.icon || ''}')"></div>
+            <div class="action-btn delete-btn" onclick="event.stopImmediatePropagation(); deleteDeck('${doc.id}')"></div>
         `;
       
         div.addEventListener('click', (e) => {
@@ -300,6 +300,7 @@ async function startPlayer(deckId, deck) {
     currentIndex = 0;
     showingBack = false;
     await loadCards();
+  initMobileGesture();
 }
 
 function backToMenu() {
@@ -330,6 +331,28 @@ function renderCard() {
         return;
     }
     const card = currentCards[currentIndex];
+  const cardEl = document.querySelector('.card');
+
+cardEl.classList.remove(
+    'favorite',
+    'epic',
+    'mythic'
+);
+
+const weight = card.weight || 0;
+
+if(weight >= 50){
+
+    cardEl.classList.add('mythic');
+
+}else if(weight >= 25){
+
+    cardEl.classList.add('epic');
+
+}else if(weight >= 10){
+
+    cardEl.classList.add('favorite');
+}
     const front = card.front || '';
     let html = front;
 
@@ -353,7 +376,26 @@ requestAnimationFrame(() => {
 
 });
     counterEl.textContent = `${currentIndex + 1} / ${currentCards.length}`;
-    document.getElementById('weightBadge').textContent = `⭐ ${card.weight || 0}`;
+    const w = card.weight || 0;
+
+let text = `★${w}`;
+
+if (w >= 50) {
+
+    text = `👑神话 ★${w}`;
+
+} else if (w >= 30) {
+
+    text = `💎史诗 ★${w}`;
+
+} else if (w >= 20) {
+
+    text = `⭐收藏 ★${w}`;
+
+}
+
+document.getElementById('weightBadge').textContent = text;
+
 }
 
 function handleCardAction() {
@@ -696,3 +738,122 @@ window.onload = async () => {
     await migrateOldDecks();
     loadDecks();
 };
+
+// ==================== 手机手势 ====================
+
+let touchStartX = 0;
+let touchStartY = 0;
+
+let touchStartTime = 0;
+
+let longPressTimer = null;
+
+let lastTap = 0;
+let tapTimer = null;
+
+function initMobileGesture(){
+
+    if(!isMobileDevice()) return;
+
+    const playerCard =
+        document.querySelector('.card');
+
+    if(!playerCard) return;
+
+    if(playerCard.dataset.gestureBound){
+        return;
+    }
+
+    playerCard.dataset.gestureBound = '1';
+
+    playerCard.addEventListener(
+        'touchstart',
+        handleTouchStart,
+        { passive:true }
+    );
+
+    playerCard.addEventListener(
+        'touchend',
+        handleTouchEnd,
+        { passive:true }
+    );
+
+    console.log('📱 手势已启用');
+}
+
+function handleTouchStart(e){
+    e.preventDefault();
+
+    const touch = e.changedTouches[0];
+
+    touchStartX = touch.clientX;
+    touchStartY = touch.clientY;
+
+    touchStartTime = Date.now();
+
+    longPressTimer = setTimeout(() => {
+
+        navigator.vibrate?.(20);
+
+        editCurrentCard();
+
+    }, 500);
+}
+
+function handleTouchEnd(e){
+
+    clearTimeout(longPressTimer);
+
+    const touch = e.changedTouches[0];
+
+    const dx = touch.clientX - touchStartX;
+
+    const duration =
+        Date.now() - touchStartTime;
+
+    // 左右滑
+    if(Math.abs(dx) > 80){
+
+        if(dx > 0){
+
+            prevCard();
+
+        }else{
+
+            nextCard();
+        }
+
+        return;
+    }
+
+    // 长按
+    if(duration > 500){
+        return;
+    }
+
+    const now = Date.now();
+
+    // 双击加星
+    if(now - lastTap < 300){
+
+        clearTimeout(tapTimer);
+
+        markImportant();
+
+        navigator.vibrate?.(10);
+
+        lastTap = 0;
+
+        return;
+    }
+
+    // 单击下一张
+    lastTap = now;
+
+    tapTimer = setTimeout(() => {
+
+        nextCard();
+
+    }, 300);
+}
+
