@@ -1229,8 +1229,8 @@ body.immersive .container {
 
 .card {
     position: relative;
-    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1),
-                opacity 0.25s ease;
+    transition: transform 0.05s cubic-bezier(0.4, 0, 0.2, 1),
+                opacity 0.20s ease;
     will-change: transform, opacity;
 }
 
