@@ -638,7 +638,7 @@ button.secondary { background:#3a3f4b; }
 
 
 /* =========================
-   沉浸模式开始
+   沉浸模式开始immersive
 ========================= */
 
 
@@ -681,6 +681,61 @@ body.immersive .card-toolbar:hover {
 
 body.immersive .container {
     padding: 12px;
+}
+body.immersive .card-toolbar button {
+    opacity: 0.2;
+    transition: 0.2s;
+}
+
+body.immersive .card-toolbar button:hover {
+    opacity: 1;
+}
+
+
+body.immersive .weight-hud {
+    position: fixed;
+    top: 24px;
+    right: 24px;
+
+    z-index: 999999;
+
+    padding: 6px 10px;
+    border-radius: 10px;
+
+
+
+
+
+    color: white;
+    font-size: 13px;
+
+    opacity: 0.75;
+    transition: 0.2s ease;
+
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+body.immersive .weight-hud.low {
+    opacity: 0.6;
+}
+
+body.immersive .weight-hud.mid {
+    opacity: 0.8;
+ /*   border-color: rgba(47,128,237,0.3); */
+}
+
+body.immersive .weight-hud.high {
+    opacity: 0.95;
+  /*     border-color: rgba(155,89,182,0.4);*/
+   /*    box-shadow: 0 0 10px rgba(155,89,182,0.2);*/
+}
+
+body.immersive .weight-hud.legend {
+    opacity: 1;
+  /*     border-color: rgba(241,196,15,0.6);*/
+   /*    box-shadow: 0 0 14px rgba(241,196,15,0.25);*/
 }
 /* =========================
    沉浸模式结束
