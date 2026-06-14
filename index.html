@@ -7,6 +7,7 @@
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
+<canvas id="particleCanvas"></canvas>
 <div id="starFlash">⭐</div>
 
 <!-- 主菜单 -->
@@ -56,8 +57,10 @@
   
     <input type="file" id="csvInput" accept=".csv,.txt,.tsv" style="display:none" onchange="importCSV(event)">
     <button onclick="openImportModal();closeMenu()">📥 Import</button>
-    <button class="secondary" id="autoBtn"  onclick="toggleAuto();closeMenu()">
-        ▶ AutoPlay </button>
+    <div style="display: flex;">
+        <button class="secondary" id="autoBtn" onclick="toggleAuto();closeMenu()">▶ AutoPlay</button>
+        <input type="number" id="intervalInput" value="2.5" min="5" style="width:55px;background:#262b36;color:white;border:none;border-radius:8px;padding:8px;">
+    </div>
   
     <button onclick="backToMenu();closeMenu()">↩ Exit</button>
     <button onclick="toggleImmersiveMode();closeMenu()">⛶ Immersive</button>
