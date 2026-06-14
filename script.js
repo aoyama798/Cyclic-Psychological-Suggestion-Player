@@ -375,57 +375,6 @@ async function loadCards() {
     renderCard();
 }
 
-// ==================== 粒子系统（只初始化一次） ====================
-
-const canvas = document.getElementById('particleCanvas');
-const ctx = canvas.getContext('2d');
-
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
-
-let particles = [];
-let particleRunning = false;
-
-function burstParticles() {
-    const x = window.innerWidth / 2;
-    const y = window.innerHeight / 2;
-
-    for (let i = 0; i < 80; i++) {
-        particles.push({
-            x,
-            y,
-            vx: (Math.random() - 0.5) * 10,
-            vy: (Math.random() - 0.5) * 10,
-            life: 1,
-            size: Math.random() * 3 + 1
-        });
-    }
-
-    if (!particleRunning) {
-        particleRunning = true;
-        animateParticles();
-    }
-}
-
-function animateParticles() {
-    requestAnimationFrame(animateParticles);
-
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    particles.forEach(p => {
-        p.x += p.vx;
-        p.y += p.vy;
-        p.vx *= 0.96;
-        p.vy *= 0.96;
-        p.life -= 0.015;
-
-        ctx.globalAlpha = p.life;
-        ctx.fillStyle = 'rgba(255, 215, 0, 1)';
-        ctx.fillRect(p.x, p.y, p.size, p.size);
-    });
-
-    particles = particles.filter(p => p.life > 0);
-}
 
 
 // ==================== renderCard ====================
@@ -490,6 +439,7 @@ function renderCard() {
     }
 
     document.getElementById('weightBadge').textContent = text;
+    updateWeightHUD();
 }
 
 
@@ -500,7 +450,6 @@ function triggerMythicEffect() {
     if (!card || (card.weight || 0) < 50) return;
 
     playSound(sfx.mythic);
-    burstParticles();
 }
 
 
@@ -786,6 +735,7 @@ function wrapSelection(before, after) {
 
 // 沉浸模式
 let immersiveMode = false;
+let weightHUD = null;
 let uiTimer = null;
 
 function showImmersiveUI() {
@@ -797,16 +747,77 @@ function showImmersiveUI() {
 function toggleImmersiveMode() {
     immersiveMode = !immersiveMode;
     document.body.classList.toggle('immersive', immersiveMode);
+
     if (immersiveMode) {
+
         showImmersiveUI();
+
+        // ✅ NEW: 创建 HUD
+        createWeightHUD();
+
+        // 强制同步一次
+        updateWeightHUD();
+
         if (document.documentElement.requestFullscreen) {
             document.documentElement.requestFullscreen().catch(() => {});
         }
+
     } else {
+
         document.body.classList.remove('show-ui');
-        if (document.fullscreenElement) document.exitFullscreen();
+
+        // ✅ NEW: 销毁 HUD
+        destroyWeightHUD();
+
+        if (document.fullscreenElement) {
+            document.exitFullscreen();
+        }
     }
 }
+
+function createWeightHUD() {
+    if (weightHUD) weightHUD.remove();
+
+    const el = document.createElement("div");
+    el.id = "weightHUD";
+
+    el.className = "weight-hud immersive-hud";
+
+    document.body.appendChild(el);
+
+    weightHUD = el;
+
+    updateWeightHUD(); // 初始化
+}
+
+function updateWeightHUD() {
+    if (!weightHUD) return;
+
+    const card = currentCards[currentIndex];
+    const w = card?.weight || 0;
+
+    let text = `★ ${w}`;
+
+    weightHUD.classList.remove("low", "mid", "high", "legend");
+
+    if (w >= 50) {
+        text = `👑 ${w}`;
+        weightHUD.classList.add("legend");
+    } else if (w >= 30) {
+        text = `🔮 ${w}`;
+        weightHUD.classList.add("high");
+    } else if (w >= 15) {
+        text = `💎 ${w}`;
+        weightHUD.classList.add("mid");
+    } else {
+        weightHUD.classList.add("low");
+    }
+
+    weightHUD.textContent = text;
+}
+
+
+
 
 document.addEventListener('mousemove', () => {
     if (immersiveMode) showImmersiveUI();
