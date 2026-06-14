@@ -3,7 +3,12 @@
     --dark: #0f1115; 
     --card-bg: #171a21; 
 }
-
+:root {
+    --bg: #0f1115;
+    --surface: #171a21;
+    --surface-2: #1f2430;
+    --border: #2a2f3a;
+}
 * { 
     box-sizing: border-box; 
     margin:0; 
@@ -25,7 +30,7 @@
 }
 body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    background: var(--dark);
+    background: var(--bg);
     color: #fff;
     min-height: 100vh;
     overflow-x: hidden;
@@ -239,14 +244,18 @@ h1 {
 
 .topbar { 
     padding:14px 20px; 
-    background:#171a21; 
-    border-bottom:1px solid #2a2f3a; 
     display:flex; 
     gap:12px; 
     align-items:center; 
     flex-wrap:wrap; 
 }
-
+.topbar {
+    background: linear-gradient(
+        180deg,
+        rgba(255,255,255,0.03),
+        transparent
+    ), var(--surface);
+}
 button { 
     background:var(--primary); 
     border:none; 
@@ -342,7 +351,7 @@ button.secondary { background:#3a3f4b; }
     position: relative;
     width: 100%;
     max-width: 1100px;
-
+    background: var(--surface);
     height: 100%;      /* 改这里 */
     
     border-radius: 28px;
@@ -376,6 +385,13 @@ button.secondary { background:#3a3f4b; }
 }
 .container{
     min-height:0;
+}
+.container {
+    background: radial-gradient(
+        circle at top,
+        rgba(47,128,237,0.05),
+        transparent 60%
+    ), var(--bg);
 }
 .card-toolbar {
     position: fixed;
@@ -490,117 +506,131 @@ button.secondary { background:#3a3f4b; }
         opacity .18s ease;
 }
 
+
+
 /* =========================
    卡片分级系统开始
 ========================= */
+.card {
+    position: relative;
+    overflow: hidden;
+}
 
+/* 通用流光层 */
+.card::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -60%;
+    width: 60%;
+    height: 100%;
 
-/* 收藏卡 */
+    background: linear-gradient(
+        120deg,
+        transparent 0%,
+        rgba(255,255,255,0.08) 40%,
+        rgba(255,255,255,0.22) 50%,
+        rgba(255,255,255,0.08) 60%,
+        transparent 100%
+    );
+
+    transform: skewX(-20deg);
+}
+
+/* 默认速度 */
+.card.shimmer::before {
+    animation: shimmer 2.8s linear infinite;
+}
+
+/* 收藏卡：稍快 */
+.card.favorite.shimmer::before {
+    animation-duration: 2.2s;
+}
+
+/* 史诗卡：更强 */
+.card.epic.shimmer::before {
+    background: linear-gradient(
+        120deg,
+        transparent 0%,
+        rgba(201,145,255,0.10) 40%,
+        rgba(201,145,255,0.35) 50%,
+        rgba(201,145,255,0.10) 60%,
+        transparent 100%
+    );
+    animation-duration: 1.8s;
+}
+
+/* 神话卡：金色强化 */
+.card.mythic.shimmer::before {
+    background: linear-gradient(
+        120deg,
+        transparent 0%,
+        rgba(255,215,0,0.12) 40%,
+        rgba(255,215,0,0.45) 50%,
+        rgba(255,215,0,0.12) 60%,
+        transparent 100%
+    );
+    animation-duration: 1.2s;
+}
+
+@keyframes shimmer {
+    0% {
+        left: -60%;
+    }
+    100% {
+        left: 120%;
+    }
+}
+
 .card.favorite{
-
-    border:1px solid rgba(127,184,255,.25);
-
+    border: 1px solid rgba(120,180,255,.35);
     background:
-        linear-gradient(
-            180deg,
-            #151922,
-            #10141d
-        );
+        radial-gradient(circle at top left, rgba(120,180,255,.15), transparent 40%),
+        linear-gradient(180deg,#151922,#10141d);
 
     box-shadow:
-        0 0 25px rgba(120,180,255,.15),
-        inset 0 0 18px rgba(120,180,255,.05);
+        0 0 20px rgba(120,180,255,.18),
+        inset 0 0 18px rgba(120,180,255,.08);
 }
-
-.card.favorite .front-content{
-
-    color:#d8e8ff;
-}
-
-.card.favorite .weight-badge{
-
-    color:#7fb8ff;
-
-    background:
-        rgba(127,184,255,.12);
-
-    border:
-        1px solid rgba(127,184,255,.25);
-}
-
-
-/* 史诗卡 */
 .card.epic{
-
+    border: 1px solid rgba(201,145,255,.45);
     background:
-        linear-gradient(
-            180deg,
-            #1d1528,
-            #120d1d
-        );
-
-    border:
-        1px solid rgba(201,145,255,.35);
+        radial-gradient(circle at top, rgba(201,145,255,.18), transparent 45%),
+        linear-gradient(180deg,#1d1528,#120d1d);
 
     box-shadow:
-        0 0 35px rgba(201,145,255,.25),
-        inset 0 0 24px rgba(201,145,255,.08);
+        0 0 35px rgba(201,145,255,.22),
+        inset 0 0 25px rgba(201,145,255,.10);
 }
-
-.card.epic .front-content{
-
-    color:#f0ddff;
-}
-
-.card.epic .weight-badge{
-
-    color:#c991ff;
-
-    background:
-        rgba(201,145,255,.12);
-
-    border:
-        1px solid rgba(201,145,255,.30);
-}
-
-
-/* 神话卡 */
 .card.mythic{
+    border: 1px solid rgba(255,215,0,.55);
 
     background:
-        linear-gradient(
-            180deg,
-            #24180a,
-            #120d05
-        );
-
-    border:
-        1px solid rgba(255,215,0,.45);
+        radial-gradient(circle at top, rgba(255,215,0,.20), transparent 40%),
+        repeating-linear-gradient(
+            45deg,
+            rgba(255,215,0,.05) 0px,
+            rgba(255,215,0,.05) 2px,
+            transparent 2px,
+            transparent 6px
+        ),
+        linear-gradient(180deg,#24180a,#120d05);
 
     box-shadow:
-        0 0 50px rgba(255,215,0,.25),
-        inset 0 0 30px rgba(255,215,0,.10);
+        0 0 60px rgba(255,215,0,.28),
+        inset 0 0 35px rgba(255,215,0,.12);
 }
-
-.card.mythic .front-content{
-
-    color:#ffe8a3;
-
-    text-shadow:
-        0 0 8px rgba(255,215,0,.18);
+.card.mythic {
+    box-shadow:
+        0 0 40px rgba(255,215,0,0.25),
+        inset 0 0 30px rgba(255,215,0,0.08);
 }
-
-.card.mythic .weight-badge{
-
-    color:#ffd54f;
-
-    background:
-        rgba(255,215,0,.12);
-
-    border:
-        1px solid rgba(255,215,0,.35);
+#particleCanvas{
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 99999;
 }
-
 /* =========================
    卡片等级系统结束
 ========================= */
@@ -610,23 +640,11 @@ button.secondary { background:#3a3f4b; }
 /* =========================
    沉浸模式开始
 ========================= */
-body.immersive .card{
 
-    width:min(90vw,1100px);
-
-    height:min(85vh,900px);
-
-    transform:none;
-}
-body.immersive {
-    background:#000;
-    overflow:hidden;
-}
 
 /* 顶栏隐藏 */
 /* 隐藏标题 */
 body.immersive #deckTitle{
-
     opacity:0;
     pointer-events:none;
 }
@@ -636,10 +654,17 @@ body.immersive #counter{
     opacity:0;
     pointer-events:none;
 }
-.topbar{
-    background-color: black;
-    transition:.25s;
-   border:none;
+body.immersive .topbar {
+    display: none;/* 不占位 */
+}
+body.immersive .player-layout {
+    flex: 1;
+    height: 100vh;
+}
+body.immersive .topbar {
+    background: var(--surface);
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    opacity: 0.98;
 }
 /* 工具栏半透明 */
 body.immersive .card-toolbar {
@@ -652,6 +677,10 @@ body.immersive .card-toolbar {
 body.immersive .card-toolbar:hover {
 
     opacity:1;
+}
+
+body.immersive .container {
+    padding: 12px;
 }
 /* =========================
    沉浸模式结束
@@ -1192,4 +1221,50 @@ body.immersive .card-toolbar:hover {
 
         font-size:16px;
     }
+}
+
+/* =========================
+   卡片切换动画系统
+========================= */
+
+.card {
+    position: relative;
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+                opacity 0.25s ease;
+    will-change: transform, opacity;
+}
+
+/* 当前卡片退出（向左） */
+.card.exit-left {
+    opacity: 0;
+    transform: translateX(-60px) scale(0.96);
+}
+
+/* 当前卡片退出（向右，可选） */
+.card.exit-right {
+    opacity: 0;
+    transform: translateX(60px) scale(0.96);
+}
+
+/* 新卡片初始进入（从右） */
+.card.enter-right {
+    opacity: 0;
+    transform: translateX(60px) scale(1.03);
+}
+
+/* 新卡片初始进入（从左） */
+.card.enter-left {
+    opacity: 0;
+    transform: translateX(-60px) scale(1.03);
+}
+
+/* 激活状态（最终落位） */
+.card.active {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+}
+
+/* 防止动画闪烁 */
+.card.animating {
+    pointer-events: none;
 }
