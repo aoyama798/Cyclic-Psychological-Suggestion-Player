@@ -26,6 +26,18 @@ const frontEl = document.getElementById('front');
 const counterEl = document.getElementById('counter');
 const deckTitleEl = document.getElementById('deckTitle');
 
+const sfx = {
+    flip: new Audio("https://assets.mixkit.co/sfx/preview/mixkit-card-flip-326.mp3"),
+    click: new Audio("https://assets.mixkit.co/sfx/preview/mixkit-select-click-1109.mp3"),
+    mythic: new Audio("https://assets.mixkit.co/sfx/preview/mixkit-magic-sparkles-1685.mp3")
+};
+
+// 预加载避免延迟
+Object.values(sfx).forEach(a => {
+    a.volume = 0.4;
+    a.preload = "auto";
+});
+
 // ==================== 分类管理（支持拖拽排序） ====================
 async function loadDecks() {
     const bubbles = document.getElementById('bubbles');
@@ -323,37 +335,88 @@ async function loadCards() {
     renderCard();
 }
 
+// ==================== 粒子系统（只初始化一次） ====================
+
+const canvas = document.getElementById('particleCanvas');
+const ctx = canvas.getContext('2d');
+
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+let particles = [];
+let particleRunning = false;
+
+function burstParticles() {
+    const x = window.innerWidth / 2;
+    const y = window.innerHeight / 2;
+
+    for (let i = 0; i < 80; i++) {
+        particles.push({
+            x,
+            y,
+            vx: (Math.random() - 0.5) * 10,
+            vy: (Math.random() - 0.5) * 10,
+            life: 1,
+            size: Math.random() * 3 + 1
+        });
+    }
+
+    if (!particleRunning) {
+        particleRunning = true;
+        animateParticles();
+    }
+}
+
+function animateParticles() {
+    requestAnimationFrame(animateParticles);
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    particles.forEach(p => {
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vx *= 0.96;
+        p.vy *= 0.96;
+        p.life -= 0.015;
+
+        ctx.globalAlpha = p.life;
+        ctx.fillStyle = 'rgba(255, 215, 0, 1)';
+        ctx.fillRect(p.x, p.y, p.size, p.size);
+    });
+
+    particles = particles.filter(p => p.life > 0);
+}
+
+
+// ==================== renderCard ====================
+
 function renderCard() {
     if (currentCards.length === 0) {
         frontEl.textContent = "暂无卡片，请添加卡片";
         counterEl.textContent = "0 / 0";
         return;
     }
+
     const card = currentCards[currentIndex];
-  const cardEl = document.querySelector('.card');
+    const cardEl = document.querySelector('.card');
 
-cardEl.classList.remove(
-    'favorite',
-    'epic',
-    'mythic'
-);
+    // ==================== 卡牌分级 ====================
+    cardEl.classList.remove('favorite', 'epic', 'mythic');
 
-const weight = card.weight || 0;
+  
+    const weight = card.weight || 0;
 
-if(weight >= 50){
-
-    cardEl.classList.add('mythic');
-
-}else if(weight >= 25){
-
-    cardEl.classList.add('epic');
-
-}else if(weight >= 15){
-
-    cardEl.classList.add('favorite');
-}
-    const front = card.front || '';
-    let html = front;
+    if (weight >= 50) {
+        cardEl.classList.add('mythic');
+    } else if (weight >= 25) {
+        cardEl.classList.add('epic');
+    } else if (weight >= 15) {
+        cardEl.classList.add('favorite');
+    }
+    cardEl.classList.add('shimmer');
+  
+    // ==================== 内容渲染 ====================
+    let html = card.front || '';
 
     html = html.replace(/\n/g, '<br>');
     html = html.replace(/\[\[(.*?)\]\]/g, '<span class="big">$1</span>');
@@ -362,59 +425,81 @@ if(weight >= 50){
     html = html.replace(/!!(.*?)!!/g, '<span class="danger">$1</span>');
 
     frontEl.innerHTML = html;
-requestAnimationFrame(() => {
 
-    frontEl.classList.remove('long-text');
+    // ==================== 溢出检测 ====================
+    requestAnimationFrame(() => {
+        frontEl.classList.remove('long-text');
 
-    if(
-        frontEl.scrollHeight >
-        frontEl.parentElement.clientHeight
-    ){
-        frontEl.classList.add('long-text');
+        if (frontEl.scrollHeight > frontEl.parentElement.clientHeight) {
+            frontEl.classList.add('long-text');
+        }
+    });
+
+    // ==================== 计数器 ====================
+    counterEl.textContent = `${currentIndex + 1} / ${currentCards.length}`;
+
+    // ==================== 权重显示 ====================
+    let text = `★${weight}`;
+
+    if (weight >= 50) {
+        text = `👑 神话 ★${weight}`;
+    } else if (weight >= 30) {
+        text = `🔮 史诗 ★${weight}`;
+    } else if (weight >= 15) {
+        text = `💎 收藏 ★${weight}`;
     }
 
+    document.getElementById('weightBadge').textContent = text;
+}
+
+
+// ==================== 神话卡触发粒子 ====================
+
+function triggerMythicEffect() {
+    const card = currentCards[currentIndex];
+    if (!card || (card.weight || 0) < 50) return;
+
+    playSound(sfx.mythic);
+    burstParticles();
+}
+
+
+// ==================== 点击绑定（关键） ====================
+
+document.querySelector('.card').addEventListener('click', () => {
+    if (!isMobileDevice()) nextCard();
+    triggerMythicEffect();
+  playSound(sfx.click);
 });
-    counterEl.textContent = `${currentIndex + 1} / ${currentCards.length}`;
-    const w = card.weight || 0;
 
-let text = `★${w}`;
 
-if (w >= 50) {
-
-    text = `👑神话 ★${w}`;
-
-} else if (w >= 30) {
-
-    text = `💎史诗 ★${w}`;
-
-} else if (w >= 20) {
-
-    text = `⭐收藏 ★${w}`;
-
-}
-
-document.getElementById('weightBadge').textContent = text;
-
-}
 
 function handleCardAction() {
     nextCard();
 }
+document.querySelector('.card').addEventListener('click', () => {
+    if (!isMobileDevice()) nextCard();
+    triggerMythicEffect();
+});
 
 function nextCard() {
     if (currentCards.length === 0) return;
-    const card = currentCards[currentIndex];
-    card.lastViewedAt = Date.now();
-    db.collection('cards').doc(card.id).update({ lastViewedAt: card.lastViewedAt });
+    playSound(sfx.flip);
+    animateCard('next', () => {
+        const card = currentCards[currentIndex];
+        card.lastViewedAt = Date.now();
+        db.collection('cards').doc(card.id).update({ lastViewedAt: card.lastViewedAt });
 
-    currentIndex = (currentIndex + 1) % currentCards.length;
-    renderCard();
+        currentIndex = (currentIndex + 1) % currentCards.length;
+    });
 }
 
 function prevCard() {
     if (currentCards.length === 0) return;
-    currentIndex = (currentIndex - 1 + currentCards.length) % currentCards.length;
-    renderCard();
+    playSound(sfx.flip);
+    animateCard('prev', () => {
+        currentIndex = (currentIndex - 1 + currentCards.length) % currentCards.length;
+    });
 }
 
 function toggleAuto() {
@@ -889,3 +974,52 @@ function handleTouchEnd(e){
     }, 300);
 }
 
+
+// 切卡动画效果实现
+
+let animating = false;
+
+function animateCard(direction, callback) {
+    if (animating) return;
+    animating = true;
+
+    const cardEl = document.querySelector('.card');
+
+    const exitClass = direction === 'next'
+        ? 'exit-left'
+        : 'exit-right';
+
+    const enterClass = direction === 'next'
+        ? 'enter-right'
+        : 'enter-left';
+
+    // 1. 播放退出动画
+    cardEl.classList.add(exitClass);
+
+    setTimeout(() => {
+
+        // 2. 执行数据切换
+        callback();
+
+        // 3. 重新渲染内容
+        renderCard();
+
+        // 4. 清理 exit + 触发 enter
+        cardEl.classList.remove(exitClass);
+        cardEl.classList.add(enterClass);
+
+        // 5. enter 动画结束后清理
+        setTimeout(() => {
+            cardEl.classList.remove(enterClass);
+            animating = false;
+        }, 280);
+
+    }, 180);
+}
+
+
+function playSound(audio) {
+    if (!audio) return;
+    audio.currentTime = 0;
+    audio.play().catch(() => {});
+}
