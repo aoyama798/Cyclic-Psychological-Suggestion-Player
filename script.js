@@ -39,89 +39,129 @@ Object.values(sfx).forEach(a => {
 });
 
 // ==================== 分类管理（支持拖拽排序） ====================
+// ==================== 分类管理（支持拖拽排序） ====================
+
+
+// ---------- 加载分类 ----------
 async function loadDecks() {
     const bubbles = document.getElementById('bubbles');
     bubbles.innerHTML = '';
 
-    const snapshot = await db.collection('decks').orderBy('order', 'asc').get();
-   
+    const snapshot = await db.collection('decks')
+        .orderBy('order', 'asc')
+        .get();
+
     snapshot.forEach(doc => {
         const deck = doc.data();
+
         const div = document.createElement('div');
         div.className = 'bubble';
-        div.dataset.id = doc.id;
-        div.style.background = `linear-gradient(135deg, ${deck.color || '#2f80ed'}, #1e5aa8)`;
-      
+        div.dataset.id = doc.id; // ⭐ Sortable key
+
+        div.style.background = '';
+
         div.innerHTML = `
-            <span style="font-size:2.6rem; margin-bottom:8px;">${deck.icon || '📌'}</span>
+            <span style="font-size:2.6rem; margin-bottom:8px;">
+                ${deck.icon || '📌'}
+            </span>
             <div>${deck.name}</div>
-            <div class="action-btn edit-btn" onclick="event.stopImmediatePropagation(); editDeck('${doc.id}', '${deck.name}', '${deck.icon || ''}')"></div>
-            <div class="action-btn delete-btn" onclick="event.stopImmediatePropagation(); deleteDeck('${doc.id}')"></div>
+
+            <div class="action-btn edit-btn"
+                onclick="event.stopImmediatePropagation();
+                editDeck('${doc.id}', '${deck.name}', '${deck.icon || ''}')">
+            </div>
+
+            <div class="action-btn delete-btn"
+                onclick="event.stopImmediatePropagation();
+                deleteDeck('${doc.id}')">
+            </div>
         `;
-      
+
         div.addEventListener('click', (e) => {
-            if (!e.target.classList.contains('action-btn')) startPlayer(doc.id, deck);
+            if (!e.target.classList.contains('action-btn')) {
+                startPlayer(doc.id, deck);
+            }
         });
+
         bubbles.appendChild(div);
     });
 
-        // 延迟初始化，防止 DOM 未就绪
-    setTimeout(initSortable, 150);
+    // ⭐ 确保 DOM 完成后再初始化
+    requestAnimationFrame(initSortable);
 }
 
-// 初始化 Sortable.js 拖拽
-// 初始化 Sortable.js（仅桌面端启用）
+
+// ---------- 初始化拖拽（唯一入口） ----------
 function initSortable() {
-    // 如果是手机端，则不初始化拖拽
-    if (isMobileDevice()) {
-        console.log('📱 检测到手机端，已禁用拖拽排序');
-        return;
+    if (isMobileDevice()) return;
+
+    const el = document.getElementById('bubbles');
+    if (!el) return;
+
+    if (sortableInstance) {
+        sortableInstance.destroy();
     }
-    
-    if (sortableInstance) sortableInstance.destroy();
-    
-    sortableInstance = new Sortable(document.getElementById('bubbles'), {
+
+    sortableInstance = new Sortable(el, {
         animation: 180,
+
+        draggable: '.bubble',
+
+        dataIdAttr: 'data-id',
+
+        // ⭐关键三件套
+        handle: '.bubble',
+        ignore: '.action-btn',
+        forceFallback: true,
+
         ghostClass: 'sortable-ghost',
         chosenClass: 'dragging',
-        
-        delay: 100,
-        delayOnTouchOnly: true,
-        
-        onEnd: async () => {
-            await updateDeckOrders();
-        }
+
+        onEnd: updateDeckOrders
     });
-    
+
     console.log('💻 桌面端拖拽排序已启用');
 }
 
-// 检测是否为手机/平板
+
+// ---------- 保存排序到 Firebase ----------
+async function updateDeckOrders() {
+    if (!sortableInstance) return;
+
+    const order = sortableInstance.toArray();
+
+    if (!order || order.length === 0) return;
+
+    const batch = db.batch();
+
+    order.forEach((deckId, index) => {
+        if (!deckId) return;
+
+        batch.update(db.collection('decks').doc(deckId), {
+            order: index
+        });
+    });
+
+    try {
+        await batch.commit();
+        console.log('✅ 分类排序已保存');
+    } catch (e) {
+        console.error('排序保存失败:', e);
+        alert('排序保存失败，请刷新重试');
+    }
+}
+
+
+// ---------- 判断设备 ----------
 function isMobileDevice() {
     return (
-        /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+        /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i
+            .test(navigator.userAgent) ||
         window.innerWidth <= 768
     );
 }
 
-// 更新排序到 Firebase
-async function updateDeckOrders() {
-    const bubbles = document.querySelectorAll('.bubble');
-    const batch = db.batch();
-   
-    bubbles.forEach((bubble, index) => {
-        const deckId = bubble.dataset.id;
-        batch.update(db.collection('decks').doc(deckId), { order: index });
-    });
-   
-    try {
-        await batch.commit();
-        console.log('✅ 排序已保存到云端');
-    } catch (e) {
-        console.error("排序保存失败:", e);
-        alert("排序保存失败，请刷新页面重试");
-    }
-}
+
 
 function showAddDeckModal() {
     editingDeckId = null;
@@ -438,15 +478,15 @@ function renderCard() {
     // ==================== 计数器 ====================
     counterEl.textContent = `${currentIndex + 1} / ${currentCards.length}`;
 
-    // ==================== 权重显示 ====================
+    // ==================== 权重显示 神话史诗收藏 ====================
     let text = `★${weight}`;
 
     if (weight >= 50) {
-        text = `👑 神话 ★${weight}`;
+        text = `👑 ${weight}`;
     } else if (weight >= 30) {
-        text = `🔮 史诗 ★${weight}`;
+        text = `🔮 ${weight}`;
     } else if (weight >= 15) {
-        text = `💎 收藏 ★${weight}`;
+        text = `💎 ${weight}`;
     }
 
     document.getElementById('weightBadge').textContent = text;
