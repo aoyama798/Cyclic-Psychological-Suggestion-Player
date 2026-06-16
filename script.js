@@ -358,6 +358,20 @@ function backToMenu() {
 
     if (autoMode) toggleAuto();
 
+    // 强制退出沉浸模式
+    immersiveMode = false;
+
+    document.body.classList.remove(
+        'immersive',
+        'show-ui'
+    );
+
+    destroyWeightHUD();
+
+    if(document.fullscreenElement){
+        document.exitFullscreen();
+    }
+
     sortCardsByPriority();
     currentIndex = 0;
 
@@ -696,13 +710,62 @@ document.addEventListener('keydown', (e) => {
 });
 
 document.addEventListener("keydown", (e) => {
+
     const tag = document.activeElement.tagName;
-    if (tag === "INPUT" || tag === "TEXTAREA") return;
+
+    if (tag === "INPUT" || tag === "TEXTAREA") {
+        return;
+    }
+
     switch (e.key) {
-        case "1": prevCard(); break;
-        case "3": nextCard(); break;
+
+        // 权重
+        case "+":
+            markImportant();
+            break;
+
+        case "-":
+            markMastered();
+            break;
+
+        // 翻页
+        case "1":
+            prevCard();
+            break;
+
+        case "3":
+            nextCard();
+            break;
+
+        // WASD
+        case "a":
+        case "A":
+            prevCard();
+            break;
+
+        case "d":
+        case "D":
+            nextCard();
+            break;
+
+        // 编辑
         case "e":
-        case "E": editCurrentCard(); break;
+        case "E":
+            editCurrentCard();
+            break;
+
+        // 沉浸模式
+        case "r":
+        case "R":
+            e.preventDefault();
+            toggleImmersiveMode();
+            break;
+
+        // 空格下一张
+        case " ":
+            e.preventDefault();
+            nextCard();
+            break;
     }
 });
 
@@ -790,6 +853,17 @@ function createWeightHUD() {
     updateWeightHUD(); // 初始化
 }
 
+function destroyWeightHUD() {
+
+    const hud = document.getElementById('weightHUD');
+
+    if(hud){
+        hud.remove();
+    }
+
+    weightHUD = null;
+}
+
 function updateWeightHUD() {
     if (!weightHUD) return;
 
@@ -833,9 +907,17 @@ document.addEventListener('keydown', (e) => {
 });
 
 document.addEventListener('fullscreenchange', () => {
+
     if (!document.fullscreenElement) {
+
         immersiveMode = false;
-        document.body.classList.remove('immersive', 'show-ui');
+
+        document.body.classList.remove(
+            'immersive',
+            'show-ui'
+        );
+
+        destroyWeightHUD();
     }
 });
 
@@ -884,6 +966,9 @@ let longPressTimer = null;
 
 let lastTap = 0;
 let tapTimer = null;
+// 连点保护
+let tapCount = 0;
+let tapCountTimer = null;
 
 function initMobileGesture(){
 
@@ -1004,25 +1089,38 @@ function handleTouchEnd(e){
     // 双击加星
     if(now - lastTap < 300){
 
-        clearTimeout(tapTimer);
+    clearTimeout(tapTimer);
 
-        markImportant();
+    markImportant();
 
-        navigator.vibrate?.(10);
+    navigator.vibrate?.(10);
 
-        lastTap = 0;
+    // ===== 连点模式 =====
+    tapCount++;
 
-        return;
-    }
+    clearTimeout(tapCountTimer);
 
+    tapCountTimer = setTimeout(() => {
+        tapCount = 0;
+    }, 1500);
+
+    lastTap = 0;
+
+    return;
+}
     // 单击下一张
     lastTap = now;
 
     tapTimer = setTimeout(() => {
 
-        nextCard();
+    // 最近1秒发生过连续加星
+    if(tapCount > 0){
+        return;
+    }
 
-    }, 300);
+    nextCard();
+
+}, 300);
 }
 
 
