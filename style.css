@@ -248,6 +248,7 @@ h1 {
     gap:12px; 
     align-items:center; 
     flex-wrap:wrap; 
+border-radius: 0 0 18px 18px;
 }
 .topbar {
     background: linear-gradient(
