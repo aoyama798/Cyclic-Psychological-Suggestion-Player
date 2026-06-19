@@ -5,9 +5,10 @@
 <title>循环心理暗示工具</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="stylesheet" href="style.css">
+  <link rel="icon"
+      href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>👑</text></svg>">
 </head>
 <body>
-<canvas id="particleCanvas"></canvas>
 <div id="starFlash">⭐</div>
 
 <!-- 主菜单 -->
@@ -44,27 +45,27 @@
 
 <!-- 底部菜单 -->
 <div id="moreMenu" class="more-menu">
-          <button id="editCardBtn" onclick="editCurrentCard();closeMenu()">✏️ Edit</button>
-    <button id="moveCardBtn" onclick="moveCurrentCard();closeMenu()">📂 Move</button>
+          <button id="editCardBtn" onclick="editCurrentCard();closeMenu()"><span class="icon">✏️</span>Edit</button>
+    <button id="moveCardBtn" onclick="moveCurrentCard();closeMenu()"><span class="icon">📂</span>Move</button>
 
-    <button onclick="showAddCardModal();closeMenu()">➕ Add</button>
-    <button id="deleteCardBtn" onclick="deleteCurrentCard();closeMenu()">🗑️ Delete</button>
+    <button onclick="showAddCardModal();closeMenu()"><span class="icon">➕</span>Add</button>
+    <button id="deleteCardBtn" onclick="deleteCurrentCard();closeMenu()"><span class="icon">🗑️</span>Delete</button>
 
-        <button id="masteredBtn" onclick="markMastered()">⭐-</button>
-        <button id="importantBtn" onclick="markImportant()">⭐+</button>
+        <button id="masteredBtn" onclick="markMastered()"><span class="icon">⭐</span>Less-</button>
+        <button id="importantBtn" onclick="markImportant()"><span class="icon">⭐</span>More+</button>
 
-        <button onclick="prevCard();closeMenu()">⬅ Previous</button>
-        <button onclick="nextCard();closeMenu()">➡ Next</button>
+        <button onclick="prevCard();closeMenu()"><span class="icon">⬅</span>Previous</button>
+        <button onclick="nextCard();closeMenu()"><span class="icon">➡</span>Next</button>
   
     <input type="file" id="csvInput" accept=".csv,.txt,.tsv" style="display:none" onchange="importCSV(event)">
-    <button onclick="openImportModal();closeMenu()">📥 Import</button>
+    <button onclick="openImportModal();closeMenu()"><span class="icon">📥</span>Import</button>
     <div style="display: flex;">
-        <button class="secondary" id="autoBtn" onclick="toggleAuto();closeMenu()">▶ AutoPlay</button>
-        <input type="number" id="intervalInput" value="2.5" min="5" style="width:55px;background:#262b36;color:white;border:none;border-radius:8px;padding:8px;">
+        <button class="secondary" id="autoBtn" onclick="toggleAuto();closeMenu()"><span class="icon">▶</span> AutoPlay</button>
+        <input style="display:none;" type="number" id="intervalInput" value="2.5" min="5" style="width:45px;background:#262b36;color:white;border:none;border-radius:8px;padding:8px;">
     </div>
   
-    <button onclick="backToMenu();closeMenu()">↩ Exit</button>
-    <button onclick="toggleImmersiveMode();closeMenu()">⛶ Immersive</button>
+    <button onclick="backToMenu();closeMenu()"><span class="icon">↩</span>Exit</button>
+    <button onclick="toggleImmersiveMode();closeMenu()"><span class="icon">⛶</span>Immersive</button>
 </div>
 
 <!-- 弹窗 -->
@@ -82,23 +83,75 @@
 
 <div id="addCardModal" class="modal">
     <div class="modal-content">
-        <div class="modal-header">
-            <h3 id="cardModalTitle">添加新卡片</h3>
-            <div class="mini-toolbar">
-                <button type="button" class="tool-btn red" onclick="wrapSelection('!!','!!')">红</button>
-                <button type="button" class="tool-btn green" onclick="wrapSelection('{{','}}')">绿</button>
-                <button type="button" class="tool-btn purple" onclick="wrapSelection('[[',']]')">大</button>
-                <button type="button" class="tool-btn bold" onclick="wrapSelection('**','**')">B</button>
-                <button type="button" class="tool-btn underline" onclick="wrapSelection('__','__')">U</button>
-                <button type="button" class="clean-btn" onclick="cleanTextarea(activeTextarea)">↵
-                </button>
-            </div>
+
+    <div class="modal-title-row">
+        <h3 id="cardModalTitle">添加新卡片</h3>
+        <select id="cardDeckSelect"></select>
+    </div>
+
+        <div class="mini-toolbar">
+            <button type="button"
+                class="tool-btn red"
+                onclick="wrapSelection('!!','!!')">
+                🔴
+            </button>
+
+            <button type="button"
+                class="tool-btn mark-highlight"
+                onclick="wrapSelection('{{','}}')">
+                🟨
+            </button>
+
+            <button type="button"
+                class="tool-btn font-size"
+                onclick="wrapSelection('[[',']]')">
+                ᴀA
+            </button>
+
+            <button type="button"
+                class="tool-btn bold"
+                onclick="wrapSelection('**','**')">
+                B
+            </button>
+
+            <button type="button"
+                class="tool-btn underline"
+                onclick="wrapSelection('__','__')">
+                U
+            </button>
+
+            <button type="button"
+                class="tool-btn clean"
+                onclick="cleanTextarea(activeTextarea)">
+                ✂️
+            </button>
+
         </div>
-        <textarea id="newFront" onfocus="activeTextarea='newFront'" placeholder="正面（问题/暗示）" style="width:100%;height:120px;margin:15px 0;padding:12px;background:#262b36;color:white;border:none;border-radius:12px;"></textarea>
-        <div style="margin-top:20px;text-align:right;">
-            <button onclick="hideAddCardModal()" class="secondary">取消</button>
-            <button onclick="saveCard()" id="saveCardBtn">保存卡片</button>
+
+        <textarea id="newFront" rows="10" onfocus="activeTextarea='newFront'" placeholder="输入卡片内容...">
+        </textarea>
+      
+        <div class="modal-buttons">
+
+            <button
+                class="primary-btn"
+                id="saveCardBtn"
+                onclick="saveCard()">
+
+                ✔️
+
+            </button>
+
+            <button
+                class="secondary-btn"
+                onclick="hideAddCardModal()">
+
+                ❌
+
+            </button>
+
         </div>
+
     </div>
 </div>
 
