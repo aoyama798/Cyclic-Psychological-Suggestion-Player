@@ -26,18 +26,6 @@ const frontEl = document.getElementById('front');
 const counterEl = document.getElementById('counter');
 const deckTitleEl = document.getElementById('deckTitle');
 
-const sfx = {
-    flip: new Audio("https://assets.mixkit.co/sfx/preview/mixkit-card-flip-326.mp3"),
-    click: new Audio("https://assets.mixkit.co/sfx/preview/mixkit-select-click-1109.mp3"),
-    mythic: new Audio("https://assets.mixkit.co/sfx/preview/mixkit-magic-sparkles-1685.mp3")
-};
-
-// 预加载避免延迟
-Object.values(sfx).forEach(a => {
-    a.volume = 0.4;
-    a.preload = "auto";
-});
-
 // ==================== 分类管理（支持拖拽排序） ====================
 // ==================== 分类管理（支持拖拽排序） ====================
 
@@ -457,22 +445,12 @@ function renderCard() {
 }
 
 
-// ==================== 神话卡触发粒子 ====================
-
-function triggerMythicEffect() {
-    const card = currentCards[currentIndex];
-    if (!card || (card.weight || 0) < 50) return;
-
-    playSound(sfx.mythic);
-}
-
 
 // ==================== 点击绑定（关键） ====================
 
 document.querySelector('.card').addEventListener('click', () => {
     if (!isMobileDevice()) nextCard();
-    triggerMythicEffect();
-  playSound(sfx.click);
+  
 });
 
 
@@ -482,12 +460,11 @@ function handleCardAction() {
 }
 document.querySelector('.card').addEventListener('click', () => {
     if (!isMobileDevice()) nextCard();
-    triggerMythicEffect();
 });
 
 function nextCard() {
     if (currentCards.length === 0) return;
-    playSound(sfx.flip);
+    
     animateCard('next', () => {
         const card = currentCards[currentIndex];
         card.lastViewedAt = Date.now();
@@ -499,7 +476,7 @@ function nextCard() {
 
 function prevCard() {
     if (currentCards.length === 0) return;
-    playSound(sfx.flip);
+    
     animateCard('prev', () => {
         currentIndex = (currentIndex - 1 + currentCards.length) % currentCards.length;
     });
@@ -507,10 +484,16 @@ function prevCard() {
 
 function toggleAuto() {
     autoMode = !autoMode;
-    document.getElementById('autoBtn').textContent = autoMode ? "⏸Pause" : "▶︎Play";
+
+    const btn = document.getElementById("autoBtn");
+
+    btn.innerHTML = autoMode
+        ? '<span class="icon">⏸</span>Pause'
+        : '<span class="icon">▶</span>AutoPlay';
+
     if (autoMode) {
-        const sec = parseInt(document.getElementById('intervalInput').value) || 10;
-        timer = setInterval(() => nextCard(), sec * 1000);
+        const sec = parseFloat(document.getElementById("intervalInput").value) || 10;
+        timer = setInterval(nextCard, sec * 1000);
     } else {
         clearInterval(timer);
     }
@@ -531,12 +514,43 @@ function sortCardsByPriority() {
     });
 }
 
-function showAddCardModal() {
+async function showAddCardModal() {
+
     if (autoMode) toggleAuto();
+
     editingCardId = null;
-    document.getElementById('cardModalTitle').textContent = '添加新卡片';
-    document.getElementById('saveCardBtn').textContent = '保存卡片';
+
+    document.getElementById('cardModalTitle').textContent = '添加';
+    document.getElementById('saveCardBtn').textContent = '✔️';
+
     document.getElementById('newFront').value = '';
+
+    // ========= 加载所有卡组 =========
+    const select = document.getElementById("cardDeckSelect");
+    select.innerHTML = "";
+
+    const snapshot = await db.collection("decks")
+        .orderBy("order")
+        .get();
+
+    snapshot.forEach(doc => {
+
+        const deck = doc.data();
+
+        const option = document.createElement("option");
+
+        option.value = doc.id;
+        option.textContent =
+            `${deck.icon || "📌"} ${deck.name}`;
+
+        if(doc.id === currentDeckKey){
+            option.selected = true;
+        }
+
+        select.appendChild(option);
+
+    });
+
     document.getElementById('addCardModal').style.display = 'flex';
 }
 
@@ -560,9 +574,15 @@ async function saveCard() {
         // ===== 编辑卡片 =====
         if (editingCardId) {
 
-            await db.collection('cards')
-                .doc(editingCardId)
-                .update({ front });
+            const targetDeck =
+           document.getElementById("cardDeckSelect").value;
+
+           await db.collection("cards")
+               .doc(editingCardId)
+               .update({
+                   front,
+                   deckId: targetDeck
+               });
 
             // 更新当前内存中的内容
             const card = currentCards.find(
@@ -573,15 +593,30 @@ async function saveCard() {
                 card.front = front;
             }
 
-            renderCard();
             hideAddCardModal();
 
+            if (targetDeck === currentDeckKey) {
+                // 还在当前分类
+                const card = currentCards.find(c => c.id === editingCardId);
+                if (card) {
+                    card.front = front;
+                    card.deckId = targetDeck;
+                }
+                renderCard();
+            } else {
+                // 已移动到其它分类，从当前列表消失
+                if (currentIndex > 0) currentIndex--;
+                await loadCards();
+            }
             return;
         }
 
         // ===== 新增卡片 =====
-        await db.collection('cards').add({
-            deckId: currentDeckKey,
+        const targetDeck =
+    document.getElementById("cardDeckSelect").value;
+
+        await db.collection("cards").add({
+            deckId: targetDeck,
             front,
             weight: 0,
             createdAt:
@@ -603,17 +638,47 @@ async function saveCard() {
     }
 }
 
-function editCurrentCard() {
+async function editCurrentCard() {
+
     if (autoMode) toggleAuto();
+
     if (currentCards.length === 0) return;
+
     const card = currentCards[currentIndex];
-    card.lastViewedAt = Date.now();
-    db.collection('cards').doc(card.id).update({ lastViewedAt: card.lastViewedAt });
 
     editingCardId = card.id;
-    document.getElementById('cardModalTitle').textContent = '编辑卡片';
-    document.getElementById('saveCardBtn').textContent = '保存修改';
+
+    document.getElementById('cardModalTitle').textContent = '编辑';
+    document.getElementById('saveCardBtn').textContent = '✔️';
+
     document.getElementById('newFront').value = card.front;
+
+    // ===== 加载分类 =====
+    const select = document.getElementById("cardDeckSelect");
+    select.innerHTML = "";
+
+    const snapshot = await db.collection("decks")
+        .orderBy("order")
+        .get();
+
+    snapshot.forEach(doc => {
+
+        const deck = doc.data();
+
+        const option = document.createElement("option");
+
+        option.value = doc.id;
+        option.textContent =
+            `${deck.icon || "📌"} ${deck.name}`;
+
+        if (doc.id === card.deckId) {
+            option.selected = true;
+        }
+
+        select.appendChild(option);
+
+    });
+
     document.getElementById('addCardModal').style.display = 'flex';
 }
 
@@ -1128,47 +1193,45 @@ function handleTouchEnd(e){
 
 let animating = false;
 
-function animateCard(direction, callback) {
-    if (animating) return;
-    animating = true;
+function animateCard(direction, callback){
 
-    const cardEl = document.querySelector('.card');
+    const card = document.querySelector(".card");
 
-    const exitClass = direction === 'next'
-        ? 'exit-left'
-        : 'exit-right';
+    if(card.classList.contains("animating")) return;
 
-    const enterClass = direction === 'next'
-        ? 'enter-right'
-        : 'enter-left';
+    card.classList.add("animating");
 
-    // 1. 播放退出动画
-    cardEl.classList.add(exitClass);
+    card.classList.remove(
+        "exit-left",
+        "exit-right",
+        "enter-left",
+        "enter-right",
+        "active"
+    );
 
-    setTimeout(() => {
+    card.classList.add(
+        direction === "next"
+            ? "exit-left"
+            : "exit-right"
+    );
 
-        // 2. 执行数据切换
+    setTimeout(()=>{
+
         callback();
 
-        // 3. 重新渲染内容
         renderCard();
 
-        // 4. 清理 exit + 触发 enter
-        cardEl.classList.remove(exitClass);
-        cardEl.classList.add(enterClass);
+        card.classList.remove(
+            "exit-left",
+            "exit-right"
+        );
 
-        // 5. enter 动画结束后清理
-        setTimeout(() => {
-            cardEl.classList.remove(enterClass);
-            animating = false;
-        }, 280);
+        // 直接恢复，不做 enter 动画
+        card.classList.add("active");
 
-    }, 180);
+        card.classList.remove("animating");
+
+    },80);
+
 }
 
-
-function playSound(audio) {
-    if (!audio) return;
-    audio.currentTime = 0;
-    audio.play().catch(() => {});
-}
