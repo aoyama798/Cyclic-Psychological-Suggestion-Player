@@ -13,7 +13,6 @@ const db = firebase.firestore();
 
 let currentDeckKey = null;
 let currentIndex = 0;
-let showingBack = false;
 let autoMode = false;
 let timer = null;
 let currentCards = [];
@@ -337,37 +336,23 @@ async function startPlayer(deckId, deck) {
     document.getElementById('player').classList.add('active');
     deckTitleEl.textContent = deck.name;
     currentIndex = 0;
-    showingBack = false;
     await loadCards();
-  initMobileGesture();
+    initMobileGesture();
 }
 
 function backToMenu() {
-
     if (autoMode) toggleAuto();
-
     // 强制退出沉浸模式
     immersiveMode = false;
-
-    document.body.classList.remove(
-        'immersive',
-        'show-ui'
-    );
-
+    document.body.classList.remove('immersive', 'show-ui');
     destroyWeightHUD();
-
-    if(document.fullscreenElement){
+    if (document.fullscreenElement) {
         document.exitFullscreen();
     }
-
     sortCardsByPriority();
     currentIndex = 0;
-
-    document.getElementById('player')
-        .classList.remove('active');
-
-    document.getElementById('mainMenu')
-        .classList.add('active');
+    document.getElementById('player').classList.remove('active');
+    document.getElementById('mainMenu').classList.add('active');
 }
 
 async function loadCards() {
@@ -377,10 +362,7 @@ async function loadCards() {
     renderCard();
 }
 
-
-
-// ==================== renderCard ====================
-
+// ==================== 新版 renderCard（微信读书风格）===================
 function renderCard() {
     if (currentCards.length === 0) {
         frontEl.textContent = "暂无卡片，请添加卡片";
@@ -393,8 +375,6 @@ function renderCard() {
 
     // ==================== 卡牌分级 ====================
     cardEl.classList.remove('favorite', 'epic', 'mythic');
-
-  
     const weight = card.weight || 0;
 
     if (weight >= 50) {
@@ -405,10 +385,9 @@ function renderCard() {
         cardEl.classList.add('favorite');
     }
     cardEl.classList.add('shimmer');
-  
+
     // ==================== 内容渲染 ====================
     let html = card.front || '';
-
     html = html.replace(/\n/g, '<br>');
     html = html.replace(/\[\[(.*?)\]\]/g, '<span class="big">$1</span>');
     html = html.replace(/\{\{(.*?)\}\}/g, '<span class="highlight">$1</span>');
@@ -417,32 +396,67 @@ function renderCard() {
 
     frontEl.innerHTML = html;
 
-    // ==================== 溢出检测 ====================
+    // 关键优化：固定字号 + 智能双栏
     requestAnimationFrame(() => {
-        frontEl.classList.remove('long-text');
-
-        if (frontEl.scrollHeight > frontEl.parentElement.clientHeight) {
-            frontEl.classList.add('long-text');
-        }
+        applySmartLayout();
     });
 
     // ==================== 计数器 ====================
     counterEl.textContent = `${currentIndex + 1} / ${currentCards.length}`;
 
-    // ==================== 权重显示 神话史诗收藏 ====================
+    // ==================== 权重显示 ====================
     let text = `★${weight}`;
-
-    if (weight >= 50) {
-        text = `👑 ${weight}`;
-    } else if (weight >= 30) {
-        text = `🔮 ${weight}`;
-    } else if (weight >= 15) {
-        text = `💎 ${weight}`;
-    }
+    if (weight >= 50) text = `👑 ${weight}`;
+    else if (weight >= 30) text = `🔮 ${weight}`;
+    else if (weight >= 15) text = `💎 ${weight}`;
 
     document.getElementById('weightBadge').textContent = text;
     updateWeightHUD();
 }
+
+function getCardLevelIcon(weight) {
+
+    if (weight >= 50) {
+        return { icon: "👑", className: "legend" };
+    }
+
+    if (weight >= 30) {
+        return { icon: "🔮", className: "high" };
+    }
+
+    if (weight >= 15) {
+        return { icon: "💎", className: "mid" };
+    }
+
+    return { icon: "⭐", className: "low" };
+}
+
+/* ====================== 智能布局（核心优化） ====================== */
+function applySmartLayout() {
+    const content = frontEl;
+    if (!content) return;
+
+    // 重置状态
+    content.classList.remove("two-column");
+    content.style.fontSize = ''; // 使用 CSS 中固定的字体大小
+
+    if (isMobileDevice()) return;
+
+    const containerHeight = content.parentElement.clientHeight;
+    const contentHeight = content.scrollHeight;
+    const textLength = content.innerText.length;
+
+    // 满足以下任一条件 → 使用双栏（类似微信读书）
+    if (
+        textLength > 650 || 
+        contentHeight > containerHeight * 1.18
+    ) {
+        content.classList.add("two-column");
+    }
+}
+
+
+
 
 
 
@@ -451,15 +465,6 @@ function renderCard() {
 document.querySelector('.card').addEventListener('click', () => {
     if (!isMobileDevice()) nextCard();
   
-});
-
-
-
-function handleCardAction() {
-    nextCard();
-}
-document.querySelector('.card').addEventListener('click', () => {
-    if (!isMobileDevice()) nextCard();
 });
 
 function nextCard() {
@@ -700,30 +705,37 @@ function hideMoveCardModal() {
 }
 
 async function markImportant() {
-    if (currentCards.length === 0) return;
-    try {
-        const card = currentCards[currentIndex];
-        const newWeight = (card.weight || 0) + 1;
-        await db.collection('cards').doc(card.id).update({ weight: newWeight });
-        card.weight = newWeight;
-        renderCard();
-        playStarAnimation();
-    } catch (e) {
-        alert('更新权重失败：' + e.message);
-    }
+
+    const card = currentCards[currentIndex];
+
+    const newWeight = (card.weight || 0) + 1;
+
+    await db.collection('cards')
+        .doc(card.id)
+        .update({ weight: newWeight });
+
+    card.weight = newWeight;
+
+    renderCard();
+
+    playStarAnimation(newWeight);
 }
 
 async function markMastered() {
-    if (currentCards.length === 0) return;
-    try {
-        const card = currentCards[currentIndex];
-        const newWeight = Math.max(0, (card.weight || 0) - 1);
-        await db.collection('cards').doc(card.id).update({ weight: newWeight });
-        card.weight = newWeight;
-        renderCard();
-    } catch (e) {
-        alert('更新权重失败：' + e.message);
-    }
+
+    const card = currentCards[currentIndex];
+
+    const newWeight = Math.max(0, (card.weight || 0) - 1);
+
+    await db.collection('cards')
+        .doc(card.id)
+        .update({ weight: newWeight });
+
+    card.weight = newWeight;
+
+    renderCard();
+
+    playStarAnimation(newWeight);
 }
 
 async function moveCurrentCard() {
@@ -743,11 +755,35 @@ async function moveCurrentCard() {
     document.getElementById('moveCardModal').style.display = 'flex';
 }
 
-function playStarAnimation() {
+function playStarAnimation(weight) {
+
     const flash = document.getElementById('starFlash');
-    flash.classList.remove('active');
+
+    const { icon, className } = getCardLevelIcon(weight);
+
+    flash.textContent = icon;
+
+    flash.classList.remove(
+        "active",
+        "low",
+        "mid",
+        "high",
+        "legend"
+    );
+
+    flash.classList.add(className);
+
+    // 强制重绘
     void flash.offsetWidth;
-    flash.classList.add('active');
+
+    flash.classList.add("active");
+
+    // ⭐关键：自动隐藏
+    clearTimeout(flash._hideTimer);
+
+    flash._hideTimer = setTimeout(() => {
+        flash.classList.remove("active");
+    }, 400); // 动画时长
 }
 
 async function confirmMoveCard() {
@@ -770,7 +806,6 @@ document.addEventListener('keydown', (e) => {
     if (tag === 'INPUT' || tag === 'TEXTAREA') return;
     if (e.code === 'Space') {
         e.preventDefault();
-        handleCardAction();
     }
 });
 
