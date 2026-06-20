@@ -431,28 +431,48 @@ function getCardLevelIcon(weight) {
     return { icon: "⭐", className: "low" };
 }
 
-/* ====================== 智能布局（核心优化） ====================== */
 function applySmartLayout() {
     const content = frontEl;
-    if (!content) return;
+    if (!content || isMobileDevice()) return;
 
-    // 重置状态
+    const container = content.parentElement;
+    if (!container) return;
+
+    // 重置为单列
     content.classList.remove("two-column");
-    content.style.fontSize = ''; // 使用 CSS 中固定的字体大小
 
-    if (isMobileDevice()) return;
+    // 强制浏览器重排，获取单列真实高度
+    const containerHeight = container.clientHeight;
+    let singleColumnHeight = content.scrollHeight;
 
-    const containerHeight = content.parentElement.clientHeight;
-    const contentHeight = content.scrollHeight;
-    const textLength = content.innerText.length;
+    const textLength = content.innerText.trim().length;
 
-    // 满足以下任一条件 → 使用双栏（类似微信读书）
-    if (
-        textLength > 650 || 
-        contentHeight > containerHeight * 1.18
-    ) {
-        content.classList.add("two-column");
+    // ==================== 决策逻辑 ====================
+
+    // 1. 极短内容（肯定能一眼看完）→ 保持单列
+    if (textLength <= 280 && singleColumnHeight <= containerHeight * 1.05) {
+        return;
     }
+
+    // 2. 检测单列是否溢出（核心改进）
+    const isOverflow = singleColumnHeight > containerHeight * 1.08; // 允许一点点容差
+
+    if (isOverflow || textLength > 420) {
+        // 切换到双栏
+        content.classList.add("two-column");
+
+        // 关键：切换布局后重新测量（异步，确保布局已生效）
+        requestAnimationFrame(() => {
+            const twoColumnHeight = content.scrollHeight;
+
+            // 如果双栏后依然明显过长，就接受滚动（这是合理的）
+            if (twoColumnHeight > containerHeight * 1.6) {
+                // 可选：可以在这里进一步缩小字体或增加滚动提示
+                console.log(`[SmartLayout] 长内容双栏滚动模式`);
+            }
+        });
+    }
+    // 否则保持单列（已确认不会溢出）
 }
 
 
