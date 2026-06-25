@@ -407,7 +407,7 @@ function renderCard() {
     // ==================== 权重显示 ====================
     let text = `★${weight}`;
     if (weight >= 50) text = `👑 ${weight}`;
-    else if (weight >= 30) text = `🔮 ${weight}`;
+    else if (weight >= 25) text = `🔮 ${weight}`;
     else if (weight >= 15) text = `💎 ${weight}`;
 
     document.getElementById('weightBadge').textContent = text;
@@ -420,7 +420,7 @@ function getCardLevelIcon(weight) {
         return { icon: "👑", className: "legend" };
     }
 
-    if (weight >= 30) {
+    if (weight >= 25) {
         return { icon: "🔮", className: "high" };
     }
 
@@ -1289,4 +1289,3 @@ function animateCard(direction, callback){
     },80);
 
 }
-
