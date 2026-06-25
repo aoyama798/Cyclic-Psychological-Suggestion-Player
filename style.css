@@ -762,154 +762,165 @@ button.secondary { background:#3a3f4b; }
 
 
 /* ===========================================================================
-   卡片分级系统开始
-========================= =========================*/
-.card {
+   卡片分级系统（升级版）
+=========================================================================== */
+
+/* ==========================================================
+   等级系统最终版
+   适配当前播放器结构
+========================================================== */
+/* ===========================================================================
+   卡片分级系统（豪华升级版）
+   新增：多层花纹、装饰边框、角饰、金属高光、动态扫光等
+=========================================================================== */
+/* ===========================================================================
+   卡片分级系统（豪华升级版 - 无左侧厚边框）
+=========================================================================== */
+
+.front {
     position: relative;
     overflow: hidden;
 }
 
-/* 通用流光层 */
-.card::before {
-    content: "";
+/* 通用角饰 */
+.card::before,
+.card::after {
+    content: '';
     position: absolute;
-    top: 0;
-    left: -60%;
-    width: 60%;
-    height: 100%;
-
-    background: linear-gradient(
-        120deg,
-        transparent 0%,
-        rgba(255,255,255,0.08) 40%,
-        rgba(255,255,255,0.22) 50%,
-        rgba(255,255,255,0.08) 60%,
-        transparent 100%
-    );
-
-    transform: skewX(-20deg);
-}
-
-/* 默认速度 */
-.card.shimmer::before {
-    animation: shimmer 2.8s linear infinite;
-}
-
-/* 收藏卡：稍快 */
-.card.favorite.shimmer::before {
-    animation-duration: 2.2s;
-}
-
-/* 史诗卡：更强 */
-.card.epic.shimmer::before {
-    background: linear-gradient(
-        120deg,
-        transparent 0%,
-        rgba(201,145,255,0.10) 40%,
-        rgba(201,145,255,0.35) 50%,
-        rgba(201,145,255,0.10) 60%,
-        transparent 100%
-    );
-    animation-duration: 1.8s;
-}
-
-/* 神话卡：金色强化 */
-.card.mythic.shimmer::before {
-    background: linear-gradient(
-        120deg,
-        transparent 0%,
-        rgba(255,215,0,0.12) 40%,
-        rgba(255,215,0,0.45) 50%,
-        rgba(255,215,0,0.12) 60%,
-        transparent 100%
-    );
-    animation-duration: 1.2s;
-}
-
-@keyframes shimmer {
-    0% {
-        left: -60%;
-    }
-    100% {
-        left: 120%;
-    }
-}
-
-.card.favorite{
-    border: 1px solid rgba(120,180,255,.35);
-    background:
-        radial-gradient(circle at top left, rgba(120,180,255,.15), transparent 40%),
-        linear-gradient(180deg,#151922,#10141d);
-
-    box-shadow:
-        0 0 20px rgba(120,180,255,.18),
-        inset 0 0 18px rgba(120,180,255,.08);
-}
-.card.epic{
-    border: 1px solid rgba(201,145,255,.45);
-    background:
-        radial-gradient(circle at top, rgba(201,145,255,.18), transparent 45%),
-        linear-gradient(180deg,#1d1528,#120d1d);
-
-    box-shadow:
-        0 0 35px rgba(201,145,255,.22),
-        inset 0 0 25px rgba(201,145,255,.10);
-}
-.card.mythic{
-    border: 1px solid rgba(255,215,0,.55);
-
-    background:
-        radial-gradient(circle at top, rgba(255,215,0,.20), transparent 40%),
-        repeating-linear-gradient(
-            45deg,
-            rgba(255,215,0,.05) 0px,
-            rgba(255,215,0,.05) 2px,
-            transparent 2px,
-            transparent 6px
-        ),
-        linear-gradient(180deg,#24180a,#120d05);
-
-    box-shadow:
-        0 0 60px rgba(255,215,0,.28),
-        inset 0 0 35px rgba(255,215,0,.12);
-}
-.card.mythic {
-    box-shadow:
-        0 0 40px rgba(255,215,0,0.25),
-        inset 0 0 30px rgba(255,215,0,0.08);
-}
-#particleCanvas{
-    position: fixed;
-    inset: 0;
     pointer-events: none;
-    z-index: 99999;
+    z-index: 2;
+    opacity: 0.65;
+    width: 52px;
+    height: 52px;
+    background: radial-gradient(circle, rgba(255,255,255,0.28) 0%, transparent 70%);
+    border: 2px solid rgba(255,255,255,0.18);
+    border-radius: 10px;
 }
 
-#starFlash{
-    position:fixed;
-    top:50%;
-    left:50%;
-    transform:translate(-50%,-50%) scale(0.5);
-    font-size:80px;
-    opacity:0;
-    pointer-events:none;
-    transition:all .25s ease;
+.card::before {
+    top: -10px;
+    left: -10px;
+    transform: rotate(45deg);
 }
 
-/* 动画触发 */
-#starFlash.active{
-    opacity:1;
-    transform:translate(-50%,-50%) scale(1.4);
+.card::after {
+    bottom: -10px;
+    right: -10px;
+    transform: rotate(45deg);
 }
 
-/* 不同等级颜色 */
-#starFlash.low{ color:#aaa; }
-#starFlash.mid{ color:#4cc9f0; }
-#starFlash.high{ color:#b517ff; }
-#starFlash.legend{ color:#ffd700; }
-/* =========================
+/* ==========================================================
+   收藏 (Favorite)
+========================================================== */
+.card.favorite {
+    border: 2px solid rgba(80, 170, 255, 0.65);
+    box-shadow: 
+        0 0 24px rgba(80, 170, 255, 0.38),
+        inset 0 0 20px rgba(80, 170, 255, 0.15);
+}
+
+.card.favorite .front {
+    background: 
+        radial-gradient(circle at top left, rgba(80,170,255,0.24), transparent 42%),
+        radial-gradient(circle at bottom right, rgba(80,170,255,0.14), transparent 45%),
+        repeating-linear-gradient(135deg, rgba(80,170,255,0.045) 0px, transparent 4px, transparent 9px),
+        var(--bg);
+}
+
+/* ==========================================================
+   史诗 (Epic)
+========================================================== */
+.card.epic {
+    border: 2px solid rgba(201, 145, 255, 0.78);
+    box-shadow: 
+        0 0 34px rgba(201, 145, 255, 0.42),
+        inset 0 0 24px rgba(201, 145, 255, 0.16);
+}
+
+.card.epic .front {
+    background: 
+        radial-gradient(circle at top center, rgba(201,145,255,0.29), transparent 46%),
+        radial-gradient(circle at bottom left, rgba(180,100,255,0.16), transparent 40%),
+        repeating-linear-gradient(45deg, rgba(201,145,255,0.065) 0px, rgba(201,145,255,0.065) 3px, transparent 3px, transparent 13px),
+        var(--bg);
+}
+
+/* ==========================================================
+   神话 (Mythic)
+========================================================== */
+.card.mythic {
+    border: 3px solid rgba(255, 215, 0, 0.88);
+    animation: mythicGlow 2.4s ease-in-out infinite;
+}
+
+.card.mythic .front {
+    background: 
+        radial-gradient(circle at top center, rgba(255,215,0,0.34), transparent 40%),
+        radial-gradient(circle at bottom right, rgba(255,180,0,0.19), transparent 38%),
+        conic-gradient(from 45deg at 50% 50%, transparent, rgba(255,215,0,0.09), transparent 40%),
+        repeating-linear-gradient(45deg, rgba(255,215,0,0.075) 0px, rgba(255,215,0,0.075) 2px, transparent 2px, transparent 15px),
+        var(--bg);
+}
+
+/* ==========================================================
+   传说 (Legendary)
+========================================================== */
+.card.legendary {
+    border: 3px solid transparent;
+    background: linear-gradient(white, white) padding-box, 
+                linear-gradient(135deg, #ffd700, #ff00ff, #00e5ff, #ffd700) border-box;
+    box-shadow: 
+        0 0 48px rgba(255, 215, 0, 0.52),
+        inset 0 0 32px rgba(255,255,255,0.28);
+    animation: legendaryGlow 1.5s ease-in-out infinite;
+}
+
+.card.legendary .front {
+    background: 
+        radial-gradient(circle at top center, rgba(255,215,0,0.36), transparent 36%),
+        radial-gradient(circle at bottom left, rgba(255,0,255,0.19), transparent 33%),
+        radial-gradient(circle at bottom right, rgba(0,229,255,0.19), transparent 33%),
+        repeating-linear-gradient(135deg, rgba(255,255,255,0.07) 0px, rgba(255,255,255,0.07) 2px, transparent 2px, transparent 17px),
+        linear-gradient(90deg, transparent 30%, rgba(255,255,255,0.38) 50%, transparent 70%), /* 金属扫光 */
+        var(--bg);
+}
+
+/* ==========================================================
+   顶部光带
+========================================================== */
+.card.favorite .front,
+.card.epic .front,
+.card.mythic .front,
+.card.legendary .front {
+    box-shadow: 
+        inset 0 85px 95px -75px rgba(255,255,255,0.22),
+        inset 0 -40px 60px -30px rgba(0,0,0,0.15);
+}
+
+/* 各等级光带微调 */
+.card.favorite .front   { box-shadow: inset 0 88px 95px -78px rgba(80,170,255,0.25); }
+.card.epic .front       { box-shadow: inset 0 108px 115px -95px rgba(201,145,255,0.26); }
+.card.mythic .front     { box-shadow: inset 0 128px 135px -105px rgba(255,215,0,0.34); }
+.card.legendary .front  { box-shadow: inset 0 148px 155px -115px rgba(255,255,255,0.38); }
+
+/* 动画保持不变 */
+@keyframes mythicGlow {
+    0%, 100% { box-shadow: 0 0 38px rgba(255,215,0,0.38), inset 0 0 22px rgba(255,215,0,0.12); }
+    50%      { box-shadow: 0 0 98px rgba(255,215,0,0.68), inset 0 0 38px rgba(255,215,0,0.25); }
+}
+
+@keyframes legendaryGlow {
+    0%, 100% { box-shadow: 0 0 50px rgba(255,215,0,0.48), 0 0 85px rgba(255,0,255,0.28); }
+    50%      { box-shadow: 0 0 115px rgba(255,215,0,0.78), 0 0 145px rgba(0,229,255,0.38); }
+}
+
+.card:hover {
+    transform: translateY(-5px) scale(1.018);
+    transition: all 0.35s ease;
+}
+/* ===========================================================================
    卡片等级系统结束
-========================= */
+=========================================================================== */
 
 
 
