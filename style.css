@@ -779,36 +779,107 @@ button.secondary { background:#3a3f4b; }
 
 .front {
     position: relative;
-    overflow: hidden;
 }
 
 /* 通用角饰 */
+/* 所有宝石 */
+/* ==========================================================
+   四角宝石（公共）
+========================================================== */
+
 .card::before,
-.card::after {
-    content: '';
-    position: absolute;
-    pointer-events: none;
-    z-index: 2;
-    opacity: 0.65;
-    width: 52px;
-    height: 52px;
-    background: radial-gradient(circle, rgba(255,255,255,0.28) 0%, transparent 70%);
-    border: 2px solid rgba(255,255,255,0.18);
-    border-radius: 10px;
+.card::after,
+.front::before,
+.front::after{
+
+    content:"";
+
+    position:absolute;
+
+    width:18px;
+    height:18px;
+
+    transform:rotate(45deg);
+
+    border-radius:2px;
+
+    z-index:20;
+
+    pointer-events:none;
+
+    animation:gemFlash 1.8s infinite;
 }
 
-.card::before {
-    top: -10px;
-    left: -10px;
-    transform: rotate(45deg);
+/* 左上 */
+.card::before{
+
+    top:14px;
+    left:14px;
+
 }
 
-.card::after {
-    bottom: -10px;
-    right: -10px;
-    transform: rotate(45deg);
+/* 右下 */
+.card::after{
+
+    bottom:14px;
+    right:14px;
+
 }
 
+/* 右上 */
+.front::before{
+
+    top:14px;
+    right:14px;
+
+}
+
+/* 左下 */
+.front::after{
+
+    bottom:14px;
+    left:14px;
+
+}
+
+@keyframes gemFlash{
+
+0%,100%{
+
+transform:rotate(45deg) scale(1);
+
+}
+
+50%{
+
+transform:rotate(45deg) scale(1.25);
+
+}
+
+}
+
+/* 通用-依次延迟闪烁 */
+.card::before{
+    animation-delay:0s;
+
+}
+
+.front::before{
+    animation-delay:.25s;
+
+}
+
+.front::after{
+
+    animation-delay:.5s;
+
+}
+
+.card::after{
+
+    animation-delay:.75s;
+
+}
 /* ==========================================================
    收藏 (Favorite)
 ========================================================== */
@@ -826,7 +897,26 @@ button.secondary { background:#3a3f4b; }
         repeating-linear-gradient(135deg, rgba(80,170,255,0.045) 0px, transparent 4px, transparent 9px),
         var(--bg);
 }
+.card.favorite::before,
+.card.favorite::after,
+.card.favorite .front::before,
+.card.favorite .front::after{
 
+    background:
+    linear-gradient(
+        135deg,
+        #ffffff 0%,
+        #9ddcff 20%,
+        #5eb8ff 45%,
+        #1976d2 70%,
+        #082d70 100%
+    );
+
+    box-shadow:
+        0 0 6px #66d0ff,
+        0 0 18px rgba(102,208,255,.8);
+
+}
 /* ==========================================================
    史诗 (Epic)
 ========================================================== */
@@ -844,7 +934,26 @@ button.secondary { background:#3a3f4b; }
         repeating-linear-gradient(45deg, rgba(201,145,255,0.065) 0px, rgba(201,145,255,0.065) 3px, transparent 3px, transparent 13px),
         var(--bg);
 }
+.card.epic::before,
+.card.epic::after,
+.card.epic .front::before,
+.card.epic .front::after{
 
+background:
+linear-gradient(
+135deg,
+#fff,
+#f1b8ff,
+#d05cff,
+#8b2fff,
+#3b0058
+);
+
+box-shadow:
+0 0 8px #cf6dff,
+0 0 22px rgba(207,109,255,.9);
+
+}
 /* ==========================================================
    神话 (Mythic)
 ========================================================== */
@@ -861,7 +970,48 @@ button.secondary { background:#3a3f4b; }
         repeating-linear-gradient(45deg, rgba(255,215,0,0.075) 0px, rgba(255,215,0,0.075) 2px, transparent 2px, transparent 15px),
         var(--bg);
 }
+.card.mythic::before,
+.card.mythic::after,
+.card.mythic .front::before,
+.card.mythic .front::after{
 
+background:
+linear-gradient(
+135deg,
+#fffef0,
+#fff4a8,
+#ffd84d,
+#ffae00,
+#915600
+);
+
+box-shadow:
+0 0 10px #ffd700,
+0 0 28px rgba(255,215,0,.9);
+
+animation:goldGem 1.4s infinite;
+
+}
+
+@keyframes goldGem{
+
+0%,100%{
+
+transform:rotate(45deg) scale(1);
+
+}
+
+50%{
+
+transform:rotate(45deg) scale(1.4);
+
+box-shadow:
+0 0 12px #ffd700,
+0 0 40px #ffd700;
+
+}
+
+}
 /* ==========================================================
    传说 (Legendary)
 ========================================================== */
@@ -884,7 +1034,59 @@ button.secondary { background:#3a3f4b; }
         linear-gradient(90deg, transparent 30%, rgba(255,255,255,0.38) 50%, transparent 70%), /* 金属扫光 */
         var(--bg);
 }
+.card.legendary::before,
+.card.legendary::after,
+.card.legendary .front::before,
+.card.legendary .front::after{
 
+background:
+conic-gradient(
+
+#ff0040,
+#ffb300,
+#fff200,
+#00ff88,
+#00d4ff,
+#7d5fff,
+#ff00ff,
+#ff0040
+
+);
+
+box-shadow:
+
+0 0 15px white,
+0 0 40px rgba(255,255,255,.9);
+
+animation:
+
+rainbowGem 2s linear infinite;
+
+}
+
+@keyframes rainbowGem{
+
+from{
+
+transform:
+rotate(45deg);
+
+filter:
+hue-rotate(0deg);
+
+}
+
+to{
+
+transform:
+rotate(405deg);
+
+filter:
+hue-rotate(360deg);
+
+}
+
+}
 /* ==========================================================
    顶部光带
 ========================================================== */
@@ -914,10 +1116,7 @@ button.secondary { background:#3a3f4b; }
     50%      { box-shadow: 0 0 115px rgba(255,215,0,0.78), 0 0 145px rgba(0,229,255,0.38); }
 }
 
-.card:hover {
-    transform: translateY(-5px) scale(1.018);
-    transition: all 0.35s ease;
-}
+
 /* ===========================================================================
    卡片等级系统结束
 =========================================================================== */
@@ -1153,6 +1352,10 @@ body.immersive .weight-hud.legend {
 /* ================================================
    星标动画       权重系统结束
 ================================================ */
+
+
+
+
 
 
 
