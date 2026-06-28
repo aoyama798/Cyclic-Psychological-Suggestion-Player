@@ -394,36 +394,7 @@ function renderCard() {
     html = html.replace(/__(.*?)__/g, '<span class="underline">$1</span>');
     html = html.replace(/!!(.*?)!!/g, '<span class="danger">$1</span>');
     html = html.replace(/\*\*(.*?)\*\*/g,'<span class="bold">$1</span>');
-  html = html.replace(
-    /(?:^|<br>)(- .+(?:<br>- .+)*)/g,
-    (_,list)=>{
 
-        return "<ul>" +
-            list
-            .split("<br>")
-            .map(v=>`<li>${v.slice(2)}</li>`)
-            .join("")
-            + "</ul>";
-
-    }
-);
-  html = html.replace(
-    /(?:^|<br>)((?:\d+\. .+(?:<br>)?)*)/g,
-    (_,list)=>{
-
-        if(!list.trim()) return list;
-
-        return "<ol>" +
-            list
-            .trim()
-            .split("<br>")
-            .filter(Boolean)
-            .map(v=>`<li>${v.replace(/^\d+\.\s*/,'')}</li>`)
-            .join("")
-            + "</ol>";
-
-    }
-);
   html = html.replace(
     /((?:\|.*\|\s*(?:<br>)?)+)/g,
     table => {
