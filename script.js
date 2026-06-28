@@ -393,7 +393,36 @@ function renderCard() {
     html = html.replace(/\{\{(.*?)\}\}/g, '<span class="highlight">$1</span>');
     html = html.replace(/__(.*?)__/g, '<span class="underline">$1</span>');
     html = html.replace(/!!(.*?)!!/g, '<span class="danger">$1</span>');
+    html = html.replace(
+    /((?:\|.*\|\s*(?:<br>)?)+)/g,
+    table => {
 
+        const rows = table
+            .trim()
+            .split(/<br>/);
+
+        let out = '<table class="card-table">';
+
+        rows.forEach(row=>{
+
+            out += "<tr>";
+
+            row.split("|")
+               .slice(1,-1)
+               .forEach(cell=>{
+
+                   out += `<td>${cell.trim()}</td>`;
+
+               });
+
+            out += "</tr>";
+        });
+
+        out += "</table>";
+
+        return out;
+    }
+);
     frontEl.innerHTML = html;
 
     // 关键优化：固定字号 + 智能双栏
@@ -860,13 +889,11 @@ document.addEventListener("keydown", (e) => {
         // WASD
         case "a":
         case "A":
-            prevCard();
+            e.preventDefault();
+            showAddCardModal();
+            closeMenu();
             break;
 
-        case "d":
-        case "D":
-            nextCard();
-            break;
 
         // 编辑
         case "e":
