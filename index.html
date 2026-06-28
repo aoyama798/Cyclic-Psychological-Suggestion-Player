@@ -125,7 +125,18 @@
                 onclick="cleanTextarea(activeTextarea)">
                 ✂️
             </button>
-
+            <button
+                type="button"
+                class="tool-btn list"
+                onclick="wrapSelection('- ','')">
+              •
+            </button>
+            <button
+                type="button"
+                class="tool-btn list"
+                onclick="insertOrderedList()">
+                1.
+            </button>
         </div>
 
         <textarea id="newFront" rows="10" onfocus="activeTextarea='newFront'" placeholder="输入卡片内容...">
