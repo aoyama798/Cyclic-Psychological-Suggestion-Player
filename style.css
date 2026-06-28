@@ -1464,7 +1464,9 @@ body.immersive .front-content{
     font-size:18px;
 }
 
-
+.tool-btn.list{
+    background:#495057;
+}
 /* ==========================================
    卡片内容样式（Content Style）
 ========================================== */
@@ -1493,10 +1495,17 @@ body.immersive .front-content{
 }
 
 .bold{
-    font-size:150%;
-    font-weight:800;
+    font-weight:700;
+}
+.front ul,
+.front ol{
+    margin:12px 0;
+    padding-left:1.6em;
 }
 
+.front li{
+    margin:8px 0;
+}
 /* ================================================  迷你工具栏mini tool bar结束 ================================================*/
 
 
