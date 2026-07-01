@@ -1258,44 +1258,7 @@ function handleTouchEnd(e){
     if(duration > 1000){
         return;
     }
-
-    const now = Date.now();
-
-    // 双击加星
-    if(now - lastTap < 300){
-
-    clearTimeout(tapTimer);
-
-    markImportant();
-
-    navigator.vibrate?.(10);
-
-    // ===== 连点模式 =====
-    tapCount++;
-
-    clearTimeout(tapCountTimer);
-
-    tapCountTimer = setTimeout(() => {
-        tapCount = 0;
-    }, 1500);
-
-    lastTap = 0;
-
-    return;
-}
-    // 单击下一张
-    lastTap = now;
-
-    tapTimer = setTimeout(() => {
-
-    // 最近1秒发生过连续加星
-    if(tapCount > 0){
-        return;
-    }
-
-    nextCard();
-
-}, 300);
+ nextCard();
 }
 
 
@@ -1344,3 +1307,42 @@ function animateCard(direction, callback){
     },80);
 
 }
+
+
+const moreBtn = document.getElementById("moreBtn");
+
+let moreClickTimer = null;
+let lastMoreClick = 0;
+
+moreBtn.addEventListener("click", (e) => {
+
+    e.stopPropagation();
+
+    const now = Date.now();
+
+    // 双击
+    if (now - lastMoreClick < 250) {
+
+        clearTimeout(moreClickTimer);
+
+        lastMoreClick = 0;
+
+        markImportant();
+
+        navigator.vibrate?.(10);
+
+        return;
+    }
+
+    lastMoreClick = now;
+
+    // 单击延迟打开菜单
+    moreClickTimer = setTimeout(() => {
+
+        toggleMenu();
+
+        lastMoreClick = 0;
+
+    }, 250);
+
+});
