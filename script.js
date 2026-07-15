@@ -19,6 +19,7 @@ let currentCards = [];
 let editingDeckId = null;
 let editingCardId = null;
 let sortableInstance = null;   // Sortable.js 实例
+let deckEditing = false;
 
 // ==================== DOM ====================
 const frontEl = document.getElementById('front');
@@ -53,15 +54,6 @@ async function loadDecks() {
             </span>
             <div>${deck.name}</div>
 
-            <div class="action-btn edit-btn"
-                onclick="event.stopImmediatePropagation();
-                editDeck('${doc.id}', '${deck.name}', '${deck.icon || ''}')">
-            </div>
-
-            <div class="action-btn delete-btn"
-                onclick="event.stopImmediatePropagation();
-                deleteDeck('${doc.id}')">
-            </div>
         `;
 
         div.addEventListener('click', (e) => {
@@ -69,7 +61,46 @@ async function loadDecks() {
                 startPlayer(doc.id, deck);
             }
         });
+      
+        let deckLongPress = null;
+        div.addEventListener("mousedown", () => {
 
+            deckLongPress = setTimeout(() => {
+
+                editDeck(doc.id);
+
+            }, 700);
+
+          let touchTimer = null;
+
+          div.addEventListener("touchstart", () => {
+              touchTimer = setTimeout(() => {
+                  navigator.vibrate?.(20);
+                  editDeck(doc.id);
+              },700);
+          },{passive:true});
+
+          div.addEventListener("touchend",()=>{
+              clearTimeout(touchTimer);
+          },{passive:true});
+          div.addEventListener("touchmove",()=>{
+              clearTimeout(touchTimer);
+          },{passive:true});
+          
+
+});
+
+div.addEventListener("mouseup", () => {
+
+    clearTimeout(deckLongPress);
+
+});
+
+div.addEventListener("mouseleave", () => {
+
+    clearTimeout(deckLongPress);
+
+});
         bubbles.appendChild(div);
     });
 
@@ -139,6 +170,32 @@ async function updateDeckOrders() {
 }
 
 
+// ---------- 删除deck ----------
+async function deleteCurrentDeck(){
+
+    if(!editingDeckId) return;
+
+    if(!confirm("确定删除整个分类？\n所有卡片都会删除！"))
+        return;
+
+    await db.collection("decks")
+        .doc(editingDeckId)
+        .delete();
+
+    const snap = await db.collection("cards")
+        .where("deckId","==",editingDeckId)
+        .get();
+
+    const batch=db.batch();
+
+    snap.forEach(doc=>batch.delete(doc.ref));
+
+    await batch.commit();
+
+    hideDeckModal();
+
+    loadDecks();
+}
 // ---------- 判断设备 ----------
 function isMobileDevice() {
     return (
@@ -151,62 +208,168 @@ function isMobileDevice() {
 
 
 function showAddDeckModal() {
+
     editingDeckId = null;
-    document.getElementById('modalTitle').textContent = "新建分类";
-    document.getElementById('saveBtn').textContent = "创建";
-    document.getElementById('deckName').value = '';
-    document.getElementById('deckIcon').value = '';
-    document.getElementById('deckModal').style.display = 'flex';
+
+    document.getElementById("modalTitle").textContent = "新建分类";
+    document.getElementById("saveBtn").textContent = "创建";
+
+    document.getElementById("deckName").value = "";
+    document.getElementById("deckIcon").value = "";
+    document.getElementById("deckNote").value = "";
+
+    // 新建时隐藏删除按钮
+    document.getElementById("deleteDeckBtn").style.display = "none";
+
+    document.getElementById("deckModal").style.display = "flex";
 }
 
-function editDeck(deckId, name, icon) {
+async function editDeck(deckId) {
+
     editingDeckId = deckId;
-    document.getElementById('modalTitle').textContent = "编辑分类";
-    document.getElementById('saveBtn').textContent = "保存修改";
-    document.getElementById('deckName').value = name;
-    document.getElementById('deckIcon').value = icon;
-    document.getElementById('deckModal').style.display = 'flex';
+
+    const doc = await db.collection("decks")
+        .doc(deckId)
+        .get();
+
+    const deck = doc.data();
+
+    document.getElementById("modalTitle").textContent = "编辑分类";
+    document.getElementById("saveBtn").textContent = "保存修改";
+
+    document.getElementById("deckName").value = deck.name || "";
+    document.getElementById("deckIcon").value = deck.icon || "";
+    document.getElementById("deckNote").value = deck.note || "";
+
+    // 编辑时显示删除按钮
+    document.getElementById("deleteDeckBtn").style.display = "block";
+
+    document.getElementById("deckModal").style.display = "flex";
 }
 
 async function saveDeck() {
-    const name = document.getElementById('deckName').value.trim();
-    const icon = document.getElementById('deckIcon').value.trim() || '📌';
-    if (!name) return alert("分类名称不能为空");
+
+    const name = document.getElementById("deckName").value.trim();
+
+    const icon =
+        document.getElementById("deckIcon").value.trim() || "📌";
+
+    const note =
+        document.getElementById("deckNote").value.trim();
+
+    if (!name) {
+        return alert("分类名称不能为空");
+    }
 
     try {
+
+        // ===== 编辑 =====
         if (editingDeckId) {
-            await db.collection('decks').doc(editingDeckId).update({ name, icon });
+
+            await db.collection("decks")
+                .doc(editingDeckId)
+                .update({
+                    name,
+                    icon,
+                    note
+                });
+
         } else {
-            const snap = await db.collection('decks').orderBy('order', 'desc').limit(1).get();
+
+            // ===== 新建 =====
+            const snap = await db.collection("decks")
+                .orderBy("order", "desc")
+                .limit(1)
+                .get();
+
             let maxOrder = 0;
+
             if (!snap.empty) {
-                maxOrder = (snap.docs[0].data().order || 0) + 1;
+                maxOrder =
+                    (snap.docs[0].data().order || 0) + 1;
             }
-            await db.collection('decks').add({
+
+            await db.collection("decks").add({
+
                 name,
+
                 icon,
-                color: '#2f80ed',
+
+                note,
+
+                color: "#2f80ed",
+
                 order: maxOrder,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+
+                createdAt:
+                    firebase.firestore.FieldValue.serverTimestamp()
+
             });
+
         }
+
         hideDeckModal();
+
         loadDecks();
-    } catch (e) { 
-        alert("保存失败: " + e.message); 
+
+    } catch (e) {
+
+        alert("保存失败：" + e.message);
+
     }
+
 }
 
 function hideDeckModal() { 
     document.getElementById('deckModal').style.display = 'none'; 
 }
 
-async function deleteDeck(deckId) {
-    if (!confirm('确定删除该分类吗？所有卡片也将被删除！')) return;
-    await db.collection('decks').doc(deckId).delete();
-    const snap = await db.collection('cards').where('deckId', '==', deckId).get();
-    snap.forEach(doc => doc.ref.delete());
-    await loadDecks();
+async function deleteCurrentDeck() {
+
+    if (!editingDeckId) return;
+
+    const ok = confirm(
+`确定删除整个分类？
+
+该分类下所有卡片都会一起删除！
+
+此操作不可恢复。`
+    );
+
+    if (!ok) return;
+
+    try {
+
+        // 删除分类
+        await db.collection("decks")
+            .doc(editingDeckId)
+            .delete();
+
+        // 查询所有卡片
+        const snap = await db.collection("cards")
+            .where("deckId","==",editingDeckId)
+            .get();
+
+        // 批量删除
+        const batch = db.batch();
+
+        snap.forEach(doc=>{
+            batch.delete(doc.ref);
+        });
+
+        await batch.commit();
+
+        hideDeckModal();
+
+        await loadDecks();
+
+    }
+    catch(e){
+
+        alert("删除失败：" + e.message);
+
+    }
+
 }
 
 // ==================== 批量导入 ====================
