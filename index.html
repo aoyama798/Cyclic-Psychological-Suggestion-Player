@@ -11,7 +11,9 @@
 <body>
 <div id="starFlash">⭐</div>
 
-<!-- 主菜单 -->
+
+  
+<!-- Bubble主菜单 -->
 <div id="mainMenu" class="screen active">
     <div class="menu">
         <h1 onclick="showAddDeckModal()" class="secondary">Cyclic Psychology Player</h1>
@@ -19,15 +21,49 @@
     </div>
 </div>
 
-<!-- 播放器 -->
+
+<!-- 卡组bubble模态弹窗 -->
+<div id="deckModal" class="modal">
+    <div class="modal-content">
+        <h3 id="modalTitle">新建分类</h3>
+        <input type="text" id="deckName" placeholder="🐱分类名称" style="width:100%;padding:12px;margin:15px 0;background:#262b36;color:white;border:none;border-radius:10px;">
+        <input type="text" id="deckIcon" placeholder="📌图标" maxlength="2" style="width:100%;padding:12px;background:#262b36;color:white;border:none;border-radius:10px;">
+        <textarea
+            id="deckNote"
+            rows="8"
+            placeholder="要点总结..."
+            style="
+                width:100%;
+                margin-top:15px;
+                padding:12px;
+                background:#262b36;
+                color:white;
+                border:none;
+                border-radius:10px;
+                resize:vertical;">
+      </textarea>
+      
+       <div class="deck-modal-footer">
+          <button id="deleteDeckBtn" class="danger-btn" onclick="deleteCurrentDeck()">删除</button>
+          <div class="footer-right">
+              <button onclick="hideDeckModal()" class="secondary">取消</button>
+              <button onclick="saveDeck()" id="saveBtn">创建</button>
+          </div>
+       </div>
+    </div>
+</div>
+
+  
+  
+<!-- 卡片播放器 -->
 <div id="player" class="screen">
-    <div class="topbar">
+   <!-- 顶部菜单 --> 
+   <div class="topbar">
         <span id="deckTitle" onclick="backToMenu();" style="font-weight:600;"></span>
         <div id="weightBadge" class="weight-badge" style="margin-left:auto;"></div>
         <span id="counter">1 / 1</span>
     </div>
-
-    
+   <!-- 播放器布局 --> 
     <div class="player-layout">
         <div class="container">
               <div class="gem-btn"></div>  
@@ -38,13 +74,14 @@
             </div>
         </div>
     </div>
-
-   <!-- 更多按钮 --> <div class="card-toolbar">
+    <!-- 底部更多按钮 -->
+    <div class="card-toolbar">
         <button id="moreBtn">⋯</button>
     </div>
 </div>
 
-<!-- 底部菜单 -->
+  
+<!-- 卡片底部...more菜单 -->
 <div id="moreMenu" class="more-menu">
           <button id="editCardBtn" onclick="editCurrentCard();closeMenu()"><span class="icon">✏️</span>Edit</button>
     <button id="moveCardBtn" onclick="moveCurrentCard();closeMenu()"><span class="icon">📂</span>Move</button>
@@ -69,22 +106,14 @@
     <button onclick="toggleImmersiveMode();closeMenu()"><span class="icon">⛶</span>Immersive</button>
 </div>
 
-<!-- 弹窗 -->
-<div id="deckModal" class="modal">
-    <div class="modal-content">
-        <h3 id="modalTitle">新建分类</h3>
-        <input type="text" id="deckName" placeholder="🐱分类名称" style="width:100%;padding:12px;margin:15px 0;background:#262b36;color:white;border:none;border-radius:10px;">
-        <input type="text" id="deckIcon" placeholder="📌图标" maxlength="2" style="width:100%;padding:12px;background:#262b36;color:white;border:none;border-radius:10px;">
-        <div style="margin-top:20px;text-align:right;">
-            <button onclick="hideDeckModal()" class="secondary">取消</button>
-            <button onclick="saveDeck()" id="saveBtn">创建</button>
-        </div>
-    </div>
-</div>
 
+  
+
+
+
+<!-- 卡片编辑/添加模态弹窗 -->
 <div id="addCardModal" class="modal">
     <div class="modal-content">
-
     <div class="modal-title-row">
         <h3 id="cardModalTitle">添加新卡片</h3>
         <select id="cardDeckSelect"></select>
@@ -167,6 +196,8 @@
     </div>
 </div>
 
+
+<!-- 卡片移动模态弹窗 -->  
 <div id="moveCardModal" class="modal">
     <div class="modal-content">
         <h3>移动卡片到其它分类</h3>
@@ -179,11 +210,10 @@
 </div>
 
 
+<!-- 批量导入模态弹窗 -->  
 <div id="importModal" class="modal">
     <div class="modal-content">
-
         <h3>批量导入卡片</h3>
-
         <textarea
             id="importText"
             placeholder="一行一张卡片&#10;&#10;例如：&#10;记得喝水😊&#10;站起来活动一下&#10;保护颈椎"
@@ -192,13 +222,11 @@
         <div class="import-tip">
             自动去重 · 自动过滤空行
         </div>
-
         <div class="modal-buttons">
             <button class="primary-btn"
                     onclick="confirmImport()">
                 ✔️
             </button>
-
             <button class="secondary-btn"
                     onclick="closeImportModal()">
                 ❌
@@ -207,6 +235,7 @@
 
     </div>
 </div>
+
   
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
