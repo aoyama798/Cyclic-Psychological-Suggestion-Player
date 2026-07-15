@@ -110,15 +110,16 @@ h1 {
 }
 
 /* Hover 效果 */
+ /* 
 .bubble:hover {
-    transform: scale(1.08) translateY(-4px);
+    transform: scale(1.05) translateY(0px);
     box-shadow: 0 15px 35px rgba(0, 0, 0, 0.35);
 }
 
 .bubble:active {
-    transform: scale(0.96);
+    transform: scale(1.96);
 }
-
+*/
 /* ====================== Emoji ====================== */
 .bubble > *:first-child {
     font-size: 58px;           /* 可自行调整大小 */
@@ -276,6 +277,50 @@ button.secondary { background:#3a3f4b; }
     min-width: 70px;
 }
 
+.deck-modal-footer{
+
+    margin-top:20px;
+
+    display:flex;
+
+    align-items:center;
+
+}
+
+.footer-right{
+
+    margin-left:auto;
+
+    display:flex;
+
+    gap:10px;
+
+}
+.danger-btn{
+
+    padding:12px 18px;
+
+    border:none;
+
+    border-radius:10px;
+
+    background:#d64040;
+
+    color:white;
+
+    font-size:15px;
+
+    cursor:pointer;
+
+    transition:.2s;
+
+}
+
+.danger-btn:hover{
+
+    background:#b92f2f;
+
+}
 /* =================================================
    bubble拖动排序功能
 ========================= ==================*/
