@@ -32,6 +32,7 @@ const deckTitleEl = document.getElementById('deckTitle');
 
 // ---------- 加载分类 ----------
 async function loadDecks() {
+
     const bubbles = document.getElementById('bubbles');
     bubbles.innerHTML = '';
 
@@ -40,72 +41,125 @@ async function loadDecks() {
         .get();
 
     snapshot.forEach(doc => {
+
         const deck = doc.data();
 
         const div = document.createElement('div');
+
         div.className = 'bubble';
-        div.dataset.id = doc.id; // ⭐ Sortable key
+        div.dataset.id = doc.id;
 
         div.style.background = '';
 
         div.innerHTML = `
-            <span style="font-size:2.6rem; margin-bottom:8px;">
+            <span style="font-size:2.6rem;margin-bottom:8px;">
                 ${deck.icon || '📌'}
             </span>
             <div>${deck.name}</div>
-
         `;
 
-        div.addEventListener('click', (e) => {
-            if (!e.target.classList.contains('action-btn')) {
-                startPlayer(doc.id, deck);
-            }
-        });
-      
-        let deckLongPress = null;
+        // ==========================
+        // 长按相关
+        // ==========================
+
+        let mouseTimer = null;
+        let touchTimer = null;
+        let longPressed = false;
+
+        // ---------- PC ----------
         div.addEventListener("mousedown", () => {
 
-            deckLongPress = setTimeout(() => {
+            longPressed = false;
+
+            mouseTimer = setTimeout(() => {
+
+                longPressed = true;
 
                 editDeck(doc.id);
 
             }, 700);
 
-          let touchTimer = null;
+        });
 
-          div.addEventListener("touchstart", () => {
-              touchTimer = setTimeout(() => {
-                  navigator.vibrate?.(20);
-                  editDeck(doc.id);
-              },700);
-          },{passive:true});
+        div.addEventListener("mouseup", () => {
 
-          div.addEventListener("touchend",()=>{
-              clearTimeout(touchTimer);
-          },{passive:true});
-          div.addEventListener("touchmove",()=>{
-              clearTimeout(touchTimer);
-          },{passive:true});
-          
+            clearTimeout(mouseTimer);
 
-});
+        });
 
-div.addEventListener("mouseup", () => {
+        div.addEventListener("mouseleave", () => {
 
-    clearTimeout(deckLongPress);
+            clearTimeout(mouseTimer);
 
-});
+        });
 
-div.addEventListener("mouseleave", () => {
+        // ---------- 手机 ----------
+        div.addEventListener("touchstart", () => {
 
-    clearTimeout(deckLongPress);
+            longPressed = false;
 
-});
+            touchTimer = setTimeout(() => {
+
+                longPressed = true;
+
+                navigator.vibrate?.(20);
+
+                editDeck(doc.id);
+
+            }, 700);
+
+        }, { passive: true });
+
+        div.addEventListener("touchend", () => {
+
+            clearTimeout(touchTimer);
+
+        }, { passive: true });
+
+        div.addEventListener("touchcancel", () => {
+
+            clearTimeout(touchTimer);
+
+        }, { passive: true });
+
+        div.addEventListener("touchmove", () => {
+
+            clearTimeout(touchTimer);
+
+        }, { passive: true });
+
+        // ==========================
+        // 点击进入分类
+        // ==========================
+
+        div.addEventListener("click", (e) => {
+
+            // 长按后阻止 click
+            if (longPressed) {
+
+                e.preventDefault();
+                e.stopPropagation();
+
+                longPressed = false;
+
+                return;
+            }
+
+            if (!e.target.classList.contains('action-btn')) {
+
+                startPlayer(doc.id, deck);
+
+            }
+
+        });
+
         bubbles.appendChild(div);
+
     });
 
-    // ⭐ 确保 DOM 完成后再初始化
+    // DOM 完成后初始化拖拽
     requestAnimationFrame(initSortable);
+
 }
 
 
