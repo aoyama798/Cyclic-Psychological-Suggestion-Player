@@ -1349,7 +1349,9 @@ window.onload = async () => {
 
 // ==================== 手机手势 ====================
 // ==================== 手机点击区域交互 ====================
+// ==================== 手机点击交互 ====================
 
+let longPressTimer = null;
 let lastCenterTap = 0;
 
 function initMobileGesture() {
@@ -1359,63 +1361,147 @@ function initMobileGesture() {
     const playerCard = document.querySelector(".card");
     if (!playerCard) return;
 
+    // 防止重复绑定
     if (playerCard.dataset.gestureBound) return;
     playerCard.dataset.gestureBound = "1";
 
     playerCard.addEventListener(
+        "touchstart",
+        handleTouchStart,
+        { passive: true }
+    );
+
+    playerCard.addEventListener(
         "touchend",
-        handleMobileTap,
+        handleTouchEnd,
+        { passive: true }
+    );
+
+    playerCard.addEventListener(
+        "touchmove",
+        handleTouchMove,
+        { passive: true }
+    );
+
+    playerCard.addEventListener(
+        "touchcancel",
+        () => clearTimeout(longPressTimer),
         { passive: true }
     );
 
     console.log("📱 三分区点击模式已启用");
 }
 
-function handleMobileTap(e) {
+// ---------- 按下 ----------
+function handleTouchStart(e) {
 
     const touch = e.changedTouches[0];
 
     const rect = e.currentTarget.getBoundingClientRect();
+    const x = touch.clientX - rect.left;
+    const width = rect.width;
+
+    // 只有中间区域允许长按编辑
+    if (x > width * 0.25 && x < width * 0.75) {
+
+        longPressTimer = setTimeout(() => {
+
+            navigator.vibrate?.(30);
+
+            // 标记已经触发长按
+            e.currentTarget.dataset.longPressed = "1";
+
+            editCurrentCard();
+
+        }, 600);
+
+    }
+
+}
+
+// ---------- 手指移动取消长按 ----------
+function handleTouchMove() {
+
+    clearTimeout(longPressTimer);
+
+}
+
+// ---------- 抬起 ----------
+function handleTouchEnd(e) {
+
+    clearTimeout(longPressTimer);
+
+    const card = e.currentTarget;
+
+    // 长按已经触发
+    if (card.dataset.longPressed === "1") {
+
+        card.dataset.longPressed = "0";
+
+        return;
+    }
+
+    const touch = e.changedTouches[0];
+
+    const rect = card.getBoundingClientRect();
 
     const x = touch.clientX - rect.left;
     const width = rect.width;
 
-    // 三等分
-    const leftEdge = width / 3;
-    const rightEdge = width * 2 / 3;
+    // =======================
+    // 左25%：上一张
+    // =======================
+    if (x < width * 0.25) {
 
-    // 左侧：上一张
-    if (x < leftEdge) {
+        navigator.vibrate?.(10);
+
         prevCard();
-        navigator.vibrate?.(10);
+
         return;
     }
 
-    // 右侧：下一张
-    if (x > rightEdge) {
+    // =======================
+    // 右25%：下一张
+    // =======================
+    if (x > width * 0.75) {
+
+        navigator.vibrate?.(10);
+
         nextCard();
-        navigator.vibrate?.(10);
+
         return;
     }
 
-    // 中间：双击加星
+    // =======================
+    // 中间50%
+    // 单击：无
+    // 双击：加星
+    // =======================
+
     const now = Date.now();
 
     if (now - lastCenterTap < 250) {
 
         lastCenterTap = 0;
 
-        markImportant();
-
         navigator.vibrate?.(20);
+
+        markImportant();
 
         return;
     }
 
     lastCenterTap = now;
 
-    // 中间单击不处理
+    // 中间单击：无操作
 }
+
+
+
+
+
+
+
 
 
 // 切卡动画效果实现
