@@ -1348,134 +1348,73 @@ window.onload = async () => {
 };
 
 // ==================== 手机手势 ====================
+// ==================== 手机点击区域交互 ====================
 
-let touchStartX = 0;
-let touchStartY = 0;
+let lastCenterTap = 0;
 
-let touchStartTime = 0;
+function initMobileGesture() {
 
-let longPressTimer = null;
+    if (!isMobileDevice()) return;
 
-let lastTap = 0;
-let tapTimer = null;
-// 连点保护
-let tapCount = 0;
-let tapCountTimer = null;
+    const playerCard = document.querySelector(".card");
+    if (!playerCard) return;
 
-function initMobileGesture(){
-
-    if(!isMobileDevice()) return;
-
-    const playerCard =
-        document.querySelector('.card');
-
-    if(!playerCard) return;
-
-    if(playerCard.dataset.gestureBound){
-        return;
-    }
-
-    playerCard.dataset.gestureBound = '1';
+    if (playerCard.dataset.gestureBound) return;
+    playerCard.dataset.gestureBound = "1";
 
     playerCard.addEventListener(
-        'touchstart',
-        handleTouchStart,
-        { passive:true }
+        "touchend",
+        handleMobileTap,
+        { passive: true }
     );
 
-    playerCard.addEventListener(
-        'touchend',
-        handleTouchEnd,
-        { passive:true }
-    );
-
-    console.log('📱 手势已启用');
-
-  playerCard.addEventListener(
-    'touchmove',
-    handleTouchMove,
-    { passive:true }
-);
+    console.log("📱 三分区点击模式已启用");
 }
 
-function handleTouchStart(e){
+function handleMobileTap(e) {
 
     const touch = e.changedTouches[0];
 
-    touchStartX = touch.clientX;
-    touchStartY = touch.clientY;
+    const rect = e.currentTarget.getBoundingClientRect();
 
-    touchStartTime = Date.now();
+    const x = touch.clientX - rect.left;
+    const width = rect.width;
 
-    longPressTimer = setTimeout(() => {
+    // 三等分
+    const leftEdge = width / 3;
+    const rightEdge = width * 2 / 3;
+
+    // 左侧：上一张
+    if (x < leftEdge) {
+        prevCard();
+        navigator.vibrate?.(10);
+        return;
+    }
+
+    // 右侧：下一张
+    if (x > rightEdge) {
+        nextCard();
+        navigator.vibrate?.(10);
+        return;
+    }
+
+    // 中间：双击加星
+    const now = Date.now();
+
+    if (now - lastCenterTap < 250) {
+
+        lastCenterTap = 0;
+
+        markImportant();
 
         navigator.vibrate?.(20);
 
-        editCurrentCard();
-
-    }, 1000);
-}
-
-function handleTouchMove(e){
-
-    const touch = e.changedTouches[0];
-
-    const dx = touch.clientX - touchStartX;
-    const dy = touch.clientY - touchStartY;
-
-    // 手指移动后取消长按
-    if(
-        Math.abs(dx) > 15 ||
-        Math.abs(dy) > 15
-    ){
-        clearTimeout(longPressTimer);
-    }
-}
-
-function handleTouchEnd(e){
-
-    clearTimeout(longPressTimer);
-
-    const touch = e.changedTouches[0];
-
-    const dx = touch.clientX - touchStartX;
-    const dy = touch.clientY - touchStartY;
-
-    const duration =
-        Date.now() - touchStartTime;
-
-    // 只要发生明显移动，就不是点击
-    if(
-        Math.abs(dx) > 15 ||
-        Math.abs(dy) > 15
-    ){
-
-        // 左右滑动翻页
-        if(
-            Math.abs(dx) > 80 &&
-            Math.abs(dx) > Math.abs(dy) * 1.5
-        ){
-
-            if(dx > 0){
-
-                prevCard();
-
-            }else{
-
-                nextCard();
-            }
-
-            navigator.vibrate?.(10);
-        }
-
         return;
     }
 
-    // 长按触发编辑后不再执行点击逻辑
-    if(duration > 1000){
-        return;
-    }
- nextCard();
+    lastCenterTap = now;
+
+    // 中间单击不处理
 }
 
 
