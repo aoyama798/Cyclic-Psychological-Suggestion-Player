@@ -25,24 +25,62 @@
 <!-- 卡组bubble模态弹窗 -->
 <div id="deckModal" class="modal">
     <div class="modal-content">
-        <h3 id="modalTitle">新建分类</h3>
-        <input type="text" id="deckName" placeholder="🐱分类名称" style="width:100%;padding:12px;margin:15px 0;background:#262b36;color:white;border:none;border-radius:10px;">
-        <input type="text" id="deckIcon" placeholder="📌图标" maxlength="2" style="width:100%;padding:12px;background:#262b36;color:white;border:none;border-radius:10px;">
-        <textarea
+        <h3 id="modalTitle">新建Deck</h3>
+        <input type="text" id="deckName" placeholder="🐱分类名称" style="width:60%;padding:12px;margin:15px 0;background:#262b36;color:white;border:none;border-radius:10px;">
+        <input type="text" id="deckIcon" placeholder="📌图标" maxlength="2" style="width:60%;padding:12px;background:#262b36;color:white;border:none;border-radius:10px;">
+      <textarea
             id="deckNote"
-            rows="8"
+            rows="12"
             placeholder="要点总结..."
-            style="
-                width:100%;
-                margin-top:15px;
-                padding:12px;
-                background:#262b36;
-                color:white;
-                border:none;
-                border-radius:10px;
-                resize:vertical;">
+            style="">
       </textarea>
-      
+     <style>
+       #deckModal .modal-content{
+    width:min(92vw,760px);
+    max-height:90vh;
+    display:flex;
+    flex-direction:column;
+    padding:22px;
+         
+}
+       #deckNote{
+             font-family:
+        "LXGW WenKai",
+        "Maple Mono SC NF",
+        "PingFang SC",
+        sans-serif;
+
+    font-size:19px;
+    line-height:2;
+         
+    flex:1;
+    min-height:320px;
+    max-height:60vh;
+   
+    width:100%;
+    padding:20px;
+
+background:#262b36;
+color:#f7f7f7;
+font-size:18px;
+line-height:1.9;
+letter-spacing:.2px;
+
+    border:none;
+    border-radius:18px;
+
+    font-size:18px;
+    line-height:1.8;
+
+    resize:none;
+    outline:none;
+
+    white-space:pre-wrap;
+
+   margin-top:15px;
+            
+}
+       </style>
        <div class="deck-modal-footer">
           <button id="deleteDeckBtn" class="danger-btn" onclick="deleteCurrentDeck()">删除</button>
           <div class="footer-right">
@@ -84,7 +122,8 @@
 <!-- 卡片底部...more菜单 -->
 <div id="moreMenu" class="more-menu">
           <button id="editCardBtn" onclick="editCurrentCard();closeMenu()"><span class="icon">✏️</span>Edit</button>
-    <button id="moveCardBtn" onclick="moveCurrentCard();closeMenu()"><span class="icon">📂</span>Move</button>
+  <button onclick="editCurrentDeckNote();closeMenu()"><span class="icon">📝</span>Note</button>
+
 
     <button onclick="showAddCardModal();closeMenu()"><span class="icon">➕</span>Add</button>
     <button id="deleteCardBtn" onclick="deleteCurrentCard();closeMenu()"><span class="icon">🗑️</span>Delete</button>
@@ -104,6 +143,8 @@
   
     <button onclick="backToMenu();closeMenu()"><span class="icon">↩</span>Exit</button>
     <button onclick="toggleImmersiveMode();closeMenu()"><span class="icon">⛶</span>Immersive</button>
+
+      <button id="moveCardBtn" onclick="moveCurrentCard();closeMenu()"><span class="icon">📂</span>Move</button>
 </div>
 
 
