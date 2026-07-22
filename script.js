@@ -288,8 +288,8 @@ async function editDeck(deckId) {
 
     const deck = doc.data();
 
-    document.getElementById("modalTitle").textContent = "编辑分类";
-    document.getElementById("saveBtn").textContent = "保存修改";
+    document.getElementById("modalTitle").textContent = "编辑Deck";
+    document.getElementById("saveBtn").textContent = "保存";
 
     document.getElementById("deckName").value = deck.name || "";
     document.getElementById("deckIcon").value = deck.icon || "";
@@ -1005,6 +1005,18 @@ async function markMastered() {
 
     playStarAnimation(newWeight);
 }
+
+async function editCurrentDeckNote() {
+
+    if (!currentDeckKey) {
+        alert("当前没有打开分类");
+        return;
+    }
+
+    await editDeck(currentDeckKey);
+  
+}
+
 
 async function moveCurrentCard() {
     if (autoMode) toggleAuto();
