@@ -1360,152 +1360,363 @@ window.onload = async () => {
 };
 
 // ==================== 手机手势 ====================
-// ==================== 手机点击区域交互 ====================
-// ==================== 手机点击交互 ====================
+// ==================== 手机点击区域交互（优化版） ====================
 
 let longPressTimer = null;
 let lastCenterTap = 0;
+
+
+// 手势状态
+let touchStartX = 0;
+let touchStartY = 0;
+
+let gestureLocked = false; 
+// true = 已判断为滚动，不允许翻页
+
+let moved = false;
+
+
 
 function initMobileGesture() {
 
     if (!isMobileDevice()) return;
 
+
     const playerCard = document.querySelector(".card");
+
     if (!playerCard) return;
+
 
     // 防止重复绑定
     if (playerCard.dataset.gestureBound) return;
+
     playerCard.dataset.gestureBound = "1";
+
 
     playerCard.addEventListener(
         "touchstart",
         handleTouchStart,
-        { passive: true }
+        { passive:true }
     );
 
-    playerCard.addEventListener(
-        "touchend",
-        handleTouchEnd,
-        { passive: true }
-    );
 
     playerCard.addEventListener(
         "touchmove",
         handleTouchMove,
-        { passive: true }
+        { passive:true }
     );
+
+
+    playerCard.addEventListener(
+        "touchend",
+        handleTouchEnd,
+        { passive:true }
+    );
+
 
     playerCard.addEventListener(
         "touchcancel",
-        () => clearTimeout(longPressTimer),
-        { passive: true }
+        ()=>{
+
+            clearTimeout(longPressTimer);
+
+            gestureLocked=false;
+            moved=false;
+
+        },
+        {passive:true}
     );
 
-    console.log("📱 三分区点击模式已启用");
+
+    console.log("📱 优化版手机交互已启用");
+
 }
 
-// ---------- 按下 ----------
-function handleTouchStart(e) {
 
-    const touch = e.changedTouches[0];
 
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = touch.clientX - rect.left;
-    const width = rect.width;
 
-    // 只有中间区域允许长按编辑
-    if (x > width * 0.25 && x < width * 0.75) {
 
-        longPressTimer = setTimeout(() => {
+// ==================== 按下 ====================
+
+function handleTouchStart(e){
+
+    const touch=e.changedTouches[0];
+
+
+    touchStartX=touch.clientX;
+    touchStartY=touch.clientY;
+
+
+    gestureLocked=false;
+    moved=false;
+
+
+
+    const rect=e.currentTarget.getBoundingClientRect();
+
+    const x=touch.clientX-rect.left;
+
+    const width=rect.width;
+
+
+
+    // 中间区域长按编辑
+
+    if(
+        x>width*0.25 &&
+        x<width*0.75
+    ){
+
+        longPressTimer=setTimeout(()=>{
+
 
             navigator.vibrate?.(30);
 
-            // 标记已经触发长按
-            e.currentTarget.dataset.longPressed = "1";
+
+            e.currentTarget.dataset.longPressed="1";
+
 
             editCurrentCard();
 
-        }, 600);
+
+
+        },600);
 
     }
 
 }
 
-// ---------- 手指移动取消长按 ----------
-function handleTouchMove() {
 
-    clearTimeout(longPressTimer);
+
+
+
+
+
+// ==================== 移动 ====================
+
+function handleTouchMove(e){
+
+
+    const touch=e.changedTouches[0];
+
+
+    const dx=
+        touch.clientX-touchStartX;
+
+
+    const dy=
+        touch.clientY-touchStartY;
+
+
+
+    // 移动超过阈值
+    if(
+        Math.abs(dx)>10 ||
+        Math.abs(dy)>10
+    ){
+
+        moved=true;
+
+
+        // 移动取消长按
+
+        clearTimeout(longPressTimer);
+
+    }
+
+
+
+
+    /*
+        方向锁定
+
+        重点：
+        如果上下移动距离 >
+        左右移动距离
+
+        认为用户是在阅读滚动
+
+        后续禁止翻页
+    */
+
+
+    if(
+        Math.abs(dy) >
+        Math.abs(dx)
+    ){
+
+        gestureLocked=true;
+
+    }
+
 
 }
 
-// ---------- 抬起 ----------
-function handleTouchEnd(e) {
+
+
+
+
+
+
+
+// ==================== 抬起 ====================
+
+function handleTouchEnd(e){
+
 
     clearTimeout(longPressTimer);
 
-    const card = e.currentTarget;
 
-    // 长按已经触发
-    if (card.dataset.longPressed === "1") {
 
-        card.dataset.longPressed = "0";
+    const card=e.currentTarget;
+
+
+
+    // =====================
+    // 长按结束
+    // =====================
+
+    if(
+        card.dataset.longPressed==="1"
+    ){
+
+        card.dataset.longPressed="0";
+
+
+        gestureLocked=false;
+        moved=false;
+
 
         return;
+
     }
 
-    const touch = e.changedTouches[0];
 
-    const rect = card.getBoundingClientRect();
 
-    const x = touch.clientX - rect.left;
-    const width = rect.width;
+    /*
+        核心保护
+
+        发生滚动:
+        不执行点击和翻页
+
+    */
+
+
+    if(
+        gestureLocked ||
+        moved
+    ){
+
+        gestureLocked=false;
+        moved=false;
+
+        return;
+
+    }
+
+
+
+
+
+
+    const touch=e.changedTouches[0];
+
+
+    const rect=card.getBoundingClientRect();
+
+
+    const x=
+        touch.clientX-rect.left;
+
+
+    const width=
+        rect.width;
+
+
+
+
 
     // =======================
-    // 左25%：上一张
+    // 左侧区域 上一张
     // =======================
-    if (x < width * 0.25) {
+
+    if(
+        x < width*0.18
+    ){
 
         navigator.vibrate?.(10);
+
 
         prevCard();
 
+
         return;
+
     }
 
+
+
+
+
+
     // =======================
-    // 右25%：下一张
+    // 右侧区域 下一张
     // =======================
-    if (x > width * 0.75) {
+
+    if(
+        x > width*0.82
+    ){
 
         navigator.vibrate?.(10);
 
+
         nextCard();
 
+
         return;
+
     }
 
+
+
+
+
+
     // =======================
-    // 中间50%
-    // 单击：无
-    // 双击：加星
+    // 中间区域
+    //
+    // 双击 加星
+    //
     // =======================
 
-    const now = Date.now();
 
-    if (now - lastCenterTap < 250) {
+    const now=Date.now();
 
-        lastCenterTap = 0;
+
+
+    if(
+        now-lastCenterTap <250
+    ){
+
+
+        lastCenterTap=0;
+
 
         navigator.vibrate?.(20);
 
+
         markImportant();
 
+
         return;
+
     }
 
-    lastCenterTap = now;
 
-    // 中间单击：无操作
+
+    lastCenterTap=now;
+
+
 }
 
 
