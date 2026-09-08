@@ -23,71 +23,136 @@
 
 
 <!-- 卡组bubble模态弹窗 -->
+<!-- 卡组bubble模态弹窗 -->
 <div id="deckModal" class="modal">
     <div class="modal-content">
-        <h3 id="modalTitle">新建Deck</h3>
-        <input type="text" id="deckName" placeholder="🐱分类名称" style="width:60%;padding:12px;margin:15px 0;background:#262b36;color:white;border:none;border-radius:10px;">
-        <input type="text" id="deckIcon" placeholder="📌图标" maxlength="2" style="width:60%;padding:12px;background:#262b36;color:white;border:none;border-radius:10px;">
-      <textarea
+
+        <div class="deck-modal-header">
+            <h3 id="modalTitle">新建Deck</h3>
+
+            <div class="deck-basic-info">
+                <input
+                    type="text"
+                    id="deckName"
+                    placeholder="🐱分类名称"
+                >
+
+                <input
+                    type="text"
+                    id="deckIcon"
+                    placeholder="📌图标"
+                    maxlength="2"
+                >
+            </div>
+        </div>
+
+        <textarea
             id="deckNote"
             rows="12"
             placeholder="要点总结..."
             style="">
-      </textarea>
-     <style>
-       #deckModal .modal-content{
-    width:min(92vw,760px);
-    max-height:90vh;
-    display:flex;
-    flex-direction:column;
-    padding:22px;
-         
-}
-       #deckNote{
-             font-family:
-        "LXGW WenKai",
-        "Maple Mono SC NF",
-        "PingFang SC",
-        sans-serif;
+        </textarea>
 
-    font-size:19px;
-    line-height:2;
-         
-    flex:1;
-    min-height:320px;
-    max-height:60vh;
-   
-    width:100%;
-    padding:20px;
+        <style>
+            #deckModal .modal-content {
+                width: min(92vw,760px);
+                max-height: 90vh;
+                display: flex;
+                flex-direction: column;
+                padding: 22px;
+            }
 
-background:#262b36;
-color:#f7f7f7;
-font-size:18px;
-line-height:1.9;
-letter-spacing:.2px;
+            /* 标题 + 两个输入框 */
+            #deckModal .deck-modal-header {
+                display: flex;
+                align-items: center;
+                gap: 18px;
+                margin-bottom: 8px;
+            }
 
-    border:none;
-    border-radius:18px;
+            #deckModal .deck-modal-header h3 {
+                margin: 0;
+                white-space: nowrap;
+            }
 
-    font-size:18px;
-    line-height:1.8;
+            #deckModal .deck-basic-info {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                flex: 1;
+            }
 
-    resize:none;
-    outline:none;
+            #deckModal .deck-basic-info input {
+                box-sizing: border-box;
+                padding: 9px 12px;
+                background: #262b36;
+                color: white;
+                border: none;
+                border-radius: 10px;
+                outline: none;
+            }
 
-    white-space:pre-wrap;
+            #deckModal #deckName {
+                flex: 1;
+                min-width: 0;
+            }
 
-   margin-top:15px;
-            
-}
-       </style>
-       <div class="deck-modal-footer">
-          <button id="deleteDeckBtn" class="danger-btn" onclick="deleteCurrentDeck()">删除</button>
-          <div class="footer-right">
-              <button onclick="hideDeckModal()" class="secondary">取消</button>
-              <button onclick="saveDeck()" id="saveBtn">创建</button>
-          </div>
-       </div>
+            #deckModal #deckIcon {
+                width: 55px;
+                text-align: center;
+            }
+
+            #deckNote {
+                font-family:
+                    "LXGW WenKai",
+                    "Maple Mono SC NF",
+                    "PingFang SC",
+                    sans-serif;
+
+                font-size: 18px;
+                line-height: 1.8;
+                letter-spacing: .2px;
+
+                flex: 1;
+                min-height: 320px;
+                max-height: 60vh;
+                width: 100%;
+                padding: 20px;
+
+                background: #262b36;
+                color: #f7f7f7;
+
+                border: none;
+                border-radius: 18px;
+
+                resize: none;
+                outline: none;
+
+                white-space: pre-wrap;
+                margin-top: 15px;
+            }
+        </style>
+
+        <div class="deck-modal-footer">
+            <button
+                id="deleteDeckBtn"
+                class="danger-btn"
+                onclick="deleteCurrentDeck()"
+            >删除</button>
+
+            <div class="footer-right">
+                <button
+                    onclick="hideDeckModal()"
+                    class="secondary"
+                >取消</button>
+
+                <button
+                    onclick="saveDeck()"
+                    id="saveBtn"
+                >创建</button>
+            </div>
+        </div>
+
     </div>
 </div>
 
@@ -214,24 +279,17 @@ letter-spacing:.2px;
         </textarea>
       
         <div class="modal-buttons">
-
+            <button
+                class="secondary-btn"
+                onclick="hideAddCardModal()">
+                ❌
+            </button>
             <button
                 class="primary-btn"
                 id="saveCardBtn"
                 onclick="saveCard()">
-
                 ✔️
-
             </button>
-
-            <button
-                class="secondary-btn"
-                onclick="hideAddCardModal()">
-
-                ❌
-
-            </button>
-
         </div>
 
     </div>
@@ -264,13 +322,14 @@ letter-spacing:.2px;
             自动去重 · 自动过滤空行
         </div>
         <div class="modal-buttons">
-            <button class="primary-btn"
-                    onclick="confirmImport()">
-                ✔️
-            </button>
+
             <button class="secondary-btn"
                     onclick="closeImportModal()">
                 ❌
+            </button>
+            <button class="primary-btn"
+                    onclick="confirmImport()">
+                ✔️
             </button>
         </div>
 
