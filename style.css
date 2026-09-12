@@ -1424,7 +1424,7 @@ body.immersive .front-content{
 
 
 
-/* =========================   底部二级菜单开始  ========================= */
+/* =========================   ...二级菜单开始  ========================= */
 
 .more-menu{
     position:fixed;
@@ -1463,16 +1463,25 @@ transform:translateY(-10px);
 
     z-index:9999;
 }
+@media (max-width:768px){
+    .more-menu{
+        left:12px;
+        right:12px;
 
+        top:62px;
+
+        width:auto;
+        max-width:none;
+
+        transform:translateY(-10px);
+    }
+
+}
 .more-menu.show{
-
     opacity:1;
-
     visibility:visible;
 
-    transform:
-        translateX(-50%)
-        translateY(0);
+    transform:translateY(0);
 }
 
 .more-menu button{
@@ -1541,7 +1550,7 @@ transform:translateY(-10px);
 
     width:60px;
 }
-/* =========================  底部二级菜单结束 ========================= */
+/* =========================  二级菜单结束 ========================= */
 
 
 /* ====================导入 Import Modal ==================== */
