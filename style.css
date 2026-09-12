@@ -1429,10 +1429,11 @@ body.immersive .front-content{
 .more-menu{
     position:fixed;
 
-    left:50%;
-    bottom:90px;
+right:20px;
+top:70px;
 
-    transform:translateX(-50%) translateY(10px);
+transform:translateY(-10px);
+
 
     width:min(320px,92vw);
 
