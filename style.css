@@ -465,7 +465,7 @@ button.secondary { background:#3a3f4b; }
 ========================= */
 .card {
     position: relative;
-    width: 80%;
+    width: 100%;
     max-width: 1180px;
     height: 100%;
     display: flex;
