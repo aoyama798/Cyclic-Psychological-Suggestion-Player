@@ -80,7 +80,7 @@ async function loadDecks() {
 
                 editDeck(doc.id);
 
-            }, 700);
+            }, 500);
 
         });
 
@@ -109,7 +109,7 @@ async function loadDecks() {
 
                 editDeck(doc.id);
 
-            }, 700);
+            }, 500);
 
         }, { passive: true });
 
@@ -1862,38 +1862,7 @@ function animateCard(direction, callback){
 
 const moreBtn = document.getElementById("moreBtn");
 
-let moreClickTimer = null;
-let lastMoreClick = 0;
-
 moreBtn.addEventListener("click", (e) => {
-
     e.stopPropagation();
-
-    const now = Date.now();
-
-    // 双击
-    if (now - lastMoreClick < 250) {
-
-        clearTimeout(moreClickTimer);
-
-        lastMoreClick = 0;
-
-        markImportant();
-
-        navigator.vibrate?.(10);
-
-        return;
-    }
-
-    lastMoreClick = now;
-
-    // 单击延迟打开菜单
-    moreClickTimer = setTimeout(() => {
-
-        toggleMenu();
-
-        lastMoreClick = 0;
-
-    }, 250);
-
+    toggleMenu();
 });
