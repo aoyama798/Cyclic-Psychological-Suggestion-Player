@@ -476,12 +476,12 @@ button.secondary { background:#3a3f4b; }
         linear-gradient(
             to bottom,
             rgba(0, 0, 0, 0.07) 0%,
-            rgba(0, 0, 0, 0.07) 25%,
+            rgba(0, 0, 0, 0.07) 40%,
 
-            rgba(0, 0, 0, 0) 25%,
-            rgba(0, 0, 0, 0) 55%,
+            rgba(0, 0, 0, 0) 40%,
+            rgba(0, 0, 0, 0) 60%,
 
-            rgba(255, 255, 255, 0.025) 55%,
+            rgba(255, 255, 255, 0.025) 60%,
             rgba(255, 255, 255, 0.025) 100%
         ),
         var(--surface);
