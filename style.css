@@ -470,7 +470,22 @@ button.secondary { background:#3a3f4b; }
     height: 100%;
     display: flex;
     flex-direction: column;
-    background: var(--surface);
+
+    /* 上25% / 中30% / 下45% */
+    background:
+        linear-gradient(
+            to bottom,
+            rgba(0, 0, 0, 0.07) 0%,
+            rgba(0, 0, 0, 0.07) 25%,
+
+            rgba(0, 0, 0, 0) 25%,
+            rgba(0, 0, 0, 0) 55%,
+
+            rgba(255, 255, 255, 0.025) 55%,
+            rgba(255, 255, 255, 0.025) 100%
+        ),
+        var(--surface);
+
     border-radius: 28px;
     overflow: hidden;
     touch-action: pan-y;
@@ -481,11 +496,10 @@ button.secondary { background:#3a3f4b; }
 @media (max-width: 768px) {
     .card {
         width: 100%;
-        border-radius: 6;
+        border-radius: 6px;
         box-shadow: none;
     }
 }
-
 /* =========================
    .player-layout 播放器布局
 ========================= */
