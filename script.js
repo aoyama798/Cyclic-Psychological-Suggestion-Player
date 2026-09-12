@@ -44,6 +44,9 @@ async function loadDecks() {
 
         const deck = doc.data();
 
+        // hidden=true 的分类不显示在主页，但仍保留在 Firestore
+        if (deck.hidden === true) return;
+
         const div = document.createElement('div');
 
         div.className = 'bubble';
@@ -157,6 +160,21 @@ async function loadDecks() {
 
     });
 
+    // 最后一个 Bubble：管理已隐藏分类
+    const managerBubble = document.createElement('div');
+    managerBubble.className = 'bubble hidden-manager-bubble';
+    managerBubble.dataset.managerBubble = 'true';
+    managerBubble.innerHTML = `
+        <span style="font-size:2.6rem;margin-bottom:8px;">⋮</span>
+        <div>管理隐藏分类</div>
+    `;
+    managerBubble.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        showHiddenDeckModal();
+    });
+    bubbles.appendChild(managerBubble);
+
     // DOM 完成后初始化拖拽
     requestAnimationFrame(initSortable);
 
@@ -177,7 +195,7 @@ function initSortable() {
     sortableInstance = new Sortable(el, {
         animation: 180,
 
-        draggable: '.bubble',
+        draggable: '.bubble:not(.hidden-manager-bubble)',
 
         dataIdAttr: 'data-id',
 
@@ -272,8 +290,9 @@ function showAddDeckModal() {
     document.getElementById("deckIcon").value = "";
     document.getElementById("deckNote").value = "";
 
-    // 新建时隐藏删除按钮
+    // 新建时隐藏删除按钮及“隐藏分类”按钮
     document.getElementById("deleteDeckBtn").style.display = "none";
+    document.getElementById("toggleDeckHiddenBtn").style.display = "none";
 
     document.getElementById("deckModal").style.display = "flex";
 }
@@ -295,8 +314,11 @@ async function editDeck(deckId) {
     document.getElementById("deckIcon").value = deck.icon || "";
     document.getElementById("deckNote").value = deck.note || "";
 
-    // 编辑时显示删除按钮
+    // 编辑时显示删除按钮，并根据当前状态更新“隐藏/显示”按钮
     document.getElementById("deleteDeckBtn").style.display = "block";
+    const hiddenBtn = document.getElementById("toggleDeckHiddenBtn");
+    hiddenBtn.style.display = "block";
+    hiddenBtn.textContent = deck.hidden === true ? "显示分类" : "隐藏分类";
 
     document.getElementById("deckModal").style.display = "flex";
 }
@@ -354,6 +376,7 @@ async function saveDeck() {
                 color: "#2f80ed",
 
                 order: maxOrder,
+                hidden: false,
 
                 createdAt:
                     firebase.firestore.FieldValue.serverTimestamp()
@@ -372,6 +395,69 @@ async function saveDeck() {
 
     }
 
+}
+
+
+// ==================== 分类显示/隐藏管理 ====================
+
+async function toggleEditingDeckHidden() {
+    if (!editingDeckId) return;
+    try {
+        const ref = db.collection("decks").doc(editingDeckId);
+        const snap = await ref.get();
+        if (!snap.exists) return;
+        const deck = snap.data();
+        await ref.update({ hidden: deck.hidden !== true });
+        hideDeckModal();
+        await loadDecks();
+    } catch (e) {
+        alert("更新分类显示状态失败：" + e.message);
+    }
+}
+
+async function showHiddenDeckModal() {
+    const list = document.getElementById("hiddenDeckList");
+    const empty = document.getElementById("hiddenDeckEmpty");
+    list.innerHTML = "";
+    empty.style.display = "none";
+    try {
+        const snapshot = await db.collection("decks").orderBy("order", "asc").get();
+        const hiddenDecks = snapshot.docs.filter(doc => doc.data().hidden === true);
+        if (hiddenDecks.length === 0) {
+            empty.style.display = "block";
+        } else {
+            hiddenDecks.forEach(doc => {
+                const deck = doc.data();
+                const item = document.createElement("div");
+                item.className = "hidden-deck-item";
+                item.innerHTML = `
+                    <div class="hidden-deck-info">
+                        <span class="hidden-deck-icon">${deck.icon || "📌"}</span>
+                        <span class="hidden-deck-name">${deck.name || "未命名分类"}</span>
+                    </div>
+                    <button class="hidden-deck-show-btn" onclick="restoreHiddenDeck('${doc.id}')">显示</button>
+                `;
+                list.appendChild(item);
+            });
+        }
+        document.getElementById("hiddenDeckModal").style.display = "flex";
+    } catch (e) {
+        alert("加载隐藏分类失败：" + e.message);
+    }
+}
+
+function hideHiddenDeckModal() {
+    document.getElementById("hiddenDeckModal").style.display = "none";
+}
+
+async function restoreHiddenDeck(deckId) {
+    try {
+        await db.collection("decks").doc(deckId).update({ hidden: false });
+        await showHiddenDeckModal();
+        await loadDecks();
+    } catch (e) {
+        alert("恢复分类失败：" + e.message);
+    }
 }
 
 function hideDeckModal() { 
