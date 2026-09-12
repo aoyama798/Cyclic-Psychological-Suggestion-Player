@@ -1533,6 +1533,8 @@ window.onload = async () => {
 
 // ==================== 手机手势 ====================
 // ==================== 手机点击区域交互 ====================
+// ==================== 手机手势 ====================
+// ==================== 手机点击区域交互 ====================
 
 let longPressTimer = null;
 let lastCenterTap = 0;
@@ -1544,17 +1546,17 @@ let touchStartX = 0;
 let touchStartY = 0;
 
 let gestureLocked = false;
-// true = 判断为滚动，不允许翻页/点击
+// true = 判断为滚动，不允许翻页 / 点击
 
 let moved = false;
-// true = 手指发生了明显移动
+// true = 手指发生明显移动
 
 
-// 长按区域
+// ==================== 参数 ====================
+
 const LONG_PRESS_TIME = 600;
 
-// 手指允许的轻微抖动范围
-// 手机长按时手指不可能完全静止
+// 长按时允许手指有轻微自然抖动
 const MOVE_THRESHOLD = 15;
 
 
@@ -1604,7 +1606,8 @@ function initMobileGesture(){
     );
 
 
-    console.log("📱 手机交互已启用");
+    console.log("📱 手机三段式交互已启用");
+
 }
 
 
@@ -1618,6 +1621,9 @@ function handleTouchStart(e){
     if(!touch) return;
 
 
+    const card = e.currentTarget;
+
+
     // =====================
     // 重置状态
     // =====================
@@ -1627,7 +1633,7 @@ function handleTouchStart(e){
     gestureLocked = false;
     moved = false;
 
-    e.currentTarget.dataset.longPressed = "0";
+    card.dataset.longPressed = "0";
 
 
     // =====================
@@ -1638,40 +1644,48 @@ function handleTouchStart(e){
     touchStartY = touch.clientY;
 
 
-    const card = e.currentTarget;
-
-    const rect = card.getBoundingClientRect();
-
-
-    const x = touch.clientX - rect.left;
-    const width = rect.width;
-
-
-    const ratio = x / width;
-
-
     // =====================
-    // 中间 45%
-    //
-    // 40% ~ 85%
-    //
-    // 允许长按编辑
+    // 判断触摸位置
     // =====================
+
+    const rect =
+        card.getBoundingClientRect();
+
+
+    const y =
+        touch.clientY - rect.top;
+
+
+    const height =
+        rect.height;
+
+
+    const ratio =
+        y / height;
+
+
+    // ==========================
+    // 中间 30%
+    //
+    // 25% ~ 55%
+    //
+    // 双击加星
+    // 长按编辑
+    // ==========================
 
     if(
-        ratio >= 0.40 &&
-        ratio <= 0.85
+        ratio >= 0.25 &&
+        ratio <= 0.55
     ){
 
         longPressTimer = setTimeout(()=>{
 
-            // 如果期间发生滚动/明显移动
-            // 不执行长按
+            // 如果期间发生明显移动
+            // 则不执行长按
             if(
                 moved ||
                 gestureLocked
             ){
-
                 return;
             }
 
@@ -1710,16 +1724,18 @@ function handleTouchMove(e){
         touch.clientY - touchStartY;
 
 
-    const absX = Math.abs(dx);
-    const absY = Math.abs(dy);
+    const absX =
+        Math.abs(dx);
+
+
+    const absY =
+        Math.abs(dy);
 
 
     // =====================
-    // 没有超过阈值
+    // 轻微抖动
     //
-    // 认为只是手指轻微抖动
-    //
-    // 长按继续计时
+    // 不取消长按
     // =====================
 
     if(
@@ -1728,25 +1744,26 @@ function handleTouchMove(e){
     ){
 
         return;
+
     }
 
 
     // =====================
-    // 已经发生明显移动
+    // 已发生明显移动
     // =====================
 
     moved = true;
 
 
-    // 移动取消长按
+    // 移动后取消长按
     clearTimeout(longPressTimer);
 
 
     // =====================
-    // 方向判断
+    // 判断滚动方向
     //
-    // 垂直移动 > 水平移动
-    // = 用户正在滚动
+    // 垂直移动更明显
+    // → 认为用户正在滚动
     // =====================
 
     if(absY > absX){
@@ -1766,7 +1783,8 @@ function handleTouchEnd(e){
     clearTimeout(longPressTimer);
 
 
-    const card = e.currentTarget;
+    const card =
+        e.currentTarget;
 
 
     // =====================
@@ -1783,6 +1801,7 @@ function handleTouchEnd(e){
         moved = false;
 
         return;
+
     }
 
 
@@ -1799,6 +1818,7 @@ function handleTouchEnd(e){
         moved = false;
 
         return;
+
     }
 
 
@@ -1806,7 +1826,8 @@ function handleTouchEnd(e){
     // 获取点击位置
     // =====================
 
-    const touch = e.changedTouches[0];
+    const touch =
+        e.changedTouches[0];
 
     if(!touch) return;
 
@@ -1815,60 +1836,63 @@ function handleTouchEnd(e){
         card.getBoundingClientRect();
 
 
-    const x =
-        touch.clientX - rect.left;
+    const y =
+        touch.clientY - rect.top;
 
 
-    const width =
-        rect.width;
+    const height =
+        rect.height;
 
 
     const ratio =
-        x / width;
+        y / height;
 
 
 
     // ==========================
-    // 左侧 40%
-    //
-    // 下一张
-    // ==========================
-
-    if(ratio < 0.40){
-
-        navigator.vibrate?.(10);
-
-        nextCard();
-
-        return;
-    }
-
-
-
-    // ==========================
-    // 右侧 15%
+    // 上 25%
     //
     // 上一张
     // ==========================
 
-    if(ratio > 0.85){
+    if(ratio < 0.25){
 
         navigator.vibrate?.(10);
 
         prevCard();
 
         return;
+
     }
 
 
 
     // ==========================
-    // 中间 45%
+    // 下 45%
+    //
+    // 下一张
+    // ==========================
+
+    if(ratio > 0.55){
+
+        navigator.vibrate?.(10);
+
+        nextCard();
+
+        return;
+
+    }
+
+
+
+    // ==========================
+    // 中间 30%
     //
     // 双击 → 加星
     // ==========================
 
-    const now = Date.now();
+    const now =
+        Date.now();
 
 
     if(
@@ -1885,6 +1909,7 @@ function handleTouchEnd(e){
 
 
         return;
+
     }
 
 
@@ -1910,8 +1935,6 @@ function handleTouchCancel(e){
     moved = false;
 
 }
-
-
 
 
 
