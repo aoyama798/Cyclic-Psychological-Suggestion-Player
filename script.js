@@ -20,6 +20,9 @@ let editingDeckId = null;
 let editingCardId = null;
 let sortableInstance = null;   // Sortable.js 实例
 let deckEditing = false;
+let deckReviewMode = false;
+let deckReviewId = null;
+let deckReviewData = null;
 
 // ==================== DOM ====================
 const frontEl = document.getElementById('front');
@@ -80,7 +83,7 @@ async function loadDecks() {
 
                 editDeck(doc.id);
 
-            }, 500);
+            }, 700);
 
         });
 
@@ -109,7 +112,7 @@ async function loadDecks() {
 
                 editDeck(doc.id);
 
-            }, 500);
+            }, 700);
 
         }, { passive: true });
 
@@ -150,7 +153,8 @@ async function loadDecks() {
 
             if (!e.target.classList.contains('action-btn')) {
 
-                startPlayer(doc.id, deck);
+                // 点击分类：先阅读分类笔记，再进入复习
+                showDeckReview(doc.id, deck);
 
             }
 
@@ -168,9 +172,7 @@ async function loadDecks() {
         <span style="font-size:2.6rem;margin-bottom:8px;">⋮</span>
         <div>管理隐藏分类</div>
     `;
-    managerBubble.addEventListener('click', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
+    managerBubble.addEventListener('click', () => {
         showHiddenDeckModal();
     });
     bubbles.appendChild(managerBubble);
@@ -282,6 +284,16 @@ function isMobileDevice() {
 function showAddDeckModal() {
 
     editingDeckId = null;
+    deckReviewMode = false;
+    deckReviewId = null;
+    deckReviewData = null;
+
+    const modal = document.getElementById("deckModal");
+    modal.classList.remove("deck-review-mode");
+    document.getElementById("deckName").readOnly = false;
+    document.getElementById("deckIcon").readOnly = false;
+    document.getElementById("deckNote").readOnly = false;
+    document.getElementById("deckGoBtn").style.display = "none";
 
     document.getElementById("modalTitle").textContent = "新建分类";
     document.getElementById("saveBtn").textContent = "创建";
@@ -290,9 +302,8 @@ function showAddDeckModal() {
     document.getElementById("deckIcon").value = "";
     document.getElementById("deckNote").value = "";
 
-    // 新建时隐藏删除按钮及“隐藏分类”按钮
+    // 新建时隐藏删除按钮
     document.getElementById("deleteDeckBtn").style.display = "none";
-    document.getElementById("toggleDeckHiddenBtn").style.display = "none";
 
     document.getElementById("deckModal").style.display = "flex";
 }
@@ -300,6 +311,16 @@ function showAddDeckModal() {
 async function editDeck(deckId) {
 
     editingDeckId = deckId;
+    deckReviewMode = false;
+    deckReviewId = null;
+    deckReviewData = null;
+
+    const modal = document.getElementById("deckModal");
+    modal.classList.remove("deck-review-mode");
+    document.getElementById("deckName").readOnly = false;
+    document.getElementById("deckIcon").readOnly = false;
+    document.getElementById("deckNote").readOnly = false;
+    document.getElementById("deckGoBtn").style.display = "none";
 
     const doc = await db.collection("decks")
         .doc(deckId)
@@ -314,13 +335,58 @@ async function editDeck(deckId) {
     document.getElementById("deckIcon").value = deck.icon || "";
     document.getElementById("deckNote").value = deck.note || "";
 
-    // 编辑时显示删除按钮，并根据当前状态更新“隐藏/显示”按钮
+    // 编辑时显示删除按钮
     document.getElementById("deleteDeckBtn").style.display = "block";
-    const hiddenBtn = document.getElementById("toggleDeckHiddenBtn");
-    hiddenBtn.style.display = "block";
-    hiddenBtn.textContent = deck.hidden === true ? "显示分类" : "隐藏分类";
 
     document.getElementById("deckModal").style.display = "flex";
+}
+
+// ==================== 复习前阅读分类笔记 ====================
+
+function showDeckReview(deckId, deck) {
+    deckReviewMode = true;
+    deckReviewId = deckId;
+    deckReviewData = deck;
+
+    const modal = document.getElementById("deckModal");
+    modal.classList.add("deck-review-mode");
+
+    document.getElementById("modalTitle").textContent =
+        `${deck.icon || "📌"} ${deck.name || "分类"}`;
+
+    document.getElementById("deckName").value = deck.name || "";
+    document.getElementById("deckIcon").value = deck.icon || "";
+    document.getElementById("deckNote").value = deck.note || "";
+
+    document.getElementById("deckName").readOnly = true;
+    document.getElementById("deckIcon").readOnly = true;
+    document.getElementById("deckNote").readOnly = true;
+
+    document.getElementById("deleteDeckBtn").style.display = "none";
+    document.getElementById("saveBtn").style.display = "none";
+    document.getElementById("deckGoBtn").style.display = "flex";
+
+    modal.style.display = "flex";
+}
+
+function goFromDeckReview() {
+    if (!deckReviewMode || !deckReviewId || !deckReviewData) return;
+
+    const deckId = deckReviewId;
+    const deck = deckReviewData;
+
+    hideDeckModal();
+    startPlayer(deckId, deck);
+}
+
+// 阅读模式下：点击模态框遮罩区域即可取消，不需要单独的“取消”按钮
+const deckModal = document.getElementById("deckModal");
+if (deckModal) {
+    deckModal.addEventListener("click", (e) => {
+        if (deckReviewMode && e.target === deckModal) {
+            hideDeckModal();
+        }
+    });
 }
 
 async function saveDeck() {
@@ -376,6 +442,7 @@ async function saveDeck() {
                 color: "#2f80ed",
 
                 order: maxOrder,
+
                 hidden: false,
 
                 createdAt:
@@ -397,7 +464,6 @@ async function saveDeck() {
 
 }
 
-
 // ==================== 分类显示/隐藏管理 ====================
 
 async function toggleEditingDeckHidden() {
@@ -406,6 +472,7 @@ async function toggleEditingDeckHidden() {
         const ref = db.collection("decks").doc(editingDeckId);
         const snap = await ref.get();
         if (!snap.exists) return;
+
         const deck = snap.data();
         await ref.update({ hidden: deck.hidden !== true });
         hideDeckModal();
@@ -420,9 +487,14 @@ async function showHiddenDeckModal() {
     const empty = document.getElementById("hiddenDeckEmpty");
     list.innerHTML = "";
     empty.style.display = "none";
+
     try {
-        const snapshot = await db.collection("decks").orderBy("order", "asc").get();
+        const snapshot = await db.collection("decks")
+            .orderBy("order", "asc")
+            .get();
+
         const hiddenDecks = snapshot.docs.filter(doc => doc.data().hidden === true);
+
         if (hiddenDecks.length === 0) {
             empty.style.display = "block";
         } else {
@@ -440,6 +512,7 @@ async function showHiddenDeckModal() {
                 list.appendChild(item);
             });
         }
+
         document.getElementById("hiddenDeckModal").style.display = "flex";
     } catch (e) {
         alert("加载隐藏分类失败：" + e.message);
@@ -460,8 +533,20 @@ async function restoreHiddenDeck(deckId) {
     }
 }
 
-function hideDeckModal() { 
-    document.getElementById('deckModal').style.display = 'none'; 
+function hideDeckModal() {
+    const modal = document.getElementById('deckModal');
+    modal.style.display = 'none';
+
+    deckReviewMode = false;
+    deckReviewId = null;
+    deckReviewData = null;
+
+    modal.classList.remove("deck-review-mode");
+    document.getElementById("deckName").readOnly = false;
+    document.getElementById("deckIcon").readOnly = false;
+    document.getElementById("deckNote").readOnly = false;
+    document.getElementById("deckGoBtn").style.display = "none";
+    document.getElementById("saveBtn").style.display = "";
 }
 
 async function deleteCurrentDeck() {
@@ -1862,7 +1947,38 @@ function animateCard(direction, callback){
 
 const moreBtn = document.getElementById("moreBtn");
 
+let moreClickTimer = null;
+let lastMoreClick = 0;
+
 moreBtn.addEventListener("click", (e) => {
+
     e.stopPropagation();
-    toggleMenu();
+
+    const now = Date.now();
+
+    // 双击
+    if (now - lastMoreClick < 250) {
+
+        clearTimeout(moreClickTimer);
+
+        lastMoreClick = 0;
+
+        markImportant();
+
+        navigator.vibrate?.(10);
+
+        return;
+    }
+
+    lastMoreClick = now;
+
+    // 单击延迟打开菜单
+    moreClickTimer = setTimeout(() => {
+
+        toggleMenu();
+
+        lastMoreClick = 0;
+
+    }, 250);
+
 });
