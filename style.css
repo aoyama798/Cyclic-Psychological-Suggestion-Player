@@ -1729,3 +1729,74 @@ body.immersive .front-content{
 /* =========================
    卡片切换动画系统（Fast）
 ========================= */
+
+/* ==================== 已隐藏分类管理 ==================== */
+.hidden-manager-bubble {
+    border: 1px dashed rgba(255,255,255,0.18);
+    background: rgba(31,36,48,0.65);
+}
+.hidden-manager-bubble > *:first-child {
+    filter: grayscale(0.15);
+    opacity: 0.9;
+}
+.hidden-deck-modal-content {
+    width: min(92vw, 620px);
+    max-height: 80vh;
+    overflow-y: auto;
+}
+.hidden-deck-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 18px;
+}
+.hidden-deck-header h3 { margin: 0; }
+.hidden-deck-close { margin-left: auto; }
+.hidden-deck-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-height: 55vh;
+    overflow-y: auto;
+}
+.hidden-deck-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    border-radius: 14px;
+    background: #262b36;
+}
+.hidden-deck-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+    flex: 1;
+}
+.hidden-deck-icon {
+    font-size: 28px;
+    width: 40px;
+    text-align: center;
+    flex: 0 0 40px;
+}
+.hidden-deck-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: #eee;
+}
+.hidden-deck-show-btn {
+    flex: 0 0 auto;
+    padding: 8px 14px;
+}
+.hidden-deck-empty {
+    text-align: center;
+    padding: 35px 10px;
+    color: #888;
+}
+@media (max-width:768px) {
+    .hidden-deck-modal-content { width: 94vw; padding: 20px; }
+    .hidden-deck-item { padding: 10px 12px; }
+    .hidden-deck-show-btn { padding: 8px 12px; }
+}
