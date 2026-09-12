@@ -1855,7 +1855,7 @@ function handleTouchEnd(e){
     // 上一张
     // ==========================
 
-    if(ratio < 0.25){
+    if(ratio < 0.40){
 
         navigator.vibrate?.(10);
 
@@ -1873,7 +1873,7 @@ function handleTouchEnd(e){
     // 下一张
     // ==========================
 
-    if(ratio > 0.55){
+    if(ratio > 0.60){
 
         navigator.vibrate?.(10);
 
@@ -1937,8 +1937,8 @@ function handleTouchCancel(e){
 }
 
 
-
-
+// ===================手机端手势操作部分结束 ====================
+// ===================手机端手势操作部分结束 ====================
 
 
 // 切卡动画效果实现
