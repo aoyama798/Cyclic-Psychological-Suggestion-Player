@@ -186,8 +186,12 @@
    <!-- 播放器布局 --> 
     <div class="player-layout">
         <div class="container">
-              <div class="gem-btn"></div>  
             <div class="card" onclick="if(!isMobileDevice()) nextCard()">
+              <!-- 手机端触摸区域视觉分区 -->
+<div class="touch-zone-overlay" aria-hidden="true">
+    <div class="touch-zone-divider touch-zone-divider-1"></div>
+    <div class="touch-zone-divider touch-zone-divider-2"></div>
+</div>
                 <div class="front" id="frontContainer">
                     <div class="front-content" id="front"></div>
                 </div>
