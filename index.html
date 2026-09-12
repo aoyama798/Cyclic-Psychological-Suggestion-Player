@@ -53,6 +53,9 @@
             style="">
         </textarea>
 
+        <!-- 复习前确认按钮：阅读完分类笔记后才能进入复习 -->
+        <button id="deckGoBtn" type="button" onclick="goFromDeckReview()">Go</button>
+
         <style>
             #deckModal .modal-content {
                 width: min(92vw,760px);
@@ -148,11 +151,6 @@
                 >隐藏分类</button>
 
                 <button
-                    onclick="hideDeckModal()"
-                    class="secondary"
-                >取消</button>
-
-                <button
                     onclick="saveDeck()"
                     id="saveBtn"
                 >创建</button>
@@ -162,8 +160,6 @@
     </div>
 </div>
 
-  
-  
 <!-- 已隐藏分类管理模态弹窗 -->
 <div id="hiddenDeckModal" class="modal">
     <div class="modal-content hidden-deck-modal-content">
@@ -176,6 +172,8 @@
     </div>
 </div>
 
+  
+  
 <!-- 卡片播放器 -->
 <div id="player" class="screen">
    <!-- 顶部菜单 --> 
