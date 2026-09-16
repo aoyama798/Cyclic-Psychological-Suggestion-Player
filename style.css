@@ -31,6 +31,9 @@
 
 
 /*==========主菜单 主菜单 主菜单 主菜单 主菜单 开始======*/
+/*==========主菜单 主菜单 主菜单 主菜单 主菜单 开始======*/
+/*==========主菜单 主菜单 主菜单 主菜单 主菜单 开始======*/
+/*==========主菜单 主菜单 主菜单 主菜单 主菜单 开始======*/
 body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     background: var(--bg);
@@ -304,7 +307,7 @@ h1 {
     ), var(--surface);
 }
 button { 
-    background:var(--primary); 
+    background:#495057; 
     border:none; 
     color:white; 
     padding:10px 16px; 
@@ -320,16 +323,22 @@ button.secondary { background:#3a3f4b; }
     min-width: 70px;
 }
 
-.deck-modal-footer{
 
+.deck-modal-footer {
+  
     margin-top:20px;
-
-    display:flex;
-
-    align-items:center;
-
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
 }
 
+.footer-left,
+.footer-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
 .footer-right{
 
     margin-left:auto;
@@ -827,76 +836,7 @@ button.secondary { background:#3a3f4b; }
     background:#2e3442;
 }
 
-/* 输入框 */
 
-#newFront{
-    flex:1;
-    min-height:240px;
-    max-height:55vh;
-
-    padding:18px;
-
-    border:none;
-    border-radius:18px;
-
-    background:#f5f7fb;
-
-    font-size:18px;
-    line-height:1.8;
-
-    resize:none;
-    outline:none;
-}
-
-#newFront:focus{
-    background:#fff;
-    box-shadow:0 0 0 2px rgba(47,128,237,.15);
-}
-
-.modal-title-row{
-    position:relative;
-}
-
-.modal-title-row::after{
-    content:"▼";
-    position:absolute;
-    right:12px;
-    top:50%;
-    transform:translateY(-50%);
-    color:#888;
-    pointer-events:none;
-    font-size:14px;
-}
-
-/* 手机 */
-
-@media (max-width:768px){
-
-    #addCardModal .modal-content{
-        width:96vw;
-        max-height:92vh;
-        padding:18px;
-    }
-
-    #cardModalTitle{
-        font-size:20px;
-    }
-
-    #cardDeckSelect{
-        height:38px;
-        font-size:14px;
-    }
-
-    #newFront{
-        font-size:18px;
-        line-height:1.9;
-    }
-
-    .tool-btn{
-        min-width:48px;
-        height:44px;
-    }
-}
 
 /* ==================== 编辑/添加卡片模态结束 ==================== */
 
@@ -1727,42 +1667,27 @@ transform:translateY(-10px);
 /* 按钮区域 */
 
 .modal-buttons{
-
     display:flex;
-
     gap:10px;
-
     margin-top:16px;
-
     flex-shrink:0;
 }
 
 .modal-buttons button{
-
     flex:1;
-
-    min-height:48px;
-
+    min-height:28px;
     border:none;
-
     border-radius:14px;
-
     font-size:16px;
-
     font-weight:600;
 }
 
 .primary-btn{
-
     background:#2f80ed;
-
     color:white;
 }
-
 .secondary-btn{
-
     background:#eef2f8;
-
     color:#333;
 }
 /* ==================== 手机适配 ==================== */
@@ -1859,8 +1784,7 @@ transform:translateY(-10px);
 
 /* ==================== 已隐藏分类管理 ==================== */
 .hidden-manager-bubble {
-    border: 1px dashed rgba(255,255,255,0.18);
-    background: rgba(31,36,48,0.65);
+
 }
 
 .hidden-manager-bubble > *:first-child {
@@ -2012,4 +1936,16 @@ transform:translateY(-10px);
     .more-menu.show {
         transform: translateY(0);
     }
+}
+/* 打开模态框时，复习页面顶部菜单必须位于模态框下面 */
+#deckModal {
+    z-index: 1000;
+}
+
+#hiddenDeckModal {
+    z-index: 1000;
+}
+
+#moreBtn {
+    z-index: 10;
 }
