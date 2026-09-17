@@ -1371,75 +1371,253 @@ function insertOrderedList(){
     textarea.selectionStart = start;
     textarea.selectionEnd = start + result.length;
 }
+
+
+// ============================================================
 // 沉浸模式
+// ============================================================
+// ============================================================
+// 沉浸模式
+// ============================================================
+// ============================================================
+// 沉浸模式
+// ============================================================
+
 let immersiveMode = false;
 let weightHUD = null;
 let uiTimer = null;
+let moreBtn2 = null;
 
-function showImmersiveUI() {
-    document.body.classList.add('show-ui');
-    clearTimeout(uiTimer);
-    uiTimer = setTimeout(() => document.body.classList.remove('show-ui'), 1500);
+
+// ============================================================
+// 沉浸模式 UI 容器
+// ============================================================
+
+function createImmersiveTools() {
+    let container = document.getElementById("immersiveTools");
+
+    if (!container) {
+        container = document.createElement("div");
+        container.id = "immersiveTools";
+
+        Object.assign(container.style, {
+            position: "fixed",
+            top: "12px",
+            right: "8%",
+            zIndex: "1000000",
+            display: "flex",
+            alignItems: "center",
+            gap: "2px"
+        });
+
+        document.body.appendChild(container);
+    }
+
+    return container;
 }
 
+function destroyImmersiveTools() {
+    const container = document.getElementById("immersiveTools");
+
+    if (container) {
+        container.remove();
+    }
+
+    moreBtn2 = null;
+    weightHUD = null;
+}
+
+
+// ============================================================
+// 沉浸模式专用 More 按钮
+// ============================================================
+
+// 原 moreBtn 位于 .topbar 内，而沉浸模式会隐藏整个 .topbar，
+// 因此复制一个 moreBtn2 到沉浸模式专用容器中。
+
+function createImmersiveMoreBtn() {
+
+    if (moreBtn2) return;
+
+    const original = document.getElementById("moreBtn");
+
+    if (!original) return;
+
+    const container = createImmersiveTools();
+
+    moreBtn2 = original.cloneNode(true);
+
+    moreBtn2.id = "moreBtn2";
+    moreBtn2.setAttribute("aria-label", "更多");
+
+    // 不再单独 fixed，由 immersiveTools 统一控制位置
+    Object.assign(moreBtn2.style, {
+        position: "relative",
+        top: "4px",
+        right: "auto",
+        zIndex: "auto",
+
+        width: window.innerWidth <= 768 ? "40px" : "42px",
+        height: window.innerWidth <= 768 ? "36px" : "38px",
+
+        padding: "0",
+        border: "none",
+
+        background: "transparent",
+        boxShadow: "none",
+        color: "#fff",
+        borderRadius: "100px",
+
+        fontSize: "18px",
+        lineHeight: "0",
+
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+
+        flexShrink: "0"
+    });
+
+    moreBtn2.addEventListener("click", (e) => {
+        e.stopPropagation();
+        toggleMenu();
+    });
+
+    container.appendChild(moreBtn2);
+}
+
+function destroyImmersiveMoreBtn() {
+
+    if (moreBtn2) {
+        moreBtn2.remove();
+        moreBtn2 = null;
+    }
+}
+
+
+// ============================================================
+// 沉浸模式 UI 显示控制
+// ============================================================
+
+function showImmersiveUI() {
+
+    document.body.classList.add("show-ui");
+
+    clearTimeout(uiTimer);
+
+    uiTimer = setTimeout(() => {
+        document.body.classList.remove("show-ui");
+    }, 1500);
+}
+
+
+// ============================================================
+// 沉浸模式开关
+// ============================================================
+
 function toggleImmersiveMode() {
+
     immersiveMode = !immersiveMode;
-    document.body.classList.toggle('immersive', immersiveMode);
+
+    document.body.classList.toggle(
+        "immersive",
+        immersiveMode
+    );
 
     if (immersiveMode) {
 
-        showImmersiveUI();
+        // 创建沉浸模式专用 UI 容器
+        createImmersiveTools();
 
-        // ✅ NEW: 创建 HUD
+        // 创建 More 按钮
+        createImmersiveMoreBtn();
+
+        // 创建 HUD
         createWeightHUD();
+
+        // 显示一次 UI
+        showImmersiveUI();
 
         // 强制同步一次
         updateWeightHUD();
 
+        // 请求全屏
         if (document.documentElement.requestFullscreen) {
-            document.documentElement.requestFullscreen().catch(() => {});
+            document.documentElement
+                .requestFullscreen()
+                .catch(() => {});
         }
 
     } else {
 
-        document.body.classList.remove('show-ui');
+        document.body.classList.remove("show-ui");
 
-        // ✅ NEW: 销毁 HUD
-        destroyWeightHUD();
+        clearTimeout(uiTimer);
 
+        // 销毁整个沉浸模式 UI
+        destroyImmersiveTools();
+
+        // 退出全屏
         if (document.fullscreenElement) {
-            document.exitFullscreen();
+            document.exitFullscreen().catch(() => {});
         }
     }
 }
 
+
+// ============================================================
+// Weight HUD
+// ============================================================
+
 function createWeightHUD() {
-    if (weightHUD) weightHUD.remove();
+
+    if (weightHUD) {
+        weightHUD.remove();
+    }
+
+    const container = createImmersiveTools();
 
     const el = document.createElement("div");
-    el.id = "weightHUD";
 
+    el.id = "weightHUD";
     el.className = "weight-hud immersive-hud";
 
-    document.body.appendChild(el);
+    // HUD 不再自己 fixed
+    // 位置由 #immersiveTools 统一控制
+    Object.assign(el.style, {
+        position: "relative",
+        top: "auto",
+        right: "auto",
+        zIndex: "auto",
+        flexShrink: "0"
+    });
+
+    container.appendChild(el);
 
     weightHUD = el;
 
-    updateWeightHUD(); // 初始化
+    updateWeightHUD();
 }
+
 
 function destroyWeightHUD() {
 
-    const hud = document.getElementById('weightHUD');
+    const hud = document.getElementById("weightHUD");
 
-    if(hud){
+    if (hud) {
         hud.remove();
     }
 
     weightHUD = null;
 }
 
+
+// ============================================================
+// 更新 Weight HUD
+// ============================================================
+
 function updateWeightHUD() {
+
     if (!weightHUD) return;
 
     const card = currentCards[currentIndex];
@@ -1447,18 +1625,30 @@ function updateWeightHUD() {
 
     let text = `★ ${w}`;
 
-    weightHUD.classList.remove("low", "mid", "high", "legend");
+    weightHUD.classList.remove(
+        "low",
+        "mid",
+        "high",
+        "legend"
+    );
 
     if (w >= 50) {
+
         text = `👑 ${w}`;
         weightHUD.classList.add("legend");
+
     } else if (w >= 30) {
+
         text = `🔮 ${w}`;
         weightHUD.classList.add("high");
+
     } else if (w >= 15) {
+
         text = `💎 ${w}`;
         weightHUD.classList.add("mid");
+
     } else {
+
         weightHUD.classList.add("low");
     }
 
@@ -1466,51 +1656,169 @@ function updateWeightHUD() {
 }
 
 
+// ============================================================
+// 鼠标移动：显示沉浸模式 UI
+// ============================================================
 
+document.addEventListener("mousemove", () => {
 
-document.addEventListener('mousemove', () => {
-    if (immersiveMode) showImmersiveUI();
+    if (immersiveMode) {
+        showImmersiveUI();
+    }
 });
 
-document.addEventListener('keydown', (e) => {
-    const tag = document.activeElement.tagName;
-    if (tag === 'INPUT' || tag === 'TEXTAREA') return;
-    if (e.key === 'r' || e.key === 'R') {
+
+// ============================================================
+// 键盘快捷键
+// R = 切换沉浸模式
+// ============================================================
+
+document.addEventListener("keydown", (e) => {
+
+    const tag = document.activeElement?.tagName;
+
+    if (tag === "INPUT" || tag === "TEXTAREA") {
+        return;
+    }
+
+    if (e.key === "r" || e.key === "R") {
+
         e.preventDefault();
+
         toggleImmersiveMode();
     }
 });
 
-document.addEventListener('fullscreenchange', () => {
 
+// ============================================================
+// 全屏状态变化
+// ============================================================
+
+document.addEventListener("fullscreenchange", () => {
+
+    // 用户主动退出全屏
     if (!document.fullscreenElement) {
 
         immersiveMode = false;
 
         document.body.classList.remove(
-            'immersive',
-            'show-ui'
+            "immersive",
+            "show-ui"
         );
 
-        destroyWeightHUD();
+        clearTimeout(uiTimer);
+
+        destroyImmersiveTools();
     }
 });
 
-function toggleMenu() {
-    document.getElementById("moreMenu").classList.toggle("show");
+
+// ============================================================
+// 手机端横屏自动进入沉浸模式
+// 竖屏自动退出
+// ============================================================
+
+function syncLandscapeImmersiveMode() {
+
+    const mobileUA =
+        /Android|iPhone|iPad|iPod|Windows Phone|IEMobile|Opera Mini/i
+        .test(navigator.userAgent);
+
+    if (!mobileUA) {
+        return;
+    }
+
+    const isLandscape =
+        window.matchMedia("(orientation: landscape)").matches;
+
+    if (isLandscape && !immersiveMode) {
+
+        toggleImmersiveMode();
+
+    } else if (!isLandscape && immersiveMode) {
+
+        toggleImmersiveMode();
+    }
 }
+
+
+// ============================================================
+// 监听屏幕方向变化
+// ============================================================
+
+window.addEventListener(
+    "orientationchange",
+    syncLandscapeImmersiveMode
+);
+
+window.addEventListener(
+    "resize",
+    syncLandscapeImmersiveMode
+);
+
+
+// 页面本身以横屏打开时也同步一次
+window.addEventListener(
+    "load",
+    syncLandscapeImmersiveMode
+);
+
+
+// ============================================================
+// More 菜单
+// ============================================================
+
+function toggleMenu() {
+
+    const menu = document.getElementById("moreMenu");
+
+    if (!menu) return;
+
+    menu.classList.toggle("show");
+}
+
 
 function closeMenu() {
-    document.getElementById("moreMenu").classList.remove("show");
+
+    const menu = document.getElementById("moreMenu");
+
+    if (!menu) return;
+
+    menu.classList.remove("show");
 }
 
+
+// ============================================================
+// 点击其他区域关闭 More 菜单
+// ============================================================
+
 document.addEventListener("click", e => {
+
     const menu = document.getElementById("moreMenu");
     const moreBtn = document.getElementById("moreBtn");
-    if (!menu.contains(e.target) && !moreBtn.contains(e.target)) {
+    const moreBtn2 = document.getElementById("moreBtn2");
+
+    if (!menu) return;
+
+    const clickedMenu =
+        menu.contains(e.target);
+
+    const clickedMoreBtn =
+        moreBtn && moreBtn.contains(e.target);
+
+    const clickedMoreBtn2 =
+        moreBtn2 && moreBtn2.contains(e.target);
+
+    if (
+        !clickedMenu &&
+        !clickedMoreBtn &&
+        !clickedMoreBtn2
+    ) {
         menu.classList.remove("show");
     }
 });
+
+
 
 // ==================== 初始化 ====================
 async function migrateOldDecks() {
