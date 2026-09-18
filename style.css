@@ -436,11 +436,198 @@ button.secondary { background:#3a3f4b; }
     }
 }
 
+/*==========主菜单bubble 主菜单 主菜单 主菜单 主菜单 结束======*/
+/*==========主菜单 主菜单 主菜单 主菜单 主菜单 结束======*/
 /*==========主菜单 主菜单 主菜单 主菜单 主菜单 结束======*/
 
 
 
 
+
+/* =============================================================================================================================
+   统一模态样式
+/* =============================================================================================================================
+   统一模态样式
+/* =============================================================================================================================
+   统一模态样式
+            #deckModal .modal-content {
+                width: min(92vw,760px);
+                max-height: 90vh;
+                display: flex;
+                flex-direction: column;
+                padding: 22px;
+            }
+
+            /* 标题 + 两个输入框 */
+            #deckModal .deck-modal-header {
+                display: flex;
+                align-items: center;
+                gap: 18px;
+                margin-bottom: 8px;
+            }
+
+            #deckModal .deck-modal-header h3 {
+                margin: 0;
+                white-space: nowrap;
+            }
+
+            #deckModal .deck-basic-info {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                flex: 1;
+                min-width: 0;
+            }
+
+            #deckModal #deckName {
+                flex: 1;
+                min-width: 0;
+                width: 0;
+                box-sizing: border-box;
+            }
+
+            #deckModal #deckIcon {
+                width: 55px;
+                min-width: 55px;
+                flex-shrink: 0;
+                box-sizing: border-box;
+            }
+
+            #deckModal .deck-basic-info input {
+                box-sizing: border-box;
+                padding: 9px 12px;
+                background: #262b36;
+                color: white;
+                border: none;
+                border-radius: 10px;
+                outline: none;
+            }
+
+            #deckModal #deckName {
+                flex: 1;
+                min-width: 0;
+            }
+
+            #deckModal #deckIcon {
+                width: 55px;
+                text-align: center;
+            }
+
+           /* ==================== 输入框统一样式 ==================== */
+
+#newFront,
+#deckNote {
+    font-family:
+        "LXGW WenKai",
+        "Maple Mono SC NF",
+        "PingFang SC",
+        sans-serif;
+
+    font-size: 18px;
+    line-height: 1.8;
+    letter-spacing: .2px;
+
+    width: 100%;
+    padding: 20px;
+
+    background: #262b36;
+    color: #f7f7f7;
+
+    border: none;
+    border-radius: 18px;
+
+    resize: none;
+    outline: none;
+
+    white-space: pre-wrap;
+    box-sizing: border-box;
+}
+
+
+/* 获得焦点时 */
+
+#newFront:focus,
+#deckNote:focus {
+    background: #262b36;
+    box-shadow: none;
+}
+
+
+/* ==================== newFront 模态框布局 ==================== */
+
+#newFront {
+    flex: 1;
+    min-height: 320px;
+    max-height: 60vh;
+}
+
+
+/* ==================== deckNote ==================== */
+
+#deckNote {
+    flex: 1;
+    min-height: 320px;
+    max-height: 60vh;
+    margin-top: 15px;
+}
+
+
+/* ==================== 手机端 ==================== */
+
+@media (max-width: 768px) {
+
+    #addCardModal .modal-content {
+        width: 96vw;
+        height: 92vh;
+        max-height: 92vh;
+        padding: 18px;
+        box-sizing: border-box;
+    }
+
+    #cardModalTitle {
+        font-size: 20px;
+    }
+
+    #cardDeckSelect {
+        height: 38px;
+        font-size: 14px;
+    }
+
+    #newFront {
+        flex: 1;
+        min-height: 0;
+        height: auto;
+        max-height: none;
+
+        font-size: 18px;
+        line-height: 1.8;
+    }
+
+    #deckModal #deckNote {
+        height: 65vh;
+        min-height: 500px;
+        max-height: none;
+    }
+
+    .tool-btn {
+        min-width: 48px;
+        height: 44px;
+    }
+}
+          @media (max-width: 600px) {
+                #deckModal #deckNote {
+                height: 65vh;
+                min-height: 500px;
+                max-height: none;
+    }
+}
+
+/* =============================================================================================================================
+   统一模态样式
+/* =============================================================================================================================
+   统一模态样式
+/* =============================================================================================================================
+   统一模态样式
 
 
 
@@ -891,226 +1078,406 @@ button.secondary { background:#3a3f4b; }
 /* ===========================================================================
    卡片分级系统（豪华升级版 - 无左侧厚边框）
 =========================================================================== */
+```css
+/* ==========================================================
+   卡片基础
+========================================================== */
 
 .front {
     position: relative;
+    overflow: hidden;
 }
-
-/* 通用角饰 */
-/* 所有宝石 */
-/* ==========================================================
-   四角宝石（公共）
-========================================================== */
-
-.card::before,
-.card::after,
-.front::before,
-.front::after{
-
-    content:"";
-
-    position:absolute;
-
-    width:18px;
-    height:18px;
-
-    transform:rotate(45deg);
-
-    border-radius:2px;
-
-    z-index:20;
-
-    pointer-events:none;
-
-    animation:gemFlash 1.8s infinite;
-}
-
-/* 左上 */
-.card::before{
-
-    top:14px;
-    left:14px;
-
-}
-
-/* 右下 */
-.card::after{
-
-    bottom:14px;
-    right:14px;
-
-}
-
-/* 右上 */
-.front::before{
-
-    top:14px;
-    right:14px;
-
-}
-
-/* 左下 */
-.front::after{
-
-    bottom:14px;
-    left:14px;
-
-}
-
 
 
 /* ==========================================================
-   收藏 (Favorite)
-========================================================== */
-.card.favorite {
-    border: 0px solid rgba(80, 170, 255, 0.65);
-}
-
-.card.favorite .front {
-}
-.card.favorite::before{
-
-    background:
-    linear-gradient(
-        135deg,
-        #ffffff 0%,
-        #9ddcff 20%,
-        #5eb8ff 45%,
-        #1976d2 70%,
-        #082d70 100%
-    );
-
-    box-shadow:
-        0 0 6px #66d0ff,
-        0 0 18px rgba(102,208,255,.8);
-
-}
-/* ==========================================================
-   史诗 (Epic) 
-========================================================== */
-.card.epic {
-
-}
-
-.card.epic .front {
-
-}
-.card.epic::before,
-.card.epic::after{
-
-background:
-linear-gradient(
-135deg,
-#fff,
-#f1b8ff,
-#d05cff,
-#8b2fff,
-#3b0058
-);
-
-
-}
-/* ==========================================================
-   神话 (Mythic) 👑
-========================================================== */
-/* ==========================================================
-   神话 (Mythic) 👑
+   通用：顶部 + 底部光带
 ========================================================== */
 
-.card.mythic {
-}
-
-.card.mythic .front {
-}
-.card.mythic::before,
-.card.mythic::after,
-.card.mythic .front::before,
-.card.mythic .front::after{
-
-    background: linear-gradient(
-        135deg,
-        #fffef0,
-        #fff4a8,
-        #ffd84d,
-        #ffae00,
-        #915600
-    );
-
-}
-/* ==========================
-   四角宝石依次闪烁
-========================== */
-.card.mythic::before{
-    animation:goldGem 2.4s linear infinite;
-    animation-delay:0s;
-}
-
-.card.mythic .front::before{
-    animation:goldGem 2.4s linear infinite;
-    animation-delay:-0.6s;
-}
-
-.card.mythic::after{
-    animation:goldGem 2.4s linear infinite;
-    animation-delay:-1.2s;
-}
-
-.card.mythic .front::after{
-    animation:goldGem 2.4s linear infinite;
-    animation-delay:-1.8s;
-}
-/* ==========================
-   宝石动画
-========================== */
-
-
-/* ==========================================================
-   顶部光带
-========================================================== */
 .card.favorite .front,
 .card.epic .front,
 .card.mythic .front,
 .card.legendary .front {
+
     box-shadow:
-        inset 0 45px 50px -40px rgba(255,255,255,0.20),
-        inset 0 -20px 30px -20px rgba(0,0,0,0.12);
+        inset 0 70px 90px -75px rgba(255,255,255,0.18),
+        inset 0 -70px 90px -75px rgba(255,255,255,0.12);
+
 }
 
-/* 各等级光带微调 */
-.card.favorite .front   { box-shadow: inset 0 88px 95px -78px rgba(80,170,255,0.25); }
-.card.epic .front       { box-shadow: inset 0 108px 115px -95px rgba(201,145,255,0.26); }
-.card.mythic .front     { box-shadow: inset 0 128px 135px -105px rgba(255,215,0,0.34); }
-.card.legendary .front  { box-shadow: inset 0 148px 155px -115px rgba(255,255,255,0.38); }
 
-/* 动画保持不变 */
+/* ==========================================================
+   通用：顶部 / 底部能量线
+========================================================== */
+
+.card.favorite .front::before,
+.card.epic .front::before,
+.card.mythic .front::before,
+.card.legendary .front::before,
+
+.card.favorite .front::after,
+.card.epic .front::after,
+.card.mythic .front::after,
+.card.legendary .front::after {
+
+    content: "";
+    position: absolute;
+    left: 8%;
+    width: 84%;
+    height: 1px;
+
+    pointer-events: none;
+
+    opacity: 0.65;
+
+}
+
+
+/* 顶部 */
+
+.card.favorite .front::before,
+.card.epic .front::before,
+.card.mythic .front::before,
+.card.legendary .front::before {
+
+    top: 0;
+
+}
+
+
+/* 底部 */
+
+.card.favorite .front::after,
+.card.epic .front::after,
+.card.mythic .front::after,
+.card.legendary .front::after {
+
+    bottom: 0;
+
+}
+
+
+/* ==========================================================
+   收藏 Favorite
+========================================================== */
+
+.card.favorite {
+    border: 0;
+}
+
+
+/* 主体边缘 */
+
+.card.favorite::before {
+
+    background:
+        linear-gradient(
+            135deg,
+            #ffffff 0%,
+            #9ddcff 20%,
+            #5eb8ff 45%,
+            #1976d2 70%,
+            #082d70 100%
+        );
+
+    box-shadow:
+        0 0 6px rgba(102,208,255,.65),
+        0 0 18px rgba(102,208,255,.45);
+
+}
+
+
+/* 顶部光带 */
+
+.card.favorite .front {
+
+    box-shadow:
+        inset 0 95px 105px -90px rgba(80,170,255,.38),
+        inset 0 -80px 100px -88px rgba(25,118,210,.28);
+
+}
+
+
+/* 上下能量线 */
+
+.card.favorite .front::before,
+.card.favorite .front::after {
+
+    background:
+        linear-gradient(
+            90deg,
+            transparent,
+            rgba(102,208,255,.85),
+            transparent
+        );
+
+    box-shadow:
+        0 0 8px rgba(102,208,255,.55);
+
+}
+
+
+/* ==========================================================
+   史诗 Epic
+========================================================== */
+
+.card.epic {
+    border: 0;
+}
+
+
+/* 紫色边缘 */
+
+.card.epic::before,
+.card.epic::after {
+
+    background:
+        linear-gradient(
+            135deg,
+            #ffffff 0%,
+            #f1b8ff 18%,
+            #d05cff 42%,
+            #8b2fff 70%,
+            #3b0058 100%
+        );
+
+    box-shadow:
+        0 0 7px rgba(208,92,255,.55),
+        0 0 20px rgba(139,47,255,.28);
+
+}
+
+
+/* 顶部 + 底部光带 */
+
+.card.epic .front {
+
+    box-shadow:
+        inset 0 110px 120px -100px rgba(201,145,255,.42),
+        inset 0 -100px 120px -95px rgba(139,47,255,.34);
+
+}
+
+
+/* 能量线 */
+
+.card.epic .front::before,
+.card.epic .front::after {
+
+    background:
+        linear-gradient(
+            90deg,
+            transparent,
+            rgba(221,133,255,.95),
+            transparent
+        );
+
+    box-shadow:
+        0 0 9px rgba(208,92,255,.65);
+
+}
+
+
+/* ==========================================================
+   神话 Mythic
+========================================================== */
+
+.card.mythic {
+    border: 0;
+}
+
+
+/* 金色主体边缘 */
+
+.card.mythic::before,
+.card.mythic::after {
+
+    background:
+        linear-gradient(
+            135deg,
+            #fffef0 0%,
+            #fff4a8 20%,
+            #ffd84d 43%,
+            #ffae00 70%,
+            #915600 100%
+        );
+
+    box-shadow:
+        0 0 8px rgba(255,215,0,.55),
+        0 0 24px rgba(255,174,0,.30);
+
+}
+
+
+/* 神话光带 */
+
+.card.mythic .front {
+
+    box-shadow:
+        inset 0 125px 140px -110px rgba(255,215,0,.48),
+        inset 0 -125px 140px -110px rgba(255,174,0,.40);
+
+}
+
+
+/* 神话能量线 */
+
+.card.mythic .front::before,
+.card.mythic .front::after {
+
+    background:
+        linear-gradient(
+            90deg,
+            transparent 0%,
+            rgba(255,248,190,.95) 25%,
+            #ffd84d 50%,
+            rgba(255,248,190,.95) 75%,
+            transparent 100%
+        );
+
+    box-shadow:
+        0 0 8px rgba(255,215,0,.8),
+        0 0 18px rgba(255,174,0,.4);
+
+}
+
+
+/* ==========================================================
+   神话：上下光带呼吸
+========================================================== */
+
+.card.mythic .front {
+
+    animation:
+        mythicGlow 3s ease-in-out infinite;
+
+}
+
+
 @keyframes mythicGlow {
-    0%,100%{
+
+    0%, 100% {
+
         box-shadow:
-            0 0 18px rgba(255,215,0,.35),
-            inset 0 0 12px rgba(255,215,0,.10);
+            inset 0 125px 140px -110px rgba(255,215,0,.40),
+            inset 0 -125px 140px -110px rgba(255,174,0,.32),
+            0 0 18px rgba(255,215,0,.18);
+
     }
 
-    50%{
+    50% {
+
         box-shadow:
-            0 0 38px rgba(255,215,0,.60),
-            inset 0 0 18px rgba(255,215,0,.18);
+            inset 0 125px 140px -100px rgba(255,215,0,.58),
+            inset 0 -125px 140px -100px rgba(255,174,0,.48),
+            0 0 35px rgba(255,215,0,.32);
+
     }
+
 }
+
+
+/* ==========================================================
+   传奇 Legendary
+========================================================== */
+
+.card.legendary {
+    border: 0;
+}
+
+
+/* 彩虹金属边 */
+
+.card.legendary::before,
+.card.legendary::after {
+
+    background:
+        linear-gradient(
+            135deg,
+            #ffffff 0%,
+            #fff3a6 15%,
+            #ffd700 30%,
+            #ff8a00 48%,
+            #ff3cac 65%,
+            #00d9ff 82%,
+            #ffffff 100%
+        );
+
+    box-shadow:
+        0 0 8px rgba(255,215,0,.65),
+        0 0 24px rgba(255,80,180,.25),
+        0 0 30px rgba(0,217,255,.20);
+
+}
+
+
+/* 传奇上下光带 */
+
+.card.legendary .front {
+
+    box-shadow:
+        inset 0 145px 160px -125px rgba(255,255,255,.45),
+        inset 0 -145px 160px -125px rgba(255,215,0,.35);
+
+}
+
+
+/* 传奇能量线 */
+
+.card.legendary .front::before,
+.card.legendary .front::after {
+
+    background:
+        linear-gradient(
+            90deg,
+            transparent,
+            #ffffff 18%,
+            #ffd700 35%,
+            #ff4fc3 50%,
+            #00d9ff 65%,
+            #ffffff 82%,
+            transparent
+        );
+
+    box-shadow:
+        0 0 9px rgba(255,255,255,.8),
+        0 0 20px rgba(255,80,180,.35);
+
+}
+
+
+/* ==========================================================
+   传奇呼吸
+========================================================== */
+
+.card.legendary .front {
+
+    animation:
+        legendaryGlow 3.2s ease-in-out infinite;
+
+}
+
 
 @keyframes legendaryGlow {
-    0%,100%{
+
+    0%, 100% {
+
         box-shadow:
-            0 0 20px rgba(255,215,0,.42),
-            0 0 36px rgba(255,0,255,.22);
+            inset 0 145px 160px -125px rgba(255,255,255,.38),
+            inset 0 -145px 160px -125px rgba(255,215,0,.28),
+            0 0 20px rgba(255,215,0,.18);
+
     }
 
-    50%{
+    50% {
+
         box-shadow:
-            0 0 42px rgba(255,215,0,.68),
-            0 0 60px rgba(0,229,255,.30);
+            inset 0 145px 160px -115px rgba(255,255,255,.55),
+            inset 0 -145px 160px -115px rgba(255,215,0,.42),
+            0 0 40px rgba(255,215,0,.32);
+
     }
+
 }
-
 
 /* ===========================================================================
    卡片等级系统结束
@@ -1121,8 +1488,12 @@ linear-gradient(
 /* =========================
    沉浸模式开始immersive
 ========================= */
-
-
+/* =========================
+   沉浸模式开始immersive
+========================= */
+/* =========================
+   沉浸模式开始immersive
+========================= */
 /* 顶栏隐藏 */
 /* 隐藏标题 */
 body.immersive #deckTitle{
@@ -1221,7 +1592,7 @@ body.immersive .front-content {
     }
 
     body.immersive .front-content {
-        margin-top: 1.5em !important;
+        margin-top: 1.3em !important;
     }
 }
 /* =========================
