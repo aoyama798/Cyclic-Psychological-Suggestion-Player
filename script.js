@@ -329,7 +329,7 @@ async function editDeck(deckId) {
     const deck = doc.data();
 
     document.getElementById("modalTitle").textContent = "编辑Deck";
-    document.getElementById("saveBtn").textContent = "保存";
+    document.getElementById("saveBtn").textContent = "✔";
 
     document.getElementById("deckName").value = deck.name || "";
     document.getElementById("deckIcon").value = deck.icon || "";
