@@ -1217,11 +1217,11 @@ body.immersive .front-content {
 @media (orientation: landscape) and (max-width: 768px) {
 
     body.immersive .front {
-        padding-top: 48px !important;
+        padding-top: 0 !important;
     }
 
     body.immersive .front-content {
-        margin-top: 0 !important;
+        margin-top: 1.5em !important;
     }
 }
 /* =========================
