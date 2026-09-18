@@ -628,7 +628,17 @@ button.secondary { background:#3a3f4b; }
     scroll-behavior: smooth;
     line-height: 1.88;
 }
+/* 手机端横屏：减少卡片顶部距离 */
+@media (orientation: landscape) and (max-width: 768px) {
+    .front {
+        padding-top: 8px;
+        padding-bottom: 8px;
+    }
 
+    body.immersive .front-content {
+        margin-top: 0;
+    }
+}
 /* 滚动条优化 */
 .front::-webkit-scrollbar {
     width: 6px;
@@ -1167,22 +1177,13 @@ body.immersive .weight-hud {
     position: fixed;
     top: 24px;
     right: 24px;
-
     z-index: 999999;
-
     padding: 6px 10px;
     border-radius: 10px;
-
-
-
-
-
     color: white;
     font-size: 13px;
-
     opacity: 0.75;
     transition: 0.2s ease;
-
     display: flex;
     align-items: center;
     gap: 6px;
@@ -1208,8 +1209,20 @@ body.immersive .weight-hud.legend {
   /*     border-color: rgba(241,196,15,0.6);*/
    /*    box-shadow: 0 0 14px rgba(241,196,15,0.25);*/
 }
-body.immersive .front-content{
-    margin-top:48px;
+body.immersive .front-content {
+    margin-top: 48px;
+}
+
+/* 手机横屏沉浸模式 */
+@media (orientation: landscape) and (max-width: 768px) {
+
+    body.immersive .front {
+        padding-top: 48px !important;
+    }
+
+    body.immersive .front-content {
+        margin-top: 0 !important;
+    }
 }
 /* =========================
    沉浸模式结束
