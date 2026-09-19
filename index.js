@@ -405,6 +405,9 @@ if (deckModal) {
     });
 }
 
+
+
+
 async function saveDeck() {
 
     const name = document.getElementById("deckName").value.trim();
@@ -552,344 +555,1144 @@ async function restoreHiddenDeck(deckId) {
 }
 
 
-// ==================== 分类每日打卡 ====================
-// 打卡数据只存 Firestore，不使用 localStorage。
-// 数据结构：decks/{deckId}/checkins/{YYYY-MM-DD}
+
+// ==========================================================
+// 分类每日打卡
+// ==========================================================
+// 数据只存 Firestore，不使用 localStorage。
+//
+// Firestore 数据结构：
+//
+// decks/{deckId}
+//     └── dailyGoal: "想打卡什么呢？"
+//
+// decks/{deckId}/checkins/{YYYY-MM-DD}
+//     ├── date: "2026-09-19"
+//     ├── completed: true
+//     └── updatedAt: serverTimestamp()
+//
+// ==========================================================
+
+
+// ==========================================================
+// 基础配置
+// ==========================================================
+
 const CHECKIN_HISTORY_DAYS = 365;
-const DEFAULT_DAILY_GOAL = "今天完成了吗";
+const DEFAULT_DAILY_GOAL = "想打卡什么呢？";
+
 let checkinWeekOffset = 0;
+
+// 当前已经完成打卡的日期
 let currentCheckinCompletedDates = new Set();
 
+
+// ==========================================================
+// 日期工具
+// ==========================================================
+
+/**
+ * 将 Date 转换为本地日期字符串：
+ *
+ * 2026-09-19
+ *
+ * 注意：
+ * 使用本地时间，而不是 UTC，避免凌晨附近出现日期偏移。
+ */
 function getLocalDateKey(date = new Date()) {
-    const y = date.getFullYear();
-    const m = String(date.getMonth() + 1).padStart(2, "0");
-    const d = String(date.getDate()).padStart(2, "0");
-    return `${y}-${m}-${d}`;
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+
+    return `${year}-${month}-${day}`;
 }
 
+
+/**
+ * 将 YYYY-MM-DD 转换为本地 Date。
+ */
 function parseLocalDateKey(key) {
-    const [y, m, d] = key.split("-").map(Number);
-    return new Date(y, m - 1, d);
+    const [year, month, day] = key.split("-").map(Number);
+
+    return new Date(
+        year,
+        month - 1,
+        day
+    );
 }
 
+
+// ==========================================================
+// 当前 Deck
+// ==========================================================
+
+/**
+ * 获取当前打卡对应的 Deck ID。
+ *
+ * 无论当前是：
+ * 1. Deck 编辑模式
+ * 2. Deck 查看 / Review 模式
+ *
+ * 都可以使用打卡功能。
+ */
 function getActiveCheckinDeckId() {
-    return deckReviewMode ? deckReviewId : editingDeckId;
+    if (deckReviewMode) {
+        return deckReviewId;
+    }
+
+    return editingDeckId;
 }
 
+
+// ==========================================================
+// 周视图
+// ==========================================================
+
+/**
+ * 获取本周星期一。
+ *
+ * 星期一 = 每周第一天
+ * 星期日 = 每周最后一天
+ */
 function getStartOfWeek(date = new Date()) {
     const result = new Date(date);
+
     result.setHours(0, 0, 0, 0);
-    result.setDate(result.getDate() - result.getDay());
+
+    const day = result.getDay();
+
+    // JavaScript：
+    // 星期日 = 0
+    // 星期一 = 1
+    // ...
+    // 星期六 = 6
+    //
+    // 转换成星期一作为一周第一天
+    const diff = day === 0 ? -6 : 1 - day;
+
+    result.setDate(result.getDate() + diff);
+
     return result;
 }
 
+
+/**
+ * 获取当前需要显示的 7 天。
+ *
+ * checkinWeekOffset：
+ *
+ *  0  = 本周
+ * -1  = 上周
+ * -2  = 上上周
+ *
+ * 不允许 > 0，也就是不允许查看未来周。
+ */
 function getCheckinWeekDates() {
     const start = getStartOfWeek(new Date());
-    start.setDate(start.getDate() + (checkinWeekOffset * 7));
 
-    return Array.from({ length: 7 }, (_, index) => {
-        const date = new Date(start);
-        date.setDate(start.getDate() + index);
-        return date;
-    });
+    start.setDate(
+        start.getDate() + checkinWeekOffset * 7
+    );
+
+    return Array.from(
+        { length: 7 },
+        (_, index) => {
+            const date = new Date(start);
+
+            date.setDate(
+                start.getDate() + index
+            );
+
+            return date;
+        }
+    );
 }
 
+
+// ==========================================================
+// 渲染打卡周视图
+// ==========================================================
+
 function renderDeckCheckin(completedDates) {
-    const calendar = document.getElementById("deckCheckinCalendar");
-    const streakEl = document.getElementById("deckCheckinStreak");
-    const todayBtn = document.getElementById("deckCheckinTodayBtn");
-    const weekLabel = document.getElementById("deckCheckinWeekLabel");
 
-    if (!calendar || !streakEl || !todayBtn) return;
+    const calendar = document.getElementById(
+        "deckCheckinCalendar"
+    );
 
-    currentCheckinCompletedDates = new Set(completedDates);
+    const streakEl = document.getElementById(
+        "deckCheckinStreak"
+    );
 
-    const todayKey = getLocalDateKey();
-    const streak = calculateCurrentStreak(completedDates);
+    const todayBtn = document.getElementById(
+        "deckCheckinTodayBtn"
+    );
 
-    streakEl.textContent = `连续坚持 ${streak} 天`;
+    const weekLabel = document.getElementById(
+        "deckCheckinWeekLabel"
+    );
 
-    if (completedDates.has(todayKey)) {
-        todayBtn.textContent = "✅ 今日已完成";
-        todayBtn.classList.add("completed");
-    } else {
-        todayBtn.textContent = "🏆点击打卡";
-        todayBtn.classList.remove("completed");
+    if (!calendar || !streakEl || !todayBtn) {
+        return;
     }
 
-    const weekDates = getCheckinWeekDates();
-    const firstDate = weekDates[0];
-    const lastDate = weekDates[6];
+
+    // ------------------------------------------------------
+    // 保存当前完成日期
+    // ------------------------------------------------------
+
+    currentCheckinCompletedDates = new Set(
+        completedDates
+    );
+
+
+    // ------------------------------------------------------
+    // 今天
+    // ------------------------------------------------------
+
+    const todayKey = getLocalDateKey();
+
+
+    // ------------------------------------------------------
+    // 连续打卡
+    // ------------------------------------------------------
+
+    const streak = calculateCurrentStreak(
+        completedDates
+    );
+
+    streakEl.textContent =
+        `Streak：${streak}  days`;
+
+
+    // ------------------------------------------------------
+    // 今日打卡按钮
+    // ------------------------------------------------------
+
+    if (completedDates.has(todayKey)) {
+
+        todayBtn.textContent =
+            "✅今日完成";
+
+        todayBtn.classList.add(
+            "completed"
+        );
+
+    } else {
+
+        todayBtn.textContent =
+            "🏆打卡";
+
+        todayBtn.classList.remove(
+            "completed"
+        );
+    }
+
+
+    // ------------------------------------------------------
+    // 当前周日期
+    // ------------------------------------------------------
+
+    const weekDates =
+        getCheckinWeekDates();
+
+    const firstDate =
+        weekDates[0];
+
+    const lastDate =
+        weekDates[6];
+
+
+    // ------------------------------------------------------
+    // 周标题
+    // ------------------------------------------------------
 
     if (weekLabel) {
+
         const sameMonth =
-            firstDate.getFullYear() === lastDate.getFullYear() &&
-            firstDate.getMonth() === lastDate.getMonth();
+            firstDate.getFullYear() ===
+                lastDate.getFullYear() &&
+            firstDate.getMonth() ===
+                lastDate.getMonth();
+
 
         if (sameMonth) {
+
             weekLabel.textContent =
-                `${firstDate.getFullYear()}年${firstDate.getMonth() + 1}月${firstDate.getDate()}日–${lastDate.getDate()}日`;
+                `${firstDate.getFullYear()}年` +
+                `${firstDate.getMonth() + 1}月` +
+                `${firstDate.getDate()}日–` +
+                `${lastDate.getDate()}日`;
+
         } else {
+
             weekLabel.textContent =
-                `${firstDate.getFullYear()}/${firstDate.getMonth() + 1}/${firstDate.getDate()} – ` +
-                `${lastDate.getFullYear()}/${lastDate.getMonth() + 1}/${lastDate.getDate()}`;
+                `${firstDate.getFullYear()}/` +
+                `${firstDate.getMonth() + 1}/` +
+                `${firstDate.getDate()} – ` +
+                `${lastDate.getFullYear()}/` +
+                `${lastDate.getMonth() + 1}/` +
+                `${lastDate.getDate()}`;
         }
     }
 
-    // 周视图：始终只显示周日～周六 7 天
+
+    // ------------------------------------------------------
+    // 清空旧周视图
+    // ------------------------------------------------------
+
     calendar.innerHTML = "";
 
-    weekDates.forEach(date => {
-        const dateKey = getLocalDateKey(date);
-        const isCompleted = completedDates.has(dateKey);
-        const isFuture = dateKey > todayKey;
 
-        const cell = document.createElement("button");
+    // ------------------------------------------------------
+    // 创建 7 天
+    // ------------------------------------------------------
+
+    weekDates.forEach(date => {
+
+        const dateKey =
+            getLocalDateKey(date);
+
+        const isCompleted =
+            completedDates.has(dateKey);
+
+        const isFuture =
+            dateKey > todayKey;
+
+
+        // 创建日期按钮
+        const cell =
+            document.createElement("button");
+
         cell.type = "button";
-        cell.className = `checkin-cell ${isCompleted ? "level-1" : "level-0"}`;
-        cell.textContent = date.getDate();
+
+
+        // 完成状态
+        cell.className =
+            `checkin-cell ${
+                isCompleted
+                    ? "level-1"
+                    : "level-0"
+            }`;
+
+
+        // 日期数字
+        cell.textContent =
+            date.getDate();
+
+
+        // --------------------------------------------------
+        // 未来日期
+        // --------------------------------------------------
 
         if (isFuture) {
-            cell.classList.add("future");
+
+            cell.classList.add(
+                "future"
+            );
+
             cell.disabled = true;
         }
 
+
+        // --------------------------------------------------
+        // 今天
+        // --------------------------------------------------
+
         if (dateKey === todayKey) {
-            cell.classList.add("today");
+
+            cell.classList.add(
+                "today"
+            );
         }
 
-        cell.title = `${dateKey} · ${isCompleted ? "已完成" : "未完成"}`;
-        cell.setAttribute("aria-label", cell.title);
+
+        // --------------------------------------------------
+        // 无障碍信息
+        // --------------------------------------------------
+
+        cell.title =
+            `${dateKey} · ` +
+            `${isCompleted ? "已完成" : "未完成"}`;
+
+        cell.setAttribute(
+            "aria-label",
+            cell.title
+        );
+
+
+        // --------------------------------------------------
+        // 点击日期打卡
+        // --------------------------------------------------
 
         if (!isFuture) {
-            cell.addEventListener("click", () => toggleCheckinDate(dateKey));
+
+            cell.addEventListener(
+                "click",
+                () => toggleCheckinDate(dateKey)
+            );
         }
+
 
         calendar.appendChild(cell);
     });
 
-    // 不允许翻到未来周
-    const nextWeekBtn = document.querySelector(
-        '.deck-checkin-week-btn[aria-label="下一周"]'
-    );
+
+    // ======================================================
+    // 下一周按钮
+    // ======================================================
+
+    const nextWeekBtn =
+        document.querySelector(
+            '.deck-checkin-week-btn[aria-label="下一周"]'
+        );
+
     if (nextWeekBtn) {
-        nextWeekBtn.disabled = checkinWeekOffset >= 0;
+
+        // 当前周 offset = 0
+        // 不允许进入未来周
+        nextWeekBtn.disabled =
+            checkinWeekOffset >= 0;
     }
 }
 
-function calculateCurrentStreak(completedDates) {
-    let streak = 0;
-    const cursor = new Date();
-    cursor.setHours(0, 0, 0, 0);
 
-    while (completedDates.has(getLocalDateKey(cursor))) {
+// ==========================================================
+// 计算连续打卡天数
+// ==========================================================
+
+function calculateCurrentStreak(completedDates) {
+
+    let streak = 0;
+
+    const cursor = new Date();
+
+    cursor.setHours(
+        0,
+        0,
+        0,
+        0
+    );
+
+
+    while (
+        completedDates.has(
+            getLocalDateKey(cursor)
+        )
+    ) {
+
         streak++;
-        cursor.setDate(cursor.getDate() - 1);
+
+        cursor.setDate(
+            cursor.getDate() - 1
+        );
     }
+
 
     return streak;
 }
 
+
+// ==========================================================
+// 切换周
+// ==========================================================
+
 function changeCheckinWeek(delta) {
-    const nextOffset = checkinWeekOffset + delta;
 
-    // 当前周是 0，未来周不允许查看
-    if (nextOffset > 0) return;
+    const nextOffset =
+        checkinWeekOffset + delta;
 
-    checkinWeekOffset = nextOffset;
-    renderDeckCheckin(currentCheckinCompletedDates);
+
+    // 不允许查看未来周
+    if (nextOffset > 0) {
+        return;
+    }
+
+
+    checkinWeekOffset =
+        nextOffset;
+
+
+    renderDeckCheckin(
+        currentCheckinCompletedDates
+    );
 }
 
+
+// ==========================================================
+// 回到本周
+// ==========================================================
+
 function resetCheckinWeekView() {
+
     checkinWeekOffset = 0;
 }
 
-function renderCheckinGoal(goal, editable) {
-    const goalEl = document.getElementById("deckCheckinGoal");
-    const inputEl = document.getElementById("deckCheckinGoalInput");
 
-    if (!goalEl || !inputEl) return;
+// ==========================================================
+// 每日目标
+// ==========================================================
 
-    goalEl.textContent = `目标：${goal || DEFAULT_DAILY_GOAL}`;
-    goalEl.classList.toggle("editable", editable);
-    goalEl.title = editable ? "点击编辑每日目标" : "";
+/**
+ * 渲染每日目标。
+ *
+ * 重要：
+ * 每日目标现在始终保持 .editable 类。
+ *
+ * 这样无论：
+ *
+ * - 编辑模式
+ * - Review 模式
+ *
+ * CSS 都不会因为切换模式而失去原来的颜色、
+ * 边框、字体等样式。
+ */
+function renderCheckinGoal(goal) {
 
-    if (editable) {
-        goalEl.style.display = "block";
-    } else {
-        goalEl.style.display = "block";
-        inputEl.style.display = "none";
+    const goalEl =
+        document.getElementById(
+            "deckCheckinGoal"
+        );
+
+    const inputEl =
+        document.getElementById(
+            "deckCheckinGoalInput"
+        );
+
+
+    if (!goalEl || !inputEl) {
+        return;
     }
-}
 
-function startEditCheckinGoal() {
-    if (deckReviewMode || !editingDeckId) return;
 
-    const goalEl = document.getElementById("deckCheckinGoal");
-    const inputEl = document.getElementById("deckCheckinGoalInput");
-    if (!goalEl || !inputEl) return;
-
-    const currentGoal =
-        goalEl.textContent.replace(/^目标：/, "").trim() ||
+    const finalGoal =
+        goal ||
         DEFAULT_DAILY_GOAL;
 
-    inputEl.value = currentGoal;
-    goalEl.style.display = "none";
-    inputEl.style.display = "block";
+
+    // ------------------------------------------------------
+    // 显示每日目标
+    // ------------------------------------------------------
+
+    goalEl.textContent =
+        finalGoal;
+
+
+    // ------------------------------------------------------
+    // 始终允许点击编辑
+    // ------------------------------------------------------
+
+    goalEl.classList.add(
+        "editable"
+    );
+
+    goalEl.title =
+        "点击编辑每日目标";
+
+
+    goalEl.style.display =
+        "block";
+
+    inputEl.style.display =
+        "none";
+}
+
+
+// ==========================================================
+// 开始编辑每日目标
+// ==========================================================
+
+function startEditCheckinGoal() {
+
+    const goalEl =
+        document.getElementById(
+            "deckCheckinGoal"
+        );
+
+    const inputEl =
+        document.getElementById(
+            "deckCheckinGoalInput"
+        );
+
+
+    if (!goalEl || !inputEl) {
+        return;
+    }
+
+
+    // ------------------------------------------------------
+    // 读取当前目标
+    // ------------------------------------------------------
+
+    const currentGoal =
+        goalEl.textContent.trim() ||
+        DEFAULT_DAILY_GOAL;
+
+
+    inputEl.value =
+        currentGoal;
+
+
+    // ------------------------------------------------------
+    // 切换到输入状态
+    // ------------------------------------------------------
+
+    goalEl.style.display =
+        "none";
+
+    inputEl.style.display =
+        "block";
+
+
+    // ------------------------------------------------------
+    // 自动聚焦
+    // ------------------------------------------------------
+
     inputEl.focus();
+
     inputEl.select();
 }
 
+
+// ==========================================================
+// 每日目标键盘操作
+// ==========================================================
+
 function handleCheckinGoalKeydown(event) {
+
+    // Enter = 保存
     if (event.key === "Enter") {
+
         event.preventDefault();
+
         event.target.blur();
+
+        return;
     }
 
+
+    // Escape = 取消
     if (event.key === "Escape") {
+
         event.preventDefault();
-        const goalEl = document.getElementById("deckCheckinGoal");
-        const inputEl = document.getElementById("deckCheckinGoalInput");
-        if (goalEl && inputEl) {
-            inputEl.value =
-                goalEl.textContent.replace(/^目标：/, "").trim() ||
-                DEFAULT_DAILY_GOAL;
-            inputEl.style.display = "none";
-            goalEl.style.display = "block";
+
+
+        const goalEl =
+            document.getElementById(
+                "deckCheckinGoal"
+            );
+
+        const inputEl =
+            document.getElementById(
+                "deckCheckinGoalInput"
+            );
+
+
+        if (!goalEl || !inputEl) {
+            return;
         }
+
+
+        // 恢复显示目标
+        inputEl.value =
+            goalEl.textContent.trim() ||
+            DEFAULT_DAILY_GOAL;
+
+        inputEl.style.display =
+            "none";
+
+        goalEl.style.display =
+            "block";
     }
 }
 
+
+// ==========================================================
+// 保存每日目标
+// ==========================================================
+
 async function finishEditCheckinGoal() {
-    const inputEl = document.getElementById("deckCheckinGoalInput");
-    const goalEl = document.getElementById("deckCheckinGoal");
 
-    if (!inputEl || !goalEl || inputEl.style.display === "none") return;
-    if (!editingDeckId || deckReviewMode) return;
+    const inputEl =
+        document.getElementById(
+            "deckCheckinGoalInput"
+        );
 
-    const goal = inputEl.value.trim() || DEFAULT_DAILY_GOAL;
+    const goalEl =
+        document.getElementById(
+            "deckCheckinGoal"
+        );
+
+
+    if (
+        !inputEl ||
+        !goalEl
+    ) {
+        return;
+    }
+
+
+    // ------------------------------------------------------
+    // 没有处于编辑状态
+    // ------------------------------------------------------
+
+    if (
+        inputEl.style.display ===
+        "none"
+    ) {
+        return;
+    }
+
+
+    // ------------------------------------------------------
+    // 获取当前 Deck
+    // ------------------------------------------------------
+
+    const deckId =
+        getActiveCheckinDeckId();
+
+
+    if (!deckId) {
+
+        inputEl.style.display =
+            "none";
+
+        goalEl.style.display =
+            "block";
+
+        return;
+    }
+
+
+    // ------------------------------------------------------
+    // 获取输入内容
+    // ------------------------------------------------------
+
+    const goal =
+        inputEl.value.trim() ||
+        DEFAULT_DAILY_GOAL;
+
+
+    // ------------------------------------------------------
+    // 保存期间禁止重复操作
+    // ------------------------------------------------------
 
     inputEl.disabled = true;
 
-    try {
-        await db.collection("decks")
-            .doc(editingDeckId)
-            .update({ dailyGoal: goal });
 
-        goalEl.textContent = `目标：${goal}`;
-        inputEl.style.display = "none";
-        goalEl.style.display = "block";
+    try {
+
+        // ==================================================
+        // 保存到 Firestore
+        // ==================================================
+
+        await db.collection("decks")
+            .doc(deckId)
+            .update({
+                dailyGoal: goal
+            });
+
+
+        // ==================================================
+        // 保存成功
+        // ==================================================
+
+        goalEl.textContent =
+            goal;
+
+
+        // 保证 CSS 样式仍然存在
+        goalEl.classList.add(
+            "editable"
+        );
+
+        goalEl.title =
+            "点击编辑每日目标";
+
+
+        inputEl.style.display =
+            "none";
+
+        goalEl.style.display =
+            "block";
+
+
     } catch (e) {
-        alert("保存每日目标失败：" + e.message);
-        inputEl.style.display = "none";
-        goalEl.style.display = "block";
+
+        console.error(
+            "保存每日目标失败:",
+            e
+        );
+
+
+        alert(
+            "保存每日目标失败：" +
+            e.message
+        );
+
+
+        // 保存失败也恢复显示
+        inputEl.style.display =
+            "none";
+
+        goalEl.style.display =
+            "block";
+
+
     } finally {
+
         inputEl.disabled = false;
     }
 }
 
+
+// ==========================================================
+// 加载当前 Deck 的打卡数据
+// ==========================================================
+
 async function loadDeckCheckin() {
-    const deckId = getActiveCheckinDeckId();
-    const panel = document.getElementById("deckCheckin");
+
+    const deckId =
+        getActiveCheckinDeckId();
+
+    const panel =
+        document.getElementById(
+            "deckCheckin"
+        );
+
+
+    // ------------------------------------------------------
+    // 没有当前 Deck
+    // ------------------------------------------------------
 
     if (!deckId || !panel) {
-        if (panel) panel.style.display = "none";
+
+        if (panel) {
+            panel.style.display =
+                "none";
+        }
+
         return;
     }
 
-    panel.style.display = "block";
+
+    // ------------------------------------------------------
+    // 显示打卡区域
+    // ------------------------------------------------------
+
+    panel.style.display =
+        "block";
+
+
+    // 每次重新加载时回到本周
     resetCheckinWeekView();
 
-    try {
-        const deckSnap = await db.collection("decks")
-            .doc(deckId)
-            .get();
 
-        const deckData = deckSnap.exists ? deckSnap.data() : {};
+    try {
+
+        // ==================================================
+        // 读取 Deck
+        // ==================================================
+
+        const deckSnap =
+            await db.collection("decks")
+                .doc(deckId)
+                .get();
+
+
+        const deckData =
+            deckSnap.exists
+                ? deckSnap.data()
+                : {};
+
+
+        // ==================================================
+        // 渲染每日目标
+        // ==================================================
+        //
+        // 注意：
+        // 不再传 editable 参数。
+        //
+        // 每日目标始终可以点击编辑。
+        //
+
         renderCheckinGoal(
-            deckData.dailyGoal || DEFAULT_DAILY_GOAL,
-            !deckReviewMode && !!editingDeckId
+            deckData.dailyGoal ||
+            DEFAULT_DAILY_GOAL
         );
 
-        const snapshot = await db.collection("decks")
-            .doc(deckId)
-            .collection("checkins")
-            .orderBy("date", "desc")
-            .limit(CHECKIN_HISTORY_DAYS)
-            .get();
 
-        const completedDates = new Set();
+        // ==================================================
+        // 读取打卡记录
+        // ==================================================
+
+        const snapshot =
+            await db.collection("decks")
+                .doc(deckId)
+                .collection("checkins")
+                .orderBy(
+                    "date",
+                    "desc"
+                )
+                .limit(
+                    CHECKIN_HISTORY_DAYS
+                )
+                .get();
+
+
+        const completedDates =
+            new Set();
+
+
+        // ==================================================
+        // 解析打卡记录
+        // ==================================================
 
         snapshot.forEach(doc => {
-            const data = doc.data();
-            const dateKey = data.date || doc.id;
-            if (data.completed !== false) {
-                completedDates.add(dateKey);
+
+            const data =
+                doc.data();
+
+            const dateKey =
+                data.date ||
+                doc.id;
+
+
+            // 兼容旧数据：
+            // 只要 completed 不是 false，
+            // 就视为已完成。
+            if (
+                data.completed !== false
+            ) {
+
+                completedDates.add(
+                    dateKey
+                );
             }
         });
 
-        renderDeckCheckin(completedDates);
+
+        // ==================================================
+        // 渲染周视图
+        // ==================================================
+
+        renderDeckCheckin(
+            completedDates
+        );
+
+
     } catch (e) {
-        console.error("加载打卡记录失败:", e);
-        const streakEl = document.getElementById("deckCheckinStreak");
-        if (streakEl) streakEl.textContent = "打卡数据加载失败";
+
+        console.error(
+            "加载打卡记录失败:",
+            e
+        );
+
+
+        const streakEl =
+            document.getElementById(
+                "deckCheckinStreak"
+            );
+
+
+        if (streakEl) {
+
+            streakEl.textContent =
+                "打卡数据加载失败";
+        }
     }
 }
 
+
+// ==========================================================
+// 今日打卡
+// ==========================================================
+
 async function toggleTodayCheckin() {
-    await toggleCheckinDate(getLocalDateKey());
+
+    await toggleCheckinDate(
+        getLocalDateKey()
+    );
 }
 
-async function toggleCheckinDate(dateKey) {
-    const deckId = getActiveCheckinDeckId();
-    if (!deckId) return;
 
-    const ref = db.collection("decks")
-        .doc(deckId)
-        .collection("checkins")
-        .doc(dateKey);
+// ==========================================================
+// 指定日期打卡 / 取消打卡
+// ==========================================================
+
+async function toggleCheckinDate(dateKey) {
+
+    const deckId =
+        getActiveCheckinDeckId();
+
+
+    if (!deckId) {
+        return;
+    }
+
+
+    // ------------------------------------------------------
+    // 当前日期对应的 Firestore 文档
+    // ------------------------------------------------------
+
+    const ref =
+        db.collection("decks")
+            .doc(deckId)
+            .collection("checkins")
+            .doc(dateKey);
+
 
     try {
-        const snap = await ref.get();
 
-        if (snap.exists && snap.data().completed !== false) {
+        // ==================================================
+        // 读取当前状态
+        // ==================================================
+
+        const snap =
+            await ref.get();
+
+
+        // ==================================================
+        // 如果已经完成
+        // → 删除记录 = 取消打卡
+        // ==================================================
+
+        if (
+            snap.exists &&
+            snap.data().completed !== false
+        ) {
+
             await ref.delete();
+
+
+        // ==================================================
+        // 如果没有完成
+        // → 创建 / 恢复记录
+        // ==================================================
+
         } else {
+
             await ref.set({
+
                 date: dateKey,
+
                 completed: true,
-                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+
+                updatedAt:
+                    firebase.firestore
+                        .FieldValue
+                        .serverTimestamp()
             });
         }
 
+
+        // ==================================================
+        // 重新加载
+        // ==================================================
+
         await loadDeckCheckin();
+
+
     } catch (e) {
-        console.error("保存打卡失败:", e);
-        alert("打卡保存失败：" + e.message);
+
+        console.error(
+            "保存打卡失败:",
+            e
+        );
+
+
+        alert(
+            "打卡保存失败：" +
+            e.message
+        );
     }
 }
+
+
+// ==========================================================
+// 删除某个 Deck 的全部打卡记录
+// ==========================================================
 
 async function deleteDeckCheckins(deckId) {
-    if (!deckId) return;
 
-    const snapshot = await db.collection("decks")
-        .doc(deckId)
-        .collection("checkins")
-        .get();
+    if (!deckId) {
+        return;
+    }
 
-    if (snapshot.empty) return;
 
-    // 目前热图只保留最近一年，但删除时按 Firestore Batch 上限分批处理
-    const docs = snapshot.docs;
-    const BATCH_SIZE = 500;
+    try {
 
-    for (let i = 0; i < docs.length; i += BATCH_SIZE) {
-        const batch = db.batch();
-        docs.slice(i, i + BATCH_SIZE).forEach(doc => batch.delete(doc.ref));
-        await batch.commit();
+        // ==================================================
+        // 获取全部打卡记录
+        // ==================================================
+
+        const snapshot =
+            await db.collection("decks")
+                .doc(deckId)
+                .collection("checkins")
+                .get();
+
+
+        if (snapshot.empty) {
+            return;
+        }
+
+
+        // ==================================================
+        // Firestore Batch 最多 500 个操作
+        // ==================================================
+
+        const docs =
+            snapshot.docs;
+
+        const BATCH_SIZE = 500;
+
+
+        // ==================================================
+        // 分批删除
+        // ==================================================
+
+        for (
+            let i = 0;
+            i < docs.length;
+            i += BATCH_SIZE
+        ) {
+
+            const batch =
+                db.batch();
+
+
+            docs
+                .slice(
+                    i,
+                    i + BATCH_SIZE
+                )
+                .forEach(doc => {
+
+                    batch.delete(
+                        doc.ref
+                    );
+                });
+
+
+            await batch.commit();
+        }
+
+
+    } catch (e) {
+
+        console.error(
+            "删除打卡记录失败:",
+            e
+        );
+
+        throw e;
     }
 }
 
+
+
+
+// ====================隐藏deck bubble ====================
 function hideDeckModal() {
     const modal = document.getElementById('deckModal');
     modal.style.display = 'none';
