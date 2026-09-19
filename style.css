@@ -450,13 +450,8 @@ button.secondary { background:#3a3f4b; }
    统一模态样式
 /* =============================================================================================================================
    统一模态样式
-            #deckModal .modal-content {
-                width: min(92vw,760px);
-                max-height: 90vh;
-                display: flex;
-                flex-direction: column;
-                padding: 22px;
-            }
+
+
 
             /* 标题 + 两个输入框 */
             #deckModal .deck-modal-header {
@@ -471,6 +466,21 @@ button.secondary { background:#3a3f4b; }
                 white-space: nowrap;
             }
 
+#deckModal .modal-content {
+    width: min(92vw, 760px);
+
+    /* 响应式高度 */
+    height: min(90vh, 760px);
+    max-height: calc(100dvh - 32px);
+
+    display: flex;
+    flex-direction: column;
+
+    padding: 22px;
+    box-sizing: border-box;
+
+    overflow: hidden;
+}
             #deckModal .deck-basic-info {
                 display: flex;
                 align-items: center;
@@ -604,8 +614,8 @@ button.secondary { background:#3a3f4b; }
     }
 
     #deckModal #deckNote {
-        height: 65vh;
-        min-height: 500px;
+        height:35vh;
+        min-height: 0px;
         max-height: none;
     }
 
@@ -616,11 +626,10 @@ button.secondary { background:#3a3f4b; }
 }
           @media (max-width: 600px) {
                 #deckModal #deckNote {
-                height: 65vh;
-                min-height: 500px;
-                max-height: none;
     }
 }
+
+
 
 /* =============================================================================================================================
    统一模态样式
@@ -916,13 +925,10 @@ button.secondary { background:#3a3f4b; }
 }
 
 .modal-content{
-    width:90%;
-    max-width:500px;
-
+    width:95%;
+    max-width:50000px;
     padding:30px;
-
     background:#171a21;
-
     border-radius:20px;
 }
 
@@ -2010,31 +2016,19 @@ transform:translateY(-10px);
 /* 输入框 */
 
 #importModal textarea{
-
     width:100%;
-
     flex:1;
-
     min-height:180px;
     max-height:50vh;
-
     padding:16px;
-
     border:none;
     border-radius:18px;
-
     background:#f5f7fb;
-
     font-size:16px; /* 防止 iOS 自动放大 */
-
     line-height:1.7;
-
     resize:none;
-
     outline:none;
-
     overflow-y:auto;
-
     -webkit-overflow-scrolling:touch;
 }
 
@@ -2358,18 +2352,30 @@ transform:translateY(-10px);
     z-index: 10;
 }
 
-/* =========================================================
-   分类打卡系统
-   数据来自 Firestore，不依赖 localStorage
-========================================================= */
 
+
+
+
+
+
+
+/* =========================================================
+   分类打卡系统    数据来自 Firestore，不依赖 localStorage
+========================================================= */
+/* =========================================================
+   分类打卡系统    数据来自 Firestore，不依赖 localStorage
+========================================================= */
+/* =========================================================
+   分类打卡系统    数据来自 Firestore，不依赖 localStorage
+========================================================= */
 .deck-checkin {
-    margin-top: 16px;
+    margin-top: 32px;
     padding: 16px;
     border-radius: 18px;
     background: #1f2430;
     border: 1px solid rgba(255,255,255,.06);
     flex-shrink: 0;
+
 }
 
 .deck-checkin-header {
@@ -2399,6 +2405,9 @@ transform:translateY(-10px);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+          max-width: 100%;
+        font-size: 17px;
+        color:red;font-weight: bold;
 }
 
 .deck-checkin-goal.editable {
@@ -2430,7 +2439,7 @@ transform:translateY(-10px);
 
 .deck-checkin-today-btn {
     flex-shrink: 0;
-    min-width: 138px;
+
     padding: 9px 12px;
     border-radius: 10px;
     background: #343b49;
@@ -2492,7 +2501,7 @@ transform:translateY(-10px);
     font-size: 10px;
     line-height: 16px;
     color: #687384;
-    text-align: center;
+    text-align: center;   
 }
 
 .deck-checkin-calendar {
@@ -2503,7 +2512,7 @@ transform:translateY(-10px);
 }
 
 .checkin-cell {
-    width: 100%;
+    width: 100%;max-height: 32px;
     aspect-ratio: 1;
     min-width: 0;
     padding: 0;
@@ -2514,7 +2523,7 @@ transform:translateY(-10px);
     font-size: 13px;
     font-weight: 500;
     cursor: pointer;
-    transition: transform .12s ease, opacity .12s ease;
+    transition: transform .12s ease, opacity .12s ease; 
 }
 
 .checkin-cell:hover:not(:disabled) {
@@ -2542,7 +2551,7 @@ transform:translateY(-10px);
 @media (max-width: 768px) {
     .deck-checkin {
         padding: 14px;
-        margin-top: 12px;
+        margin-top: 24px;
     }
 
     .deck-checkin-header {
@@ -2554,8 +2563,9 @@ transform:translateY(-10px);
     }
 
     .deck-checkin-goal {
-        max-width: 210px;
-        font-size: 12px;
+        max-width: 100%;
+        font-size: 17px;
+        color:red;font-weight: bold;
     }
 
     .deck-checkin-streak {
@@ -2563,7 +2573,7 @@ transform:translateY(-10px);
     }
 
     .deck-checkin-today-btn {
-        min-width: 126px;
+
         padding: 8px 10px;
         font-size: 12px;
     }
