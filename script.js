@@ -294,6 +294,7 @@ function showAddDeckModal() {
     document.getElementById("deckIcon").readOnly = false;
     document.getElementById("deckNote").readOnly = false;
     document.getElementById("deckGoBtn").style.display = "none";
+    document.getElementById("deckCheckin").style.display = "none";
 
     document.getElementById("modalTitle").textContent = "新建分类";
     document.getElementById("saveBtn").textContent = "创建";
@@ -301,6 +302,17 @@ function showAddDeckModal() {
     document.getElementById("deckName").value = "";
     document.getElementById("deckIcon").value = "";
     document.getElementById("deckNote").value = "";
+
+    const goalEl = document.getElementById("deckCheckinGoal");
+    const goalInput = document.getElementById("deckCheckinGoalInput");
+    if (goalEl) {
+        goalEl.textContent = `目标：${DEFAULT_DAILY_GOAL}`;
+        goalEl.style.display = "block";
+    }
+    if (goalInput) {
+        goalInput.value = DEFAULT_DAILY_GOAL;
+        goalInput.style.display = "none";
+    }
 
     // 新建时隐藏删除按钮
     document.getElementById("deleteDeckBtn").style.display = "none";
@@ -321,6 +333,7 @@ async function editDeck(deckId) {
     document.getElementById("deckIcon").readOnly = false;
     document.getElementById("deckNote").readOnly = false;
     document.getElementById("deckGoBtn").style.display = "none";
+    document.getElementById("deckCheckin").style.display = "block";
 
     const doc = await db.collection("decks")
         .doc(deckId)
@@ -339,6 +352,7 @@ async function editDeck(deckId) {
     document.getElementById("deleteDeckBtn").style.display = "block";
 
     document.getElementById("deckModal").style.display = "flex";
+    await loadDeckCheckin();
 }
 
 // ==================== 复习前阅读分类笔记 ====================
@@ -365,8 +379,10 @@ function showDeckReview(deckId, deck) {
     document.getElementById("deleteDeckBtn").style.display = "none";
     document.getElementById("saveBtn").style.display = "none";
     document.getElementById("deckGoBtn").style.display = "flex";
+    document.getElementById("deckCheckin").style.display = "block";
 
     modal.style.display = "flex";
+    loadDeckCheckin();
 }
 
 function goFromDeckReview() {
@@ -438,6 +454,8 @@ async function saveDeck() {
                 icon,
 
                 note,
+
+                dailyGoal: DEFAULT_DAILY_GOAL,
 
                 color: "#2f80ed",
 
@@ -533,6 +551,345 @@ async function restoreHiddenDeck(deckId) {
     }
 }
 
+
+// ==================== 分类每日打卡 ====================
+// 打卡数据只存 Firestore，不使用 localStorage。
+// 数据结构：decks/{deckId}/checkins/{YYYY-MM-DD}
+const CHECKIN_HISTORY_DAYS = 365;
+const DEFAULT_DAILY_GOAL = "今天完成了吗";
+let checkinWeekOffset = 0;
+let currentCheckinCompletedDates = new Set();
+
+function getLocalDateKey(date = new Date()) {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, "0");
+    const d = String(date.getDate()).padStart(2, "0");
+    return `${y}-${m}-${d}`;
+}
+
+function parseLocalDateKey(key) {
+    const [y, m, d] = key.split("-").map(Number);
+    return new Date(y, m - 1, d);
+}
+
+function getActiveCheckinDeckId() {
+    return deckReviewMode ? deckReviewId : editingDeckId;
+}
+
+function getStartOfWeek(date = new Date()) {
+    const result = new Date(date);
+    result.setHours(0, 0, 0, 0);
+    result.setDate(result.getDate() - result.getDay());
+    return result;
+}
+
+function getCheckinWeekDates() {
+    const start = getStartOfWeek(new Date());
+    start.setDate(start.getDate() + (checkinWeekOffset * 7));
+
+    return Array.from({ length: 7 }, (_, index) => {
+        const date = new Date(start);
+        date.setDate(start.getDate() + index);
+        return date;
+    });
+}
+
+function renderDeckCheckin(completedDates) {
+    const calendar = document.getElementById("deckCheckinCalendar");
+    const streakEl = document.getElementById("deckCheckinStreak");
+    const todayBtn = document.getElementById("deckCheckinTodayBtn");
+    const weekLabel = document.getElementById("deckCheckinWeekLabel");
+
+    if (!calendar || !streakEl || !todayBtn) return;
+
+    currentCheckinCompletedDates = new Set(completedDates);
+
+    const todayKey = getLocalDateKey();
+    const streak = calculateCurrentStreak(completedDates);
+
+    streakEl.textContent = `连续坚持 ${streak} 天`;
+
+    if (completedDates.has(todayKey)) {
+        todayBtn.textContent = "✅ 今日已完成";
+        todayBtn.classList.add("completed");
+    } else {
+        todayBtn.textContent = "🏆点击打卡";
+        todayBtn.classList.remove("completed");
+    }
+
+    const weekDates = getCheckinWeekDates();
+    const firstDate = weekDates[0];
+    const lastDate = weekDates[6];
+
+    if (weekLabel) {
+        const sameMonth =
+            firstDate.getFullYear() === lastDate.getFullYear() &&
+            firstDate.getMonth() === lastDate.getMonth();
+
+        if (sameMonth) {
+            weekLabel.textContent =
+                `${firstDate.getFullYear()}年${firstDate.getMonth() + 1}月${firstDate.getDate()}日–${lastDate.getDate()}日`;
+        } else {
+            weekLabel.textContent =
+                `${firstDate.getFullYear()}/${firstDate.getMonth() + 1}/${firstDate.getDate()} – ` +
+                `${lastDate.getFullYear()}/${lastDate.getMonth() + 1}/${lastDate.getDate()}`;
+        }
+    }
+
+    // 周视图：始终只显示周日～周六 7 天
+    calendar.innerHTML = "";
+
+    weekDates.forEach(date => {
+        const dateKey = getLocalDateKey(date);
+        const isCompleted = completedDates.has(dateKey);
+        const isFuture = dateKey > todayKey;
+
+        const cell = document.createElement("button");
+        cell.type = "button";
+        cell.className = `checkin-cell ${isCompleted ? "level-1" : "level-0"}`;
+        cell.textContent = date.getDate();
+
+        if (isFuture) {
+            cell.classList.add("future");
+            cell.disabled = true;
+        }
+
+        if (dateKey === todayKey) {
+            cell.classList.add("today");
+        }
+
+        cell.title = `${dateKey} · ${isCompleted ? "已完成" : "未完成"}`;
+        cell.setAttribute("aria-label", cell.title);
+
+        if (!isFuture) {
+            cell.addEventListener("click", () => toggleCheckinDate(dateKey));
+        }
+
+        calendar.appendChild(cell);
+    });
+
+    // 不允许翻到未来周
+    const nextWeekBtn = document.querySelector(
+        '.deck-checkin-week-btn[aria-label="下一周"]'
+    );
+    if (nextWeekBtn) {
+        nextWeekBtn.disabled = checkinWeekOffset >= 0;
+    }
+}
+
+function calculateCurrentStreak(completedDates) {
+    let streak = 0;
+    const cursor = new Date();
+    cursor.setHours(0, 0, 0, 0);
+
+    while (completedDates.has(getLocalDateKey(cursor))) {
+        streak++;
+        cursor.setDate(cursor.getDate() - 1);
+    }
+
+    return streak;
+}
+
+function changeCheckinWeek(delta) {
+    const nextOffset = checkinWeekOffset + delta;
+
+    // 当前周是 0，未来周不允许查看
+    if (nextOffset > 0) return;
+
+    checkinWeekOffset = nextOffset;
+    renderDeckCheckin(currentCheckinCompletedDates);
+}
+
+function resetCheckinWeekView() {
+    checkinWeekOffset = 0;
+}
+
+function renderCheckinGoal(goal, editable) {
+    const goalEl = document.getElementById("deckCheckinGoal");
+    const inputEl = document.getElementById("deckCheckinGoalInput");
+
+    if (!goalEl || !inputEl) return;
+
+    goalEl.textContent = `目标：${goal || DEFAULT_DAILY_GOAL}`;
+    goalEl.classList.toggle("editable", editable);
+    goalEl.title = editable ? "点击编辑每日目标" : "";
+
+    if (editable) {
+        goalEl.style.display = "block";
+    } else {
+        goalEl.style.display = "block";
+        inputEl.style.display = "none";
+    }
+}
+
+function startEditCheckinGoal() {
+    if (deckReviewMode || !editingDeckId) return;
+
+    const goalEl = document.getElementById("deckCheckinGoal");
+    const inputEl = document.getElementById("deckCheckinGoalInput");
+    if (!goalEl || !inputEl) return;
+
+    const currentGoal =
+        goalEl.textContent.replace(/^目标：/, "").trim() ||
+        DEFAULT_DAILY_GOAL;
+
+    inputEl.value = currentGoal;
+    goalEl.style.display = "none";
+    inputEl.style.display = "block";
+    inputEl.focus();
+    inputEl.select();
+}
+
+function handleCheckinGoalKeydown(event) {
+    if (event.key === "Enter") {
+        event.preventDefault();
+        event.target.blur();
+    }
+
+    if (event.key === "Escape") {
+        event.preventDefault();
+        const goalEl = document.getElementById("deckCheckinGoal");
+        const inputEl = document.getElementById("deckCheckinGoalInput");
+        if (goalEl && inputEl) {
+            inputEl.value =
+                goalEl.textContent.replace(/^目标：/, "").trim() ||
+                DEFAULT_DAILY_GOAL;
+            inputEl.style.display = "none";
+            goalEl.style.display = "block";
+        }
+    }
+}
+
+async function finishEditCheckinGoal() {
+    const inputEl = document.getElementById("deckCheckinGoalInput");
+    const goalEl = document.getElementById("deckCheckinGoal");
+
+    if (!inputEl || !goalEl || inputEl.style.display === "none") return;
+    if (!editingDeckId || deckReviewMode) return;
+
+    const goal = inputEl.value.trim() || DEFAULT_DAILY_GOAL;
+
+    inputEl.disabled = true;
+
+    try {
+        await db.collection("decks")
+            .doc(editingDeckId)
+            .update({ dailyGoal: goal });
+
+        goalEl.textContent = `目标：${goal}`;
+        inputEl.style.display = "none";
+        goalEl.style.display = "block";
+    } catch (e) {
+        alert("保存每日目标失败：" + e.message);
+        inputEl.style.display = "none";
+        goalEl.style.display = "block";
+    } finally {
+        inputEl.disabled = false;
+    }
+}
+
+async function loadDeckCheckin() {
+    const deckId = getActiveCheckinDeckId();
+    const panel = document.getElementById("deckCheckin");
+
+    if (!deckId || !panel) {
+        if (panel) panel.style.display = "none";
+        return;
+    }
+
+    panel.style.display = "block";
+    resetCheckinWeekView();
+
+    try {
+        const deckSnap = await db.collection("decks")
+            .doc(deckId)
+            .get();
+
+        const deckData = deckSnap.exists ? deckSnap.data() : {};
+        renderCheckinGoal(
+            deckData.dailyGoal || DEFAULT_DAILY_GOAL,
+            !deckReviewMode && !!editingDeckId
+        );
+
+        const snapshot = await db.collection("decks")
+            .doc(deckId)
+            .collection("checkins")
+            .orderBy("date", "desc")
+            .limit(CHECKIN_HISTORY_DAYS)
+            .get();
+
+        const completedDates = new Set();
+
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            const dateKey = data.date || doc.id;
+            if (data.completed !== false) {
+                completedDates.add(dateKey);
+            }
+        });
+
+        renderDeckCheckin(completedDates);
+    } catch (e) {
+        console.error("加载打卡记录失败:", e);
+        const streakEl = document.getElementById("deckCheckinStreak");
+        if (streakEl) streakEl.textContent = "打卡数据加载失败";
+    }
+}
+
+async function toggleTodayCheckin() {
+    await toggleCheckinDate(getLocalDateKey());
+}
+
+async function toggleCheckinDate(dateKey) {
+    const deckId = getActiveCheckinDeckId();
+    if (!deckId) return;
+
+    const ref = db.collection("decks")
+        .doc(deckId)
+        .collection("checkins")
+        .doc(dateKey);
+
+    try {
+        const snap = await ref.get();
+
+        if (snap.exists && snap.data().completed !== false) {
+            await ref.delete();
+        } else {
+            await ref.set({
+                date: dateKey,
+                completed: true,
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+        }
+
+        await loadDeckCheckin();
+    } catch (e) {
+        console.error("保存打卡失败:", e);
+        alert("打卡保存失败：" + e.message);
+    }
+}
+
+async function deleteDeckCheckins(deckId) {
+    if (!deckId) return;
+
+    const snapshot = await db.collection("decks")
+        .doc(deckId)
+        .collection("checkins")
+        .get();
+
+    if (snapshot.empty) return;
+
+    // 目前热图只保留最近一年，但删除时按 Firestore Batch 上限分批处理
+    const docs = snapshot.docs;
+    const BATCH_SIZE = 500;
+
+    for (let i = 0; i < docs.length; i += BATCH_SIZE) {
+        const batch = db.batch();
+        docs.slice(i, i + BATCH_SIZE).forEach(doc => batch.delete(doc.ref));
+        await batch.commit();
+    }
+}
+
 function hideDeckModal() {
     const modal = document.getElementById('deckModal');
     modal.style.display = 'none';
@@ -546,6 +903,21 @@ function hideDeckModal() {
     document.getElementById("deckIcon").readOnly = false;
     document.getElementById("deckNote").readOnly = false;
     document.getElementById("deckGoBtn").style.display = "none";
+    document.getElementById("deckCheckin").style.display = "none";
+
+    const goalInput = document.getElementById("deckCheckinGoalInput");
+    const goalEl = document.getElementById("deckCheckinGoal");
+    if (goalInput) {
+        goalInput.value = "";
+        goalInput.style.display = "none";
+    }
+    if (goalEl) {
+        goalEl.style.display = "block";
+    }
+
+    currentCheckinCompletedDates = new Set();
+    resetCheckinWeekView();
+
     document.getElementById("saveBtn").style.display = "";
 }
 
@@ -565,9 +937,14 @@ async function deleteCurrentDeck() {
 
     try {
 
+        const deckIdToDelete = editingDeckId;
+
+        // 删除分类下的打卡记录（Firestore 不会自动级联删除子集合）
+        await deleteDeckCheckins(deckIdToDelete);
+
         // 删除分类
         await db.collection("decks")
-            .doc(editingDeckId)
+            .doc(deckIdToDelete)
             .delete();
 
         // 查询所有卡片
