@@ -51,7 +51,7 @@
                 >
             </div>
                   <!-- 复习前确认按钮：阅读完分类笔记后才能进入复习 -->
-           <button id="deckGoBtn" type="button" onclick="goFromDeckReview()">🥇</button>
+           <button id="deckGoBtn" type="button" onclick="goFromDeckReview()">Go🥇</button>
         </div>
 
         <textarea
@@ -60,8 +60,6 @@
             placeholder="要点总结..."
             style="">
         </textarea>
-
-
 
 <div class="deck-modal-footer">
     <div class="footer-left">
@@ -91,6 +89,69 @@
         >✔</button>
     </div>
 </div>
+
+        <!-- ==================== 分类打卡 ==================== -->
+        <section id="deckCheckin" class="deck-checkin" style="display:none;">
+            <div class="deck-checkin-header">
+                <div class="deck-checkin-heading">
+
+
+                    <!-- 编辑模式下点击文字即可修改每日目标 -->
+                    <div
+                        id="deckCheckinGoal"
+                        class="deck-checkin-goal"
+                        role="button"
+                        tabindex="0"
+                        title="点击编辑每日目标"
+                        onclick="startEditCheckinGoal()"
+                        onkeydown="if(event.key === 'Enter' || event.key === ' ') { event.preventDefault(); startEditCheckinGoal(); }"
+                    ></div>
+
+                    <input
+                        id="deckCheckinGoalInput"
+                        class="deck-checkin-goal-input"
+                        type="text"
+                        maxlength="80"
+                        style="display:none;"
+                        onkeydown="handleCheckinGoalKeydown(event)"
+                        onblur="finishEditCheckinGoal()"
+                    >
+
+                    <div id="deckCheckinStreak" class="deck-checkin-streak">连续坚持 0 天</div>
+                </div>
+
+                <button
+                    id="deckCheckinTodayBtn"
+                    type="button"
+                    class="deck-checkin-today-btn"
+                    onclick="toggleTodayCheckin()"
+                >
+                    ❌ 今日未完成
+                </button>
+            </div>
+
+            <div class="deck-checkin-week-nav">
+                <button
+                    type="button"
+                    class="deck-checkin-week-btn"
+                    onclick="changeCheckinWeek(-1)"
+                    aria-label="上一周"
+                >‹</button>
+
+                <div id="deckCheckinWeekLabel" class="deck-checkin-week-label"></div>
+
+                <button
+                    type="button"
+                    class="deck-checkin-week-btn"
+                    onclick="changeCheckinWeek(1)"
+                    aria-label="下一周"
+                >›</button>
+            </div>
+
+                <div id="deckCheckinCalendar" class="deck-checkin-calendar"></div>
+            </div>
+        </section>
+
 
     </div>
 </div>
