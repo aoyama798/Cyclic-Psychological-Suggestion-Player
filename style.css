@@ -2155,7 +2155,7 @@ transform:translateY(-10px);
 }
 #deckGoBtn {
     padding: 0;
-    width: 20px;
+
     margin: 0 20px 0 auto;
 
     display: none;
@@ -2356,4 +2356,233 @@ transform:translateY(-10px);
 
 #moreBtn {
     z-index: 10;
+}
+
+/* =========================================================
+   分类打卡系统
+   数据来自 Firestore，不依赖 localStorage
+========================================================= */
+
+.deck-checkin {
+    margin-top: 16px;
+    padding: 16px;
+    border-radius: 18px;
+    background: #1f2430;
+    border: 1px solid rgba(255,255,255,.06);
+    flex-shrink: 0;
+}
+
+.deck-checkin-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.deck-checkin-heading {
+    min-width: 0;
+}
+
+.deck-checkin-title {
+    font-size: 17px;
+    font-weight: 600;
+    color: #f5f5f5;
+}
+
+.deck-checkin-goal {
+    display: block;
+    margin-top: 5px;
+    color: #b8c1cf;
+    font-size: 13px;
+    line-height: 1.5;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.deck-checkin-goal.editable {
+    cursor: pointer;
+}
+
+.deck-checkin-goal.editable:hover {
+    color: #fff;
+}
+
+.deck-checkin-goal-input {
+    width: min(360px, 100%);
+    margin-top: 4px;
+    padding: 4px 0;
+    border: 0;
+    border-bottom: 1px solid rgba(255,255,255,.25);
+    outline: none;
+    background: transparent;
+    color: #fff;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.deck-checkin-streak {
+    margin-top: 5px;
+    font-size: 13px;
+    color: #9ca7b8;
+}
+
+.deck-checkin-today-btn {
+    flex-shrink: 0;
+    min-width: 138px;
+    padding: 9px 12px;
+    border-radius: 10px;
+    background: #343b49;
+    color: #fff;
+    font-size: 13px;
+    white-space: nowrap;
+}
+
+.deck-checkin-today-btn.completed {
+    background: #245f46;
+}
+
+.deck-checkin-week-nav {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin: 4px 0 12px;
+}
+
+.deck-checkin-week-btn {
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border-radius: 8px;
+    background: #303642;
+    color: #dce2ea;
+    font-size: 20px;
+    line-height: 26px;
+}
+
+.deck-checkin-week-btn:disabled {
+    opacity: .28;
+    cursor: default;
+}
+
+.deck-checkin-week-label {
+    min-width: 190px;
+    text-align: center;
+    color: #aeb8c7;
+    font-size: 12px;
+}
+
+.deck-checkin-calendar-wrap {
+    display: flex;
+    align-items: stretch;
+    gap: 8px;
+    width: 100%;
+}
+
+.deck-checkin-weekdays {
+    flex: 1;
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 7px;
+}
+
+.deck-checkin-weekdays span {
+    font-size: 10px;
+    line-height: 16px;
+    color: #687384;
+    text-align: center;
+}
+
+.deck-checkin-calendar {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 7px;
+    width: 100%;
+}
+
+.checkin-cell {
+    width: 100%;
+    aspect-ratio: 1;
+    min-width: 0;
+    padding: 0;
+    border-radius: 7px;
+    border: none;
+    background: #303642;
+    color: #8f99a8;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: transform .12s ease, opacity .12s ease;
+}
+
+.checkin-cell:hover:not(:disabled) {
+    transform: scale(1.06);
+}
+
+.checkin-cell.level-0 {
+    background: #303642;
+}
+
+.checkin-cell.level-1 {
+    background: #2f80ed;
+}
+
+.checkin-cell.future {
+    opacity: .22;
+    cursor: default;
+}
+
+.checkin-cell.today {
+    outline: 2px solid rgba(255,255,255,.85);
+    outline-offset: 2px;
+}
+
+@media (max-width: 768px) {
+    .deck-checkin {
+        padding: 14px;
+        margin-top: 12px;
+    }
+
+    .deck-checkin-header {
+        align-items: flex-start;
+    }
+
+    .deck-checkin-title {
+        font-size: 16px;
+    }
+
+    .deck-checkin-goal {
+        max-width: 210px;
+        font-size: 12px;
+    }
+
+    .deck-checkin-streak {
+        font-size: 12px;
+    }
+
+    .deck-checkin-today-btn {
+        min-width: 126px;
+        padding: 8px 10px;
+        font-size: 12px;
+    }
+
+    .deck-checkin-week-nav {
+        margin-bottom: 10px;
+    }
+
+    .deck-checkin-week-label {
+        min-width: 160px;
+        font-size: 11px;
+    }
+
+    .deck-checkin-weekdays,
+    .deck-checkin-calendar {
+        gap: 5px;
+    }
+
+    .checkin-cell {
+        border-radius: 6px;
+    }
 }
