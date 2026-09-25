@@ -169,7 +169,46 @@ h1 {
 .edit-btn   { top: -8px; left: -8px; background: #f39c12; }
 .delete-btn { top: -8px; right: -8px; background: #e74c3c; }
 
+/* ==========================================================
+   Bubble Streak
+========================================================== */
 
+.bubble-streak {
+/* =====右上角
+       position: absolute;
+    top: 12px;
+    right: 14px;
+============= */
+    display: flex;
+    align-items: center;
+    gap: 3px;
+
+    padding: 5px 9px;
+
+    border-radius: 999px;
+
+    background: rgba(0, 0, 0, 0.38);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+
+    color: #fff;
+
+    font-size: 14px;
+    font-weight: 600;
+
+    line-height: 1;
+
+    pointer-events: none;
+}
+
+.bubble-streak-icon {
+    font-size: 14px;
+}
+
+.bubble-streak-number {
+    min-width: 12px;
+    text-align: center;
+}
 /* =============================================================================================================================
    Bubbles手机端适配
 ========================= */
@@ -340,11 +379,8 @@ button.secondary { background:#3a3f4b; }
     gap: 8px;
 }
 .footer-right{
-
     margin-left:auto;
-
     display:flex;
-
     gap:10px;
 
 }
@@ -369,7 +405,6 @@ button.secondary { background:#3a3f4b; }
 }
 
 .danger-btn:hover{
-
     background:#b92f2f;
 
 }
@@ -450,8 +485,6 @@ button.secondary { background:#3a3f4b; }
    统一模态样式
 /* =============================================================================================================================
    统一模态样式
-
-
 
             /* 标题 + 两个输入框 */
             #deckModal .deck-modal-header {
@@ -631,7 +664,50 @@ button.secondary { background:#3a3f4b; }
     }
 }
 
+/* ==========================================================
+   Deck 打卡 Toggle
+========================================================== */
 
+.deck-toggle-row {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.deck-toggle-row input {
+    display: none;
+}
+
+.toggle-slider {
+    position: relative;
+    width: 42px;
+    height: 24px;
+    border-radius: 999px;
+    background: #555;
+    transition: 0.2s;
+}
+
+.toggle-slider::after {
+    content: "";
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: white;
+    transition: 0.2s;
+}
+
+.deck-toggle-row input:checked + .toggle-slider {
+    background: #2f80ed;
+}
+
+.deck-toggle-row input:checked + .toggle-slider::after {
+    transform: translateX(18px);
+}
 
 /* =============================================================================================================================
    统一模态样式
@@ -1786,7 +1862,7 @@ body.immersive .front-content {
 /* ---------- 功能按钮 ---------- */
 
 .tool-btn.red{
-    color:#ff5b5b;
+   /* ---- color:#ff5b5b;---- */
 }
 
 .tool-btn.mark-highlight{
@@ -2232,6 +2308,16 @@ transform:translateY(-10px);
     padding: 12px 14px;
     border-radius: 14px;
     background: #262b36;
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.15s ease;
+}
+
+.hidden-deck-item:hover {
+    background: #303642;
+}
+
+.hidden-deck-item:active {
+    transform: scale(0.98);
 }
 
 .hidden-deck-info {
@@ -2408,8 +2494,8 @@ transform:translateY(-10px);
     overflow: hidden;
     text-overflow: ellipsis;
           max-width: 100%;
-        font-size: 17px;
-        color:red;font-weight: bold;
+        font-size: 24px;
+        color:#00DC82;font-weight: bold;
 }
 
 .deck-checkin-goal.editable {
@@ -2567,7 +2653,7 @@ transform:translateY(-10px);
     .deck-checkin-goal {
         max-width: 100%;
         font-size: 17px;
-        color:red;font-weight: bold;
+        color:#00DC82;font-weight: bold;
     }
 
     .deck-checkin-streak {
