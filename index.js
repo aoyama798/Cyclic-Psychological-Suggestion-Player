@@ -2349,45 +2349,28 @@ function applySmartLayout() {
     const container = content.parentElement;
     if (!container) return;
 
-    // 重置为单列
+    // 强制恢复单列
     content.classList.remove("two-column");
 
-    // 强制浏览器重排，获取单列真实高度
     const containerHeight = container.clientHeight;
-    let singleColumnHeight = content.scrollHeight;
-
+    const contentHeight = content.scrollHeight;
     const textLength = content.innerText.trim().length;
 
-    // ==================== 决策逻辑 ====================
+    // ==================== 单列阅读逻辑 ====================
 
-    // 1. 极短内容（肯定能一眼看完）→ 保持单列
-    if (textLength <= 280 && singleColumnHeight <= containerHeight * 1.05) {
+    // 内容较短，直接显示
+    if (textLength <= 280 && contentHeight <= containerHeight * 1.05) {
         return;
     }
 
-    // 2. 检测单列是否溢出（核心改进）
-    const isOverflow = singleColumnHeight > containerHeight * 1.08; // 允许一点点容差
-
-    if (isOverflow || textLength > 420) {
-        // 切换到双栏
-        content.classList.add("two-column");
-
-        // 关键：切换布局后重新测量（异步，确保布局已生效）
-        requestAnimationFrame(() => {
-            const twoColumnHeight = content.scrollHeight;
-
-            // 如果双栏后依然明显过长，就接受滚动（这是合理的）
-            if (twoColumnHeight > containerHeight * 1.6) {
-                // 可选：可以在这里进一步缩小字体或增加滚动提示
-                console.log(`[SmartLayout] 长内容双栏滚动模式`);
-            }
-        });
+    // 内容较长但仍能放下，保持单列
+    if (contentHeight <= containerHeight * 1.08) {
+        return;
     }
-    // 否则保持单列（已确认不会溢出）
+
+    // 超出高度，保持单列，让容器滚动
+    console.log(`[SmartLayout] 单列滚动模式 内容长度:${textLength}`);
 }
-
-
-
 
 
 
