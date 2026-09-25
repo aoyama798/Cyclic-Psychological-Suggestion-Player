@@ -34,14 +34,14 @@
 <div id="deckModal" class="modal">
     <div class="modal-content">
 
-        <div class="deck-modal-header">
+        <div class="deck-modal-header" >
             <h3 id="modalTitle">新建Deck</h3>
 
             <div class="deck-basic-info">
                 <input
                     type="text"
                     id="deckName"
-                    placeholder="🐱分类名称"
+                    placeholder="🐱分类名称"  
                 >
                 <input
                     type="text"
@@ -51,7 +51,7 @@
                 >
             </div>
                   <!-- 复习前确认按钮：阅读完分类笔记后才能进入复习 -->
-           <button id="deckGoBtn" type="button" onclick="goFromDeckReview()">Go🥇</button>
+           <button id="deckGoBtn" type="button" onclick="goFromDeckReview()">🥇Go</button>
         </div>
 
         <textarea
@@ -64,7 +64,6 @@
     <div class="footer-left">
         <button
             id="deleteDeckBtn"
-            style="background-color: red;"
             onclick="deleteCurrentDeck()"
         >🗑</button>
 
@@ -73,6 +72,14 @@
             class="secondary"
             onclick="toggleEditingDeckHidden()"
         >👁︎</button>
+      
+      <label class="deck-toggle-row">
+        <span>打卡</span>
+        <input class="secondary"
+        type="checkbox"
+        id="deckCheckinToggle"
+        onchange="toggleEditingDeckCheckin(this.checked)"><span class="toggle-slider"></span>
+      </label>
     </div>
 
     <div class="footer-right">
@@ -80,12 +87,12 @@
             id="cancelDeckBtn"
             class="secondary"
             onclick="hideDeckModal()"
-        >❌</button>
+        >X</button>
 
         <button
             onclick="saveDeck()"
             id="saveBtn"
-        >✔</button>
+        >√</button>
     </div>
 </div>
 
@@ -125,7 +132,7 @@
                     class="deck-checkin-today-btn"
                     onclick="toggleTodayCheckin()"
                 >
-                    ❌ 今日未完成
+                    ❌今日未完成
                 </button>
             </div>
 
@@ -292,13 +299,13 @@
             id="cancelCardBtn"
             class="card-cancel-btn"
             onclick="hideAddCardModal()"
-        >❌</button>
+        >X</button>
 
         <button
             id="saveCardBtn"
-            class="card-save-btn" style="background-color:green;"
+            class="card-save-btn"
             onclick="saveCard()"
-        >✅</button>
+        >√</button>
     </div>
 </div>
 <style>
@@ -323,7 +330,7 @@
     border: none;
     border-radius: 10px;
     padding: 10px 18px;
-    cursor: pointer;background-color:red;
+    cursor: pointer;
 }
 
 /* 取消 */
@@ -339,7 +346,7 @@
     border: none;
     border-radius: 10px;
     padding: 10px 18px;
-    cursor: pointer;background-color:green;
+    cursor: pointer;
 }
 </style>
       
@@ -375,11 +382,11 @@
 
             <button class="secondary-btn"
                     onclick="closeImportModal()">
-                ❌
+                X
             </button>
             <button class="primary-btn"
                     onclick="confirmImport()">
-                ✔️
+                √
             </button>
         </div>
 
