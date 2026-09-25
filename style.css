@@ -479,7 +479,9 @@ button.secondary { background:#3a3f4b; }
     padding: 22px;
     box-sizing: border-box;
 
-    overflow: hidden;
+    /* 允许桌面端查看下面的打卡区域 */
+    overflow-x: hidden;
+    overflow-y: auto;
 }
             #deckModal .deck-basic-info {
                 display: flex;
@@ -576,8 +578,8 @@ button.secondary { background:#3a3f4b; }
 
 #deckNote {
     flex: 1;
-    min-height: 320px;
-    max-height: 60vh;
+    min-height: 240px;
+    max-height: 45vh;
     margin-top: 15px;
 }
 
