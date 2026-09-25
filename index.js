@@ -58,11 +58,17 @@ async function loadDecks() {
         div.style.background = '';
 
         div.innerHTML = `
-            <span style="font-size:2.6rem;margin-bottom:8px;">
-                ${deck.icon || '📌'}
-            </span>
-            <div>${deck.name}</div>
-        `;
+    <span style="font-size:2.6rem;margin-bottom:8px;">
+        ${deck.icon || '📌'}
+    </span>
+
+    <div>${deck.name}</div>
+
+    <span class="bubble-streak" style="display:none;">
+        <span class="bubble-streak-icon">✨</span>
+        <span class="bubble-streak-number">0</span>
+    </span>
+`;
 
         // ==========================
         // 长按相关
@@ -138,29 +144,33 @@ async function loadDecks() {
         // 点击进入分类
         // ==========================
 
-        div.addEventListener("click", (e) => {
+ div.addEventListener("click", (e) => {
 
-            // 长按后阻止 click
-            if (longPressed) {
+    // 长按后阻止 click
+    if (longPressed) {
 
-                e.preventDefault();
-                e.stopPropagation();
+        e.preventDefault();
+        e.stopPropagation();
 
-                longPressed = false;
+        longPressed = false;
 
-                return;
-            }
+        return;
+    }
 
-            if (!e.target.classList.contains('action-btn')) {
+    if (!e.target.classList.contains('action-btn')) {
 
-                // 点击分类：先阅读分类笔记，再进入复习
-                showDeckReview(doc.id, deck);
+        // 点击分类：先阅读分类笔记，再进入复习
+        showDeckReview(doc.id, deck);
+    }
 
-            }
+});
 
-        });
+// ======================================================
+// 加载该分类当前 Streak
+// ======================================================
+loadBubbleStreak(doc.id, div);
 
-        bubbles.appendChild(div);
+bubbles.appendChild(div);
 
     });
 
@@ -182,7 +192,123 @@ async function loadDecks() {
 
 }
 
+// ==========================================================
+// 获取并显示 Bubble 的当前 Streak
+// ==========================================================
 
+async function loadBubbleStreak(deckId, bubbleEl) {
+
+    const streakEl =
+        bubbleEl.querySelector(".bubble-streak");
+
+    const streakNumber =
+        bubbleEl.querySelector(".bubble-streak-number");
+
+    if (!streakEl || !streakNumber) return;
+
+    try {
+
+        // ==================================================
+        // 先读取当前 Deck
+        // ==================================================
+
+        const deckSnap =
+            await db.collection("decks")
+                .doc(deckId)
+                .get();
+
+        if (!deckSnap.exists) {
+            return;
+        }
+
+        const deck =
+            deckSnap.data();
+
+
+        // ==================================================
+        // 每日目标仍然是默认值
+        // → 认为打卡尚未启动
+        // → 不显示 Streak
+        // ==================================================
+
+        if (deck.checkinEnabled !== true) {
+
+    streakEl.style.display = "none";
+
+    return;
+}
+
+
+        // ==================================================
+        // 已经设置每日目标
+        // → 启用 Streak
+        // ==================================================
+
+        streakEl.style.display = "flex";
+
+
+        // ==================================================
+        // 读取打卡记录
+        // ==================================================
+
+        const snapshot =
+            await db.collection("decks")
+                .doc(deckId)
+                .collection("checkins")
+                .orderBy("date", "desc")
+                .limit(CHECKIN_HISTORY_DAYS)
+                .get();
+
+
+        const completedDates =
+            new Set();
+
+
+        snapshot.forEach(doc => {
+
+            const data =
+                doc.data();
+
+            const dateKey =
+                data.date ||
+                doc.id;
+
+
+            if (
+                data.completed !== false
+            ) {
+
+                completedDates.add(
+                    dateKey
+                );
+            }
+        });
+
+
+        // ==================================================
+        // 计算当前 Streak
+        // ==================================================
+
+        const streak =
+            calculateCurrentStreak(
+                completedDates
+            );
+
+
+        streakNumber.textContent =
+            streak;
+
+
+    } catch (e) {
+
+        console.error(
+            `加载分类 ${deckId} 的 Streak 失败:`,
+            e
+        );
+
+        streakEl.style.display = "none";
+    }
+}
 // ---------- 初始化拖拽（唯一入口） ----------
 function initSortable() {
     if (isMobileDevice()) return;
@@ -296,6 +422,14 @@ function showAddDeckModal() {
     document.getElementById("deckGoBtn").style.display = "none";
     document.getElementById("deckCheckin").style.display = "none";
 
+    // 新建分类默认关闭打卡
+    const checkinToggle =
+        document.getElementById("deckCheckinToggle");
+
+    if (checkinToggle) {
+        checkinToggle.checked = false;
+    }
+  
     document.getElementById("modalTitle").textContent = "新建分类";
     document.getElementById("saveBtn").textContent = "创建";
 
@@ -339,14 +473,22 @@ async function editDeck(deckId) {
         .doc(deckId)
         .get();
 
-    const deck = doc.data();
+const deck = doc.data();
 
-    document.getElementById("modalTitle").textContent = "编辑Deck";
-    document.getElementById("saveBtn").textContent = "✔";
+const checkinToggle =
+    document.getElementById("deckCheckinToggle");
 
-    document.getElementById("deckName").value = deck.name || "";
-    document.getElementById("deckIcon").value = deck.icon || "";
-    document.getElementById("deckNote").value = deck.note || "";
+if (checkinToggle) {
+    checkinToggle.checked =
+        deck.checkinEnabled === true;
+}
+
+document.getElementById("modalTitle").textContent = "编辑Deck";
+document.getElementById("saveBtn").textContent = "✔";
+
+document.getElementById("deckName").value = deck.name || "";
+document.getElementById("deckIcon").value = deck.icon || "";
+document.getElementById("deckNote").value = deck.note || "";
 
     // 编辑时显示删除按钮
     document.getElementById("deleteDeckBtn").style.display = "block";
@@ -379,7 +521,6 @@ function showDeckReview(deckId, deck) {
     document.getElementById("deleteDeckBtn").style.display = "none";
     document.getElementById("saveBtn").style.display = "none";
     document.getElementById("deckGoBtn").style.display = "flex";
-    document.getElementById("deckCheckin").style.display = "block";
 
     modal.style.display = "flex";
     loadDeckCheckin();
@@ -452,24 +593,26 @@ async function saveDeck() {
 
             await db.collection("decks").add({
 
-                name,
+    name,
+    icon,
+    note,
 
-                icon,
+    // 打卡默认关闭
+    checkinEnabled: false,
 
-                note,
+    // 每日目标只是目标内容，不再承担“是否开启”的判断
+    dailyGoal: DEFAULT_DAILY_GOAL,
 
-                dailyGoal: DEFAULT_DAILY_GOAL,
+    color: "#2f80ed",
 
-                color: "#2f80ed",
+    order: maxOrder,
 
-                order: maxOrder,
+    hidden: false,
 
-                hidden: false,
+    createdAt:
+        firebase.firestore.FieldValue.serverTimestamp()
 
-                createdAt:
-                    firebase.firestore.FieldValue.serverTimestamp()
-
-            });
+});
 
         }
 
@@ -486,7 +629,93 @@ async function saveDeck() {
 }
 
 // ==================== 分类显示/隐藏管理 ====================
+// ==========================================================
+// 分类打卡开关
+// ==========================================================
 
+async function toggleEditingDeckCheckin(enabled) {
+
+    if (!editingDeckId) return;
+
+    try {
+
+        const ref =
+            db.collection("decks")
+                .doc(editingDeckId);
+
+        await ref.update({
+            checkinEnabled: enabled
+        });
+
+        console.log(
+            `分类打卡已${enabled ? "开启" : "关闭"}`
+        );
+
+        // ==================================================
+        // 开启
+        // → 显示打卡模块
+        // ==================================================
+
+        if (enabled) {
+
+            await loadDeckCheckin();
+
+        }
+
+        // ==================================================
+        // 关闭
+        // → 直接隐藏打卡模块
+        // ==================================================
+
+        else {
+
+            const panel =
+                document.getElementById("deckCheckin");
+
+            if (panel) {
+                panel.style.display = "none";
+            }
+
+            currentCheckinCompletedDates =
+                new Set();
+
+            resetCheckinWeekView();
+        }
+
+        // ==================================================
+        // 刷新主页 Streak
+        // ==================================================
+
+        if (
+            document.getElementById("deckModal")
+                ?.style.display === "none"
+        ) {
+            await loadDecks();
+        }
+
+    } catch (e) {
+
+        console.error(
+            "更新打卡开关失败:",
+            e
+        );
+
+        // 保存失败 → 恢复 Toggle 原状态
+        const toggle =
+            document.getElementById(
+                "deckCheckinToggle"
+            );
+
+        if (toggle) {
+            toggle.checked = !enabled;
+        }
+
+        alert(
+            "更新打卡状态失败：" +
+            e.message
+        );
+    }
+}
 async function toggleEditingDeckHidden() {
     if (!editingDeckId) return;
     try {
@@ -520,18 +749,51 @@ async function showHiddenDeckModal() {
             empty.style.display = "block";
         } else {
             hiddenDecks.forEach(doc => {
-                const deck = doc.data();
-                const item = document.createElement("div");
-                item.className = "hidden-deck-item";
-                item.innerHTML = `
-                    <div class="hidden-deck-info">
-                        <span class="hidden-deck-icon">${deck.icon || "📌"}</span>
-                        <span class="hidden-deck-name">${deck.name || "未命名分类"}</span>
-                    </div>
-                    <button class="hidden-deck-show-btn" onclick="restoreHiddenDeck('${doc.id}')">显示</button>
-                `;
-                list.appendChild(item);
-            });
+    const deck = doc.data();
+
+    const item = document.createElement("div");
+    item.className = "hidden-deck-item";
+
+    item.innerHTML = `
+        <div class="hidden-deck-info">
+            <span class="hidden-deck-icon">${deck.icon || "📌"}</span>
+            <span class="hidden-deck-name">${deck.name || "未命名分类"}</span>
+        </div>
+
+        <button
+            class="hidden-deck-show-btn"
+            type="button"
+        >显示</button>
+    `;
+
+    // ==========================
+    // 点击隐藏分类 → 进入复习
+    // ==========================
+    item.addEventListener("click", (e) => {
+
+        // 点击“显示”按钮时，不进入复习
+        if (e.target.closest(".hidden-deck-show-btn")) {
+            return;
+        }
+
+        // 关闭“管理已隐藏分类”
+        hideHiddenDeckModal();
+
+        // 与主页普通分类保持完全一致：
+        // 先显示分类笔记，再点击 Go 进入复习
+        showDeckReview(doc.id, deck);
+    });
+
+    // ==========================
+    // 点击“显示”按钮 → 恢复到主页
+    // ==========================
+    item.querySelector(".hidden-deck-show-btn")
+        .addEventListener("click", () => {
+            restoreHiddenDeck(doc.id);
+        });
+
+    list.appendChild(item);
+});
         }
 
         document.getElementById("hiddenDeckModal").style.display = "flex";
@@ -564,7 +826,7 @@ async function restoreHiddenDeck(deckId) {
 // Firestore 数据结构：
 //
 // decks/{deckId}
-//     └── dailyGoal: "想打卡什么呢？"
+//     └── dailyGoal: "想打卡什么呢？——null"
 //
 // decks/{deckId}/checkins/{YYYY-MM-DD}
 //     ├── date: "2026-09-19"
@@ -579,7 +841,7 @@ async function restoreHiddenDeck(deckId) {
 // ==========================================================
 
 const CHECKIN_HISTORY_DAYS = 365;
-const DEFAULT_DAILY_GOAL = "想打卡什么呢？";
+const DEFAULT_DAILY_GOAL = "想打卡什么？";
 
 let checkinWeekOffset = 0;
 
@@ -1413,34 +1675,46 @@ async function loadDeckCheckin() {
     }
 
 
-    // ------------------------------------------------------
-    // 显示打卡区域
-    // ------------------------------------------------------
+try {
 
-    panel.style.display =
-        "block";
+    // ==================================================
+    // 读取 Deck
+    // ==================================================
 
+    const deckSnap =
+        await db.collection("decks")
+            .doc(deckId)
+            .get();
+
+    const deckData =
+        deckSnap.exists
+            ? deckSnap.data()
+            : {};
+
+    // ==================================================
+    // 判断是否已经启动打卡
+    // ==================================================
+
+   if (deckData.checkinEnabled !== true) {
+
+    panel.style.display = "none";
+
+    currentCheckinCompletedDates =
+        new Set();
+
+    resetCheckinWeekView();
+
+    return;
+}
+
+    // ==================================================
+    // 已启动打卡
+    // ==================================================
+
+    panel.style.display = "block";
 
     // 每次重新加载时回到本周
     resetCheckinWeekView();
-
-
-    try {
-
-        // ==================================================
-        // 读取 Deck
-        // ==================================================
-
-        const deckSnap =
-            await db.collection("decks")
-                .doc(deckId)
-                .get();
-
-
-        const deckData =
-            deckSnap.exists
-                ? deckSnap.data()
-                : {};
 
 
         // ==================================================
@@ -2183,7 +2457,7 @@ async function showAddCardModal() {
     editingCardId = null;
 
     document.getElementById('cardModalTitle').textContent = '添加';
-    document.getElementById('saveCardBtn').textContent = '✔️';
+    document.getElementById('saveCardBtn').textContent = '√️';
 
     document.getElementById('newFront').value = '';
 
@@ -2311,7 +2585,7 @@ async function editCurrentCard() {
     editingCardId = card.id;
 
     document.getElementById('cardModalTitle').textContent = '编辑';
-    document.getElementById('saveCardBtn').textContent = '✔️';
+    document.getElementById('saveCardBtn').textContent = '√️';
 
     document.getElementById('newFront').value = card.front;
 
@@ -2527,7 +2801,11 @@ document.addEventListener("keydown", (e) => {
             e.preventDefault();
             toggleImmersiveMode();
             break;
-
+ // 删除当前卡片
+        case "Delete":
+            e.preventDefault();
+            deleteCurrentCard();
+            break;
         // 空格下一张
         case " ":
             e.preventDefault();
@@ -2535,6 +2813,41 @@ document.addEventListener("keydown", (e) => {
             break;
     }
 });
+
+// ==================== 模态框确定快捷键 ====================
+
+// Deck：Ctrl + Enter
+document.getElementById('deckModal').addEventListener('keydown', (e) => {
+    if (e.ctrlKey && e.key === 'Enter') {
+        e.preventDefault();
+        saveDeck();
+    }
+});
+
+// 卡片：Ctrl + Enter
+document.getElementById('addCardModal').addEventListener('keydown', (e) => {
+    if (e.ctrlKey && e.key === 'Enter') {
+        e.preventDefault();
+        saveCard();
+    }
+});
+
+// 移动卡片：Ctrl + Enter
+document.getElementById('moveCardModal').addEventListener('keydown', (e) => {
+    if (e.ctrlKey && e.key === 'Enter') {
+        e.preventDefault();
+        confirmMoveCard();
+    }
+});
+
+// 批量导入：Ctrl + Enter
+document.getElementById('importModal').addEventListener('keydown', (e) => {
+    if (e.ctrlKey && e.key === 'Enter') {
+        e.preventDefault();
+        confirmImport();
+    }
+});
+
 
 function cleanTextarea(id) {
     const el = document.getElementById(id);
