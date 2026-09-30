@@ -179,6 +179,10 @@ h1 {
     top: 12px;
     right: 14px;
 ============= */
+       position: absolute;
+    top: 12px;
+
+  
     display: flex;
     align-items: center;
     gap: 3px;
@@ -208,6 +212,7 @@ h1 {
 .bubble-streak-number {
     min-width: 12px;
     text-align: center;
+  scale: 1.2;
 }
 /* =============================================================================================================================
    Bubbles手机端适配
@@ -1208,9 +1213,7 @@ button.secondary { background:#3a3f4b; }
     left: 8%;
     width: 84%;
     height: 1px;
-
     pointer-events: none;
-
     opacity: 0.65;
 
 }
@@ -1332,9 +1335,7 @@ button.secondary { background:#3a3f4b; }
 
 
 /* 顶部 + 底部光带 */
-
 .card.epic .front {
-
     box-shadow:
         inset 0 110px 120px -100px rgba(201,145,255,.42),
         inset 0 -100px 120px -95px rgba(139,47,255,.34);
@@ -1386,8 +1387,8 @@ button.secondary { background:#3a3f4b; }
         );
 
     box-shadow:
-        0 0 8px rgba(255,215,0,.55),
-        0 0 24px rgba(255,174,0,.30);
+        0 0 18px rgba(255,215,0,.55),
+        0 0 36px rgba(255,174,0,.30);
 
 }
 
@@ -1397,8 +1398,8 @@ button.secondary { background:#3a3f4b; }
 .card.mythic .front {
 
     box-shadow:
-        inset 0 125px 140px -110px rgba(255,215,0,.48),
-        inset 0 -125px 140px -110px rgba(255,174,0,.40);
+        inset 0 125px 260px -110px rgba(255,215,0,.48),
+        inset 0 -125px 260px -110px rgba(255,174,0,.40);
 
 }
 
@@ -2250,7 +2251,7 @@ transform:translateY(-10px);
 }
 
 #deckGoBtn:hover {
-    transform: scale(2.06);
+
     box-shadow: 0 10px 28px rgba(47,128,237,.38);
 }
 
