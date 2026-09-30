@@ -65,11 +65,16 @@ async function loadDecks() {
     <div>${deck.name}</div>
 
     <span class="bubble-streak" style="display:none;">
-        <span class="bubble-streak-icon">✨</span>
+
         <span class="bubble-streak-number">0</span>
+                <span class="bubble-streak-icon">天</span>
     </span>
 `;
+       // ==========================
+        //打卡天数、图标展示
+        // ==========================
 
+      
         // ==========================
         // 长按相关
         // ==========================
@@ -1033,7 +1038,7 @@ function renderDeckCheckin(completedDates) {
     if (completedDates.has(todayKey)) {
 
         todayBtn.textContent =
-            "✅今日完成";
+            "✅完成";
 
         todayBtn.classList.add(
             "completed"
