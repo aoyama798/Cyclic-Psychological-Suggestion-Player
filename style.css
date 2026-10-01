@@ -1155,21 +1155,18 @@ button.secondary { background:#3a3f4b; }
 /* ===========================================================================
    卡片分级系统（升级版）
 =========================================================================== */
+```css
+/* ===========================================================================
+   卡片等级系统 V2
+   Favorite  → 冰晶
+   Epic      → 奥术
+   Mythic    → 王权
+   Legendary → 棱彩
+=========================================================================== */
+
 
 /* ==========================================================
-   等级系统最终版
-   适配当前播放器结构
-========================================================== */
-/* ===========================================================================
-   卡片分级系统（豪华升级版）
-   新增：多层花纹、装饰边框、角饰、金属高光、动态扫光等
-=========================================================================== */
-/* ===========================================================================
-   卡片分级系统（豪华升级版 - 无左侧厚边框）
-=========================================================================== */
-```css
-/* ==========================================================
-   卡片基础
+   基础
 ========================================================== */
 
 .front {
@@ -1179,72 +1176,13 @@ button.secondary { background:#3a3f4b; }
 
 
 /* ==========================================================
-   通用：顶部 + 底部光带
-========================================================== */
-
-.card.favorite .front,
-.card.epic .front,
-.card.mythic .front,
-.card.legendary .front {
-
-    box-shadow:
-        inset 0 70px 90px -75px rgba(255,255,255,0.18),
-        inset 0 -70px 90px -75px rgba(255,255,255,0.12);
-
-}
-
-
-/* ==========================================================
-   通用：顶部 / 底部能量线
-========================================================== */
-
-.card.favorite .front::before,
-.card.epic .front::before,
-.card.mythic .front::before,
-.card.legendary .front::before,
-
-.card.favorite .front::after,
-.card.epic .front::after,
-.card.mythic .front::after,
-.card.legendary .front::after {
-
-    content: "";
-    position: absolute;
-    left: 8%;
-    width: 84%;
-    height: 1px;
-    pointer-events: none;
-    opacity: 0.65;
-
-}
-
-
-/* 顶部 */
-
-.card.favorite .front::before,
-.card.epic .front::before,
-.card.mythic .front::before,
-.card.legendary .front::before {
-
-    top: 0;
-
-}
-
-
-/* 底部 */
-
-.card.favorite .front::after,
-.card.epic .front::after,
-.card.mythic .front::after,
-.card.legendary .front::after {
-
-    bottom: 0;
-
-}
-
-
-/* ==========================================================
-   收藏 Favorite
+   Ⅰ Favorite
+   冰晶 / Frost Crystal
+   特征：
+   - 冷蓝色
+   - 四角切角
+   - 冰晶高光
+   - 细微扫描线
 ========================================================== */
 
 .card.favorite {
@@ -1252,59 +1190,93 @@ button.secondary { background:#3a3f4b; }
 }
 
 
-/* 主体边缘 */
+/* 冰晶外框 */
 
 .card.favorite::before {
-
     background:
         linear-gradient(
             135deg,
             #ffffff 0%,
-            #9ddcff 20%,
-            #5eb8ff 45%,
-            #1976d2 70%,
-            #082d70 100%
+            #d9f5ff 12%,
+            #66d9ff 32%,
+            #238cff 55%,
+            #0b4ea2 78%,
+            #8de8ff 100%
         );
 
     box-shadow:
-        0 0 6px rgba(102,208,255,.65),
-        0 0 18px rgba(102,208,255,.45);
-
+        0 0 8px rgba(76,196,255,.65),
+        0 0 22px rgba(30,144,255,.28);
 }
 
 
-/* 顶部光带 */
+/* 冰晶内部 */
 
 .card.favorite .front {
-
     box-shadow:
-        inset 0 95px 105px -90px rgba(80,170,255,.38),
-        inset 0 -80px 100px -88px rgba(25,118,210,.28);
-
+        inset 0 1px 0 rgba(255,255,255,.55),
+        inset 0 40px 80px -55px rgba(70,190,255,.42),
+        inset 0 -50px 80px -60px rgba(20,100,220,.25);
 }
 
 
-/* 上下能量线 */
+/* 冰晶顶部切线 */
 
-.card.favorite .front::before,
-.card.favorite .front::after {
+.card.favorite .front::before {
+    content: "";
+    position: absolute;
+
+    top: 0;
+    left: 5%;
+    width: 90%;
+    height: 2px;
 
     background:
         linear-gradient(
             90deg,
             transparent,
-            rgba(102,208,255,.85),
+            #dffaff 20%,
+            #5edbff 50%,
+            #dffaff 80%,
             transparent
         );
 
     box-shadow:
-        0 0 8px rgba(102,208,255,.55);
+        0 0 8px rgba(91,220,255,.8);
 
+    opacity: .9;
+}
+
+
+/* 冰晶底部 */
+
+.card.favorite .front::after {
+    content: "";
+
+    position: absolute;
+    bottom: 0;
+    left: 15%;
+    width: 70%;
+    height: 1px;
+
+    background:
+        linear-gradient(
+            90deg,
+            transparent,
+            rgba(70,200,255,.8),
+            transparent
+        );
 }
 
 
 /* ==========================================================
-   史诗 Epic
+   Ⅱ Epic
+   奥术 / Arcane
+   特征：
+   - 紫色
+   - 双层内框
+   - 中央横向光束
+   - 角落能量节点
 ========================================================== */
 
 .card.epic {
@@ -1312,58 +1284,101 @@ button.secondary { background:#3a3f4b; }
 }
 
 
-/* 紫色边缘 */
+/* 紫色外框 */
 
-.card.epic::before,
-.card.epic::after {
-
+.card.epic::before {
     background:
         linear-gradient(
             135deg,
             #ffffff 0%,
-            #f1b8ff 18%,
-            #d05cff 42%,
-            #8b2fff 70%,
-            #3b0058 100%
+            #efcaff 10%,
+            #bd62ff 30%,
+            #7b2cff 55%,
+            #461080 75%,
+            #d17aff 100%
         );
 
     box-shadow:
-        0 0 7px rgba(208,92,255,.55),
-        0 0 20px rgba(139,47,255,.28);
-
+        0 0 9px rgba(180,70,255,.7),
+        0 0 26px rgba(125,40,255,.35);
 }
 
 
-/* 顶部 + 底部光带 */
+/* 奥术内部 */
+
 .card.epic .front {
     box-shadow:
-        inset 0 110px 120px -100px rgba(201,145,255,.42),
-        inset 0 -100px 120px -95px rgba(139,47,255,.34);
-
+        inset 0 1px 0 rgba(255,255,255,.35),
+        inset 0 0 35px rgba(155,60,255,.16);
 }
 
 
-/* 能量线 */
+/* 中央奥术光束 */
 
-.card.epic .front::before,
-.card.epic .front::after {
+.card.epic .front::before {
+    content: "";
+
+    position: absolute;
+    left: 7%;
+    top: 50%;
+    width: 86%;
+    height: 1px;
+
+    transform: translateY(-50%);
 
     background:
         linear-gradient(
             90deg,
             transparent,
-            rgba(221,133,255,.95),
+            rgba(221,160,255,.35) 15%,
+            #d88cff 35%,
+            #ffffff 50%,
+            #d88cff 65%,
+            rgba(221,160,255,.35) 85%,
             transparent
         );
 
     box-shadow:
-        0 0 9px rgba(208,92,255,.65);
+        0 0 8px rgba(202,100,255,.85),
+        0 0 20px rgba(150,50,255,.45);
 
+    opacity: .45;
+}
+
+
+/* 奥术底部符文线 */
+
+.card.epic .front::after {
+    content: "✦";
+
+    position: absolute;
+
+    left: 50%;
+    bottom: 8px;
+
+    transform: translateX(-50%);
+
+    font-size: 10px;
+    line-height: 1;
+
+    color: #e4aaff;
+
+    text-shadow:
+        0 0 6px #c75cff,
+        0 0 14px #8b2cff;
+
+    opacity: .8;
 }
 
 
 /* ==========================================================
-   神话 Mythic
+   Ⅲ Mythic
+   王权 / Royal Gold
+   特征：
+   - 强烈金色
+   - 上下皇冠式金线
+   - 金色核心
+   - 呼吸效果
 ========================================================== */
 
 .card.mythic {
@@ -1371,198 +1386,308 @@ button.secondary { background:#3a3f4b; }
 }
 
 
-/* 金色主体边缘 */
+/* 黄金外框 */
 
-.card.mythic::before,
-.card.mythic::after {
-
+.card.mythic::before {
     background:
         linear-gradient(
             135deg,
-            #fffef0 0%,
-            #fff4a8 20%,
-            #ffd84d 43%,
-            #ffae00 70%,
-            #915600 100%
+            #fffde0 0%,
+            #fff4a0 12%,
+            #ffd83d 28%,
+            #ffae00 48%,
+            #c87900 70%,
+            #fff0a0 100%
         );
 
     box-shadow:
-        0 0 18px rgba(255,215,0,.55),
-        0 0 36px rgba(255,174,0,.30);
-
+        0 0 10px rgba(255,210,50,.75),
+        0 0 25px rgba(255,170,0,.4),
+        0 0 45px rgba(255,190,0,.15);
 }
 
 
-/* 神话光带 */
+/* 黄金内部 */
 
 .card.mythic .front {
+    animation: mythicRoyalGlow 3.2s ease-in-out infinite;
 
     box-shadow:
-        inset 0 125px 260px -110px rgba(255,215,0,.48),
-        inset 0 -125px 260px -110px rgba(255,174,0,.40);
-
+        inset 0 1px 0 rgba(255,255,220,.7),
+        inset 0 45px 90px -55px rgba(255,215,60,.45),
+        inset 0 -45px 90px -55px rgba(255,145,0,.25);
 }
 
 
-/* 神话能量线 */
+/* 顶部王冠光 */
 
-.card.mythic .front::before,
+.card.mythic .front::before {
+    content: "♛";
+
+    position: absolute;
+
+    top: 7px;
+    left: 50%;
+
+    transform: translateX(-50%);
+
+    font-size: 13px;
+
+    color: #ffe77a;
+
+    text-shadow:
+        0 0 5px #fff2a0,
+        0 0 12px #ffc400,
+        0 0 25px #ff9d00;
+
+    opacity: .9;
+}
+
+
+/* 底部王权金线 */
+
 .card.mythic .front::after {
+    content: "";
+
+    position: absolute;
+
+    bottom: 6px;
+    left: 12%;
+
+    width: 76%;
+    height: 2px;
 
     background:
         linear-gradient(
             90deg,
-            transparent 0%,
-            rgba(255,248,190,.95) 25%,
-            #ffd84d 50%,
-            rgba(255,248,190,.95) 75%,
-            transparent 100%
+            transparent,
+            #fff2a0 15%,
+            #ffd52f 35%,
+            #ffffff 50%,
+            #ffd52f 65%,
+            #fff2a0 85%,
+            transparent
         );
 
     box-shadow:
-        0 0 8px rgba(255,215,0,.8),
-        0 0 18px rgba(255,174,0,.4);
-
+        0 0 8px rgba(255,210,40,.9),
+        0 0 18px rgba(255,160,0,.45);
 }
 
 
-/* ==========================================================
-   神话：上下光带呼吸
-========================================================== */
+/* 神话呼吸 */
 
-.card.mythic .front {
-
-    animation:
-        mythicGlow 3s ease-in-out infinite;
-
-}
-
-
-@keyframes mythicGlow {
+@keyframes mythicRoyalGlow {
 
     0%, 100% {
-
         box-shadow:
-            inset 0 125px 140px -110px rgba(255,215,0,.40),
-            inset 0 -125px 140px -110px rgba(255,174,0,.32),
-            0 0 18px rgba(255,215,0,.18);
-
+            inset 0 1px 0 rgba(255,255,220,.55),
+            inset 0 45px 90px -55px rgba(255,215,60,.38),
+            inset 0 -45px 90px -55px rgba(255,145,0,.22),
+            0 0 10px rgba(255,200,30,.08);
     }
 
     50% {
-
         box-shadow:
-            inset 0 125px 140px -100px rgba(255,215,0,.58),
-            inset 0 -125px 140px -100px rgba(255,174,0,.48),
-            0 0 35px rgba(255,215,0,.32);
-
+            inset 0 1px 0 rgba(255,255,220,.8),
+            inset 0 55px 105px -50px rgba(255,225,80,.55),
+            inset 0 -55px 105px -50px rgba(255,160,0,.32),
+            0 0 22px rgba(255,200,30,.22);
     }
 
 }
 
 
 /* ==========================================================
-   传奇 Legendary
-========================================================== */
+   Ⅳ Legendary
+   棱彩 / Holographic
+   特征：
+   - 不再使用单纯金色
+   - 彩虹渐变
+   - 全息移动光带
+   - 多层边缘
+   - 动态扫光
+   ========================================================== */
 
 .card.legendary {
     border: 0;
 }
 
 
-/* 彩虹金属边 */
+/* 棱彩主体边缘 */
 
-.card.legendary::before,
-.card.legendary::after {
-
+.card.legendary::before {
     background:
         linear-gradient(
-            135deg,
-            #ffffff 0%,
-            #fff3a6 15%,
-            #ffd700 30%,
-            #ff8a00 48%,
-            #ff3cac 65%,
-            #00d9ff 82%,
-            #ffffff 100%
+            120deg,
+            #ff3b3b 0%,
+            #ffb52e 15%,
+            #fff72e 28%,
+            #48ff88 42%,
+            #32d9ff 56%,
+            #628cff 68%,
+            #bd5cff 82%,
+            #ff4fc3 100%
         );
 
-    box-shadow:
-        0 0 8px rgba(255,215,0,.65),
-        0 0 24px rgba(255,80,180,.25),
-        0 0 30px rgba(0,217,255,.20);
+    background-size: 250% 250%;
 
+    animation:
+        legendaryBorder 4s linear infinite;
+
+    box-shadow:
+        0 0 10px rgba(255,255,255,.7),
+        0 0 25px rgba(255,80,190,.35),
+        0 0 45px rgba(50,210,255,.25);
 }
 
 
-/* 传奇上下光带 */
+/* Legendary 内部 */
 
 .card.legendary .front {
-
     box-shadow:
-        inset 0 145px 160px -125px rgba(255,255,255,.45),
-        inset 0 -145px 160px -125px rgba(255,215,0,.35);
-
+        inset 0 1px 0 rgba(255,255,255,.8),
+        inset 0 45px 100px -55px rgba(255,255,255,.35),
+        inset 0 -45px 100px -55px rgba(100,180,255,.25);
 }
 
 
-/* 传奇能量线 */
+/* 全息扫描光 */
 
-.card.legendary .front::before,
-.card.legendary .front::after {
+.card.legendary .front::before {
+    content: "";
+
+    position: absolute;
+
+    top: -20%;
+    left: -70%;
+
+    width: 45%;
+    height: 140%;
+
+    transform: rotate(18deg);
 
     background:
         linear-gradient(
             90deg,
             transparent,
-            #ffffff 18%,
-            #ffd700 35%,
-            #ff4fc3 50%,
-            #00d9ff 65%,
-            #ffffff 82%,
+            rgba(255,255,255,.05),
+            rgba(255,255,255,.75),
+            rgba(255,255,255,.08),
             transparent
         );
 
-    box-shadow:
-        0 0 9px rgba(255,255,255,.8),
-        0 0 20px rgba(255,80,180,.35);
-
-}
-
-
-/* ==========================================================
-   传奇呼吸
-========================================================== */
-
-.card.legendary .front {
+    filter: blur(1px);
 
     animation:
-        legendaryGlow 3.2s ease-in-out infinite;
+        legendarySweep 3.2s ease-in-out infinite;
 
+    pointer-events: none;
 }
 
 
-@keyframes legendaryGlow {
+/* Legendary 中央棱彩线 */
 
-    0%, 100% {
+.card.legendary .front::after {
+    content: "";
 
-        box-shadow:
-            inset 0 145px 160px -125px rgba(255,255,255,.38),
-            inset 0 -145px 160px -125px rgba(255,215,0,.28),
-            0 0 20px rgba(255,215,0,.18);
+    position: absolute;
 
+    left: 6%;
+    bottom: 7px;
+
+    width: 88%;
+    height: 2px;
+
+    background:
+        linear-gradient(
+            90deg,
+            #ff4040,
+            #ffd83d,
+            #5cff91,
+            #35d9ff,
+            #7c7cff,
+            #ff55c8
+        );
+
+    background-size: 200% 100%;
+
+    animation:
+        legendarySpectrum 2.5s linear infinite;
+
+    box-shadow:
+        0 0 8px rgba(255,255,255,.8),
+        0 0 18px rgba(100,200,255,.4);
+}
+
+
+/* Legendary 边缘流动 */
+
+@keyframes legendaryBorder {
+
+    0% {
+        background-position: 0% 50%;
     }
 
     50% {
+        background-position: 100% 50%;
+    }
 
-        box-shadow:
-            inset 0 145px 160px -115px rgba(255,255,255,.55),
-            inset 0 -145px 160px -115px rgba(255,215,0,.42),
-            0 0 40px rgba(255,215,0,.32);
-
+    100% {
+        background-position: 0% 50%;
     }
 
 }
+
+
+/* Legendary 扫光 */
+
+@keyframes legendarySweep {
+
+    0% {
+        left: -70%;
+        opacity: 0;
+    }
+
+    20% {
+        opacity: .8;
+    }
+
+    55% {
+        opacity: .9;
+    }
+
+    75% {
+        opacity: 0;
+    }
+
+    100% {
+        left: 130%;
+        opacity: 0;
+    }
+
+}
+
+
+/* Legendary 彩虹底线 */
+
+@keyframes legendarySpectrum {
+
+    0% {
+        background-position: 0% 50%;
+    }
+
+    100% {
+        background-position: 200% 50%;
+    }
+
+}
+
+
+/* ===========================================================================
+   卡片等级系统 V2 结束
+=========================================================================== */
+```
 
 /* ===========================================================================
    卡片等级系统结束
