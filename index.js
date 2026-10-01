@@ -2616,7 +2616,14 @@ async function editCurrentCard() {
 
     });
 
-    document.getElementById('addCardModal').style.display = 'flex';
+document.getElementById('addCardModal').style.display = 'flex';
+
+// 自动聚焦到卡片内容输入框
+requestAnimationFrame(() => {
+    const input = document.getElementById('newFront');
+    input.focus();
+    input.setSelectionRange(input.value.length, input.value.length);
+});
 }
 
 async function deleteCurrentCard() {
