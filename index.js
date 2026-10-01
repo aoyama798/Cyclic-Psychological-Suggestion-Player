@@ -173,9 +173,9 @@ async function loadDecks() {
 // ======================================================
 // 加载该分类当前 Streak
 // ======================================================
-loadBubbleStreak(doc.id, div);
-
 bubbles.appendChild(div);
+
+loadBubbleStreak(doc.id, div);
 
     });
 
@@ -2010,7 +2010,7 @@ async function deleteDeckCheckins(deckId) {
 
 
 // ====================隐藏deck bubble ====================
-function hideDeckModal() {
+async function hideDeckModal() {
     const modal = document.getElementById('deckModal');
     modal.style.display = 'none';
 
@@ -2039,6 +2039,9 @@ function hideDeckModal() {
     resetCheckinWeekView();
 
     document.getElementById("saveBtn").style.display = "";
+
+    // 关闭模态框后刷新主页 Streak
+    await loadDecks();
 }
 
 async function deleteCurrentDeck() {
@@ -2225,19 +2228,29 @@ async function startPlayer(deckId, deck) {
     initMobileGesture();
 }
 
-function backToMenu() {
+async function backToMenu() {
     if (autoMode) toggleAuto();
-    // 强制退出沉浸模式
+
     immersiveMode = false;
     document.body.classList.remove('immersive', 'show-ui');
     destroyWeightHUD();
+
     if (document.fullscreenElement) {
-        document.exitFullscreen();
+        try {
+            await document.exitFullscreen();
+        } catch (e) {
+            console.warn("退出全屏失败:", e);
+        }
     }
+
     sortCardsByPriority();
     currentIndex = 0;
+
     document.getElementById('player').classList.remove('active');
     document.getElementById('mainMenu').classList.add('active');
+
+    // 返回主页后强制刷新主页数据
+    await loadDecks();
 }
 
 async function loadCards() {
@@ -3354,7 +3367,7 @@ async function migrateOldDecks() {
 
 window.onload = async () => {
     await migrateOldDecks();
-    loadDecks();
+    await loadDecks();
 };
 
 
