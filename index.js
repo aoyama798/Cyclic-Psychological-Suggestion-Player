@@ -163,7 +163,7 @@ async function loadDecks() {
         // 点击进入分类
         // ==========================
 
- div.addEventListener("click", (e) => {
+div.addEventListener("click", (e) => {
 
     // 长按后阻止 click
     if (longPressed) {
@@ -178,8 +178,8 @@ async function loadDecks() {
 
     if (!e.target.classList.contains('action-btn')) {
 
-        // 点击分类：先阅读分类笔记，再进入复习
-        showDeckReview(doc.id, deck);
+        // 点击分类：直接进入复习
+        startPlayer(doc.id, deck);
     }
 
 });
@@ -2025,6 +2025,7 @@ async function deleteDeckCheckins(deckId) {
 
 // ====================隐藏deck bubble ====================
 async function hideDeckModal() {
+  document.getElementById("deckModal").classList.remove("note-focus-mode");
     const modal = document.getElementById('deckModal');
     modal.style.display = 'none';
 
@@ -2677,14 +2678,30 @@ async function markMastered() {
 }
 
 async function editCurrentDeckNote() {
-
     if (!currentDeckKey) {
         alert("当前没有打开分类");
         return;
     }
 
     await editDeck(currentDeckKey);
-  
+
+    const modal = document.getElementById("deckModal");
+
+    if (modal) {
+        modal.classList.add("note-focus-mode");
+
+        // 添加 Summary 标识
+        let summaryLabel = modal.querySelector(".note-summary-label");
+
+        if (!summaryLabel) {
+            summaryLabel = document.createElement("span");
+            summaryLabel.className = "note-summary-label";
+            summaryLabel.textContent = "Summary";
+
+            const note = modal.querySelector("#deckNote");
+            note.parentNode.insertBefore(summaryLabel, note);
+        }
+    }
 }
 
 
@@ -3877,3 +3894,9 @@ moreBtn.addEventListener("click", (e) => {
     e.stopPropagation();
     toggleMenu();
 });
+
+
+
+// ======================================================
+//                    SUMMARY 模块
+// ======================================================
