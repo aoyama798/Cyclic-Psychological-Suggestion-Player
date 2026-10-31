@@ -2438,15 +2438,20 @@ function toggleAuto() {
 
 function sortCardsByPriority() {
     const now = Date.now();
+
     currentCards.sort((a, b) => {
         const weightA = a.weight || 0;
         const weightB = b.weight || 0;
+
         const lastA = a.lastViewedAt || 0;
         const lastB = b.lastViewedAt || 0;
+
         const deltaA = (now - lastA) / 1000 / 60;
         const deltaB = (now - lastB) / 1000 / 60;
-        const scoreA = weightA * 100 + deltaA;
-        const scoreB = weightB * 100 + deltaB;
+
+        const scoreA = weightA * 10000 + deltaA;
+        const scoreB = weightB * 10000 + deltaB;
+
         return scoreB - scoreA;
     });
 }
