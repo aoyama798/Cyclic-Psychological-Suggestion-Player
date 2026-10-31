@@ -16,6 +16,13 @@ let currentIndex = 0;
 let autoMode = false;
 let timer = null;
 let currentCards = [];
+// ==================== 每日复习进度 ====================
+// 当前复习周期日期
+let reviewSessionDate = null;
+// 当天固定的卡片顺序
+let reviewOrderIds = [];
+// Firestore 保存任务队列，避免连续翻卡时写入顺序错乱
+let reviewProgressQueue = Promise.resolve();
 let editingDeckId = null;
 let editingCardId = null;
 let sortableInstance = null;   // Sortable.js 实例
@@ -2238,7 +2245,6 @@ async function startPlayer(deckId, deck) {
     document.getElementById('mainMenu').classList.remove('active');
     document.getElementById('player').classList.add('active');
     deckTitleEl.textContent = deck.name;
-    currentIndex = 0;
     await loadCards();
     initMobileGesture();
 }
@@ -2258,8 +2264,8 @@ async function backToMenu() {
         }
     }
 
-    sortCardsByPriority();
-    currentIndex = 0;
+// 退出前保存当前复习进度
+await saveReviewProgress();
 
     document.getElementById('player').classList.remove('active');
     document.getElementById('mainMenu').classList.add('active');
@@ -2269,9 +2275,110 @@ async function backToMenu() {
 }
 
 async function loadCards() {
-    const snapshot = await db.collection('cards').where('deckId', '==', currentDeckKey).get();
-    currentCards = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    sortCardsByPriority();
+
+    // 获取当前分类的全部卡片
+    const snapshot = await db.collection('cards')
+        .where('deckId', '==', currentDeckKey)
+        .get();
+
+    currentCards = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+    }));
+
+    // 获取当前复习周期
+    const today = getReviewDayKey();
+
+    // 获取分类保存的复习进度
+    const deckSnap = await db.collection("decks")
+        .doc(currentDeckKey)
+        .get();
+
+    const deckData = deckSnap.exists
+        ? deckSnap.data()
+        : {};
+
+    // ======================================================
+    // 情况一：当天已有复习记录
+    // 恢复之前的顺序和位次
+    // ======================================================
+
+    if (
+        deckData.reviewDate === today &&
+        Array.isArray(deckData.reviewOrder)
+    ) {
+
+        const cardMap = new Map(
+            currentCards.map(card => [card.id, card])
+        );
+
+        // 按照当天保存的顺序恢复卡片
+        const savedCards = deckData.reviewOrder
+            .map(id => cardMap.get(id))
+            .filter(Boolean);
+
+        const savedIds = new Set(
+            savedCards.map(card => card.id)
+        );
+
+        // 新增加的卡片追加到末尾，并按照优先级排序
+        const newCards = currentCards.filter(
+            card => !savedIds.has(card.id)
+        );
+
+        sortCardListByPriority(newCards);
+
+        currentCards = [
+            ...savedCards,
+            ...newCards
+        ];
+
+        reviewSessionDate = today;
+
+        reviewOrderIds = currentCards.map(
+            card => card.id
+        );
+
+        // 恢复上次的复习位次
+        currentIndex = Math.min(
+            Math.max(
+                Number(deckData.reviewNextIndex) || 0,
+                0
+            ),
+            Math.max(currentCards.length - 1, 0)
+        );
+
+        // 卡片有新增或删除时，更新当天顺序
+        await saveReviewProgress();
+
+        console.log(
+            `恢复当天复习进度：第 ${currentIndex + 1} 张`
+        );
+
+    }
+
+    // ======================================================
+    // 情况二：没有当天记录
+    // 新的一天，重新排序
+    // ======================================================
+
+    else {
+
+        sortCardListByPriority(currentCards);
+
+        reviewSessionDate = today;
+
+        reviewOrderIds = currentCards.map(
+            card => card.id
+        );
+
+        currentIndex = 0;
+
+        await saveReviewProgress();
+
+        console.log("新复习周期，重新排序并从第一张开始");
+    }
+
     renderCard();
 }
 
@@ -2400,23 +2507,76 @@ document.querySelector('.card').addEventListener('click', () => {
 });
 
 function nextCard() {
+
     if (currentCards.length === 0) return;
-    
+
+    // 检查是否已经进入新的复习周期
+    if (resetReviewSessionIfNewDay()) return;
+
     animateCard('next', () => {
+
         const card = currentCards[currentIndex];
+
         card.lastViewedAt = Date.now();
-        db.collection('cards').doc(card.id).update({ lastViewedAt: card.lastViewedAt });
+
+        db.collection('cards')
+            .doc(card.id)
+            .update({
+                lastViewedAt: card.lastViewedAt
+            });
 
         currentIndex = (currentIndex + 1) % currentCards.length;
+
+        // 保存下一张卡片的位置
+        saveReviewProgress();
     });
 }
 
+
 function prevCard() {
+
     if (currentCards.length === 0) return;
-    
+
+    if (resetReviewSessionIfNewDay()) return;
+
     animateCard('prev', () => {
-        currentIndex = (currentIndex - 1 + currentCards.length) % currentCards.length;
+
+        currentIndex = (
+            currentIndex - 1 + currentCards.length
+        ) % currentCards.length;
+
+        saveReviewProgress();
     });
+}
+
+// ==========================================================
+// 检查是否进入新的复习周期
+// ==========================================================
+
+function resetReviewSessionIfNewDay() {
+
+    const today = getReviewDayKey();
+
+    if (today === reviewSessionDate) {
+        return false;
+    }
+
+    // 08:00 后第一次操作，重新排序
+    sortCardsByPriority();
+
+    reviewSessionDate = today;
+
+    reviewOrderIds = currentCards.map(
+        card => card.id
+    );
+
+    currentIndex = 0;
+
+    saveReviewProgress();
+
+    renderCard();
+
+    return true;
 }
 
 function toggleAuto() {
@@ -2436,10 +2596,56 @@ function toggleAuto() {
     }
 }
 
-function sortCardsByPriority() {
+// ==========================================================
+// 获取复习周期日期：每天 08:00 作为新一天的起点
+// ==========================================================
+
+function getReviewDayKey(date = new Date()) {
+    const reviewDate = new Date(date);
+
+    if (reviewDate.getHours() < 8) {
+        reviewDate.setDate(reviewDate.getDate() - 1);
+    }
+
+    return getLocalDateKey(reviewDate);
+}
+// ==========================================================
+// 保存当天复习进度
+// ==========================================================
+
+function saveReviewProgress() {
+    if (!currentDeckKey || !reviewSessionDate) {
+        return Promise.resolve();
+    }
+
+    const deckId = currentDeckKey;
+
+    const data = {
+        reviewDate: reviewSessionDate,
+        reviewOrder: [...reviewOrderIds],
+        reviewNextIndex: currentIndex
+    };
+
+    reviewProgressQueue = reviewProgressQueue
+        .catch(() => {})
+        .then(() => {
+            return db.collection("decks")
+                .doc(deckId)
+                .update(data);
+        })
+        .catch(error => {
+            console.error("保存复习进度失败：", error);
+        });
+
+    return reviewProgressQueue;
+}
+
+function sortCardListByPriority(cards) {
+
     const now = Date.now();
 
-    currentCards.sort((a, b) => {
+    cards.sort((a, b) => {
+
         const weightA = a.weight || 0;
         const weightB = b.weight || 0;
 
@@ -2454,6 +2660,10 @@ function sortCardsByPriority() {
 
         return scoreB - scoreA;
     });
+}
+
+function sortCardsByPriority() {
+    sortCardListByPriority(currentCards);
 }
 
 async function showAddCardModal() {
@@ -3900,8 +4110,3 @@ moreBtn.addEventListener("click", (e) => {
     toggleMenu();
 });
 
-
-
-// ======================================================
-//                    SUMMARY 模块
-// ======================================================
