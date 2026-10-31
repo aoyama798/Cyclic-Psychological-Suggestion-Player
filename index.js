@@ -19,6 +19,8 @@ let currentCards = [];
 let editingDeckId = null;
 let editingCardId = null;
 let sortableInstance = null;   // Sortable.js 实例
+// 防止 loadDecks 并发执行造成 Bubble 重复
+let decksLoadToken = 0;
 let deckEditing = false;
 let deckReviewMode = false;
 let deckReviewId = null;
@@ -36,12 +38,24 @@ const deckTitleEl = document.getElementById('deckTitle');
 // ---------- 加载分类 ----------
 async function loadDecks() {
 
-    const bubbles = document.getElementById('bubbles');
-    bubbles.innerHTML = '';
+    // 每次调用生成新的任务编号
+    const currentToken = ++decksLoadToken;
 
+    const bubbles = document.getElementById('bubbles');
+
+    // 先获取 Firebase 数据
     const snapshot = await db.collection('decks')
         .orderBy('order', 'asc')
         .get();
+
+    // 如果期间又启动了新的加载任务
+    // 则放弃当前任务
+    if (currentToken !== decksLoadToken) {
+        return;
+    }
+
+    // 只有最新任务可以清空和重建页面
+    bubbles.innerHTML = '';
 
     snapshot.forEach(doc => {
 
