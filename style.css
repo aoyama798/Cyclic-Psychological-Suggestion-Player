@@ -621,7 +621,26 @@ button.secondary { background:#3a3f4b; }
     margin-top: 15px;
 }
 
+/* ==================================================
+   Deck 模态框：打卡关闭时自动收缩
+================================================== */
 
+/* 当打卡区域隐藏时，模态框不再保持固定高度 */
+#deckModal .modal-content:has(#deckCheckin[style*="display: none"]) {
+    height: auto;
+    min-height: 0;
+}
+
+/* 笔记区域根据剩余空间显示 */
+#deckModal .modal-content:has(#deckCheckin[style*="display: none"]) #deckNote {
+    flex: none;
+    max-height: 55vh;
+}
+
+/* 打卡开启时，恢复原来的固定高度布局 */
+#deckModal .modal-content:has(#deckCheckin:not([style*="display: none"])) {
+    height: min(90vh, 760px);
+}
 /* ==================== 手机端 ==================== */
 
 @media (max-width: 768px) {
@@ -2809,4 +2828,105 @@ transform:translateY(-10px);
     .checkin-cell {
         border-radius: 6px;
     }
+}
+
+
+
+/* =========================
+   分类笔记专注模式
+========================= */
+
+/* 隐藏分类名称、图标、Go 按钮 */
+#deckModal.note-focus-mode .deck-basic-info,
+#deckModal.note-focus-mode #deckGoBtn {
+    display: none !important;
+}
+
+/* 隐藏标题，减少顶部占用 */
+#deckModal.note-focus-mode .deck-modal-header h3 {
+    display: none;
+}
+
+/* 隐藏左侧删除、隐藏、打卡操作 */
+#deckModal.note-focus-mode .footer-left {
+    display: none !important;
+}
+
+/* 隐藏整个打卡区域，不保留空白 */
+#deckModal.note-focus-mode #deckCheckin {
+    display: none !important;
+}
+
+/* 调整模态框布局 */
+#deckModal.note-focus-mode .modal-content {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* 笔记编辑区域突出显示 */
+#deckModal.note-focus-mode #deckNote {
+    display: block;
+    width: 100%;
+    min-height: 320px;
+    flex: 1;
+    box-sizing: border-box;
+    font-size: 16px;
+    line-height: 1.8;
+    padding: 18px;
+    resize: vertical;
+}
+
+/* 保留底部保存和取消按钮，靠右排列 */
+#deckModal.note-focus-mode .deck-modal-footer {
+    justify-content: flex-end;
+}
+
+#deckModal.note-focus-mode .footer-right {
+    margin-left: auto;
+}
+/* 笔记专注模式：彻底清除打卡区域占用的空间 */
+#deckModal.note-focus-mode #deckCheckin {
+    display: none !important;
+    height: 0 !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+}
+
+/* 模态框高度由实际内容决定，不保留原有打卡布局高度 */
+#deckModal.note-focus-mode .modal-content {
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-sizing: border-box;
+}
+
+/* 笔记区域不再被原有固定高度挤压 */
+#deckModal.note-focus-mode #deckNote {
+    flex: none;
+    height: 55vh;
+    min-height: 300px;
+    max-height: 65vh;
+    margin-bottom: 0;
+}
+
+/* 清除底部区域可能残留的额外间距 */
+#deckModal.note-focus-mode .deck-modal-footer {
+    margin-top: 0 !important;
+    padding-top: 8px;
+}
+/* 进入笔记专注模式时，动态创建一个显示 Summary 的 <span>，并添加到笔记区域上方。 */
+#deckModal.note-focus-mode .note-summary-label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    color: #8b95a5;
+    margin-top: 0px;
+      margin-left: 45%;
+    margin-bottom: 0px;
+    text-transform: uppercase;
 }
