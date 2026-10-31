@@ -20,7 +20,8 @@
 
 
   
-<!-- Bubble主菜单 -->
+<!-- Bubble主菜单 --><!-- Bubble主菜单 --><!-- Bubble主菜单 -->
+<!-- Bubble主菜单 --><!-- Bubble主菜单 --><!-- Bubble主菜单 -->
 <div id="mainMenu" class="screen active">
     <div class="menu">
         <h1 onclick="showAddDeckModal()" class="secondary">認知の再構築</h1>
@@ -29,7 +30,8 @@
 </div>
 
 
-<!-- 卡组bubble模态弹窗 -->
+<!-- 卡组bubble模态弹窗【新建/添加deck模态】 -->
+  
 <!-- 卡组bubble模态弹窗 -->
 <div id="deckModal" class="modal">
     <div class="modal-content">
@@ -54,11 +56,11 @@
            <button id="deckGoBtn" type="button" onclick="goFromDeckReview()">🥇Go</button>
         </div>
 
-        <textarea
-            id="deckNote"
-            placeholder="要点总结..."
-            >
-        </textarea>
+<textarea
+    id="deckNote"
+    placeholder="要点总结..."
+      >
+</textarea>
 
 <div class="deck-modal-footer">
     <div class="footer-left">
@@ -96,7 +98,8 @@
     </div>
 </div>
 
-        <!-- ==================== 分类打卡 ==================== -->
+<!-- ==================== 分类打卡 ==================== -->
+<!-- ==================== 分类打卡 ==================== -->
         <section id="deckCheckin" class="deck-checkin" style="display:none;">
             <div class="deck-checkin-header">
                 <div class="deck-checkin-heading">
@@ -162,6 +165,7 @@
     </div>
 </div>
 
+  
 <!-- 已隐藏分类管理模态弹窗 -->
 <div id="hiddenDeckModal" class="modal">
     <div class="modal-content hidden-deck-modal-content">
@@ -174,9 +178,20 @@
     </div>
 </div>
 
-  
-  
-<!-- 卡片播放器 -->
+
+
+
+
+
+
+
+
+
+
+
+<!-- 卡片复习部分 --><!-- 卡片复习部分 --><!-- 卡片复习部分 -->
+<!-- 卡片复习部分 --><!-- 卡片复习部分 --><!-- 卡片复习部分 -->
+        <!-- 卡片播放器 -->
 <div id="player" class="screen">
    <!-- 顶部菜单 --> 
    <div class="topbar">
@@ -206,7 +221,7 @@
 <!-- 卡片底部...more菜单 -->
 <div id="moreMenu" class="more-menu">
           <button id="editCardBtn" onclick="editCurrentCard();closeMenu()"><span class="icon">✏️</span>Edit</button>
-  <button onclick="editCurrentDeckNote();closeMenu()"><span class="icon">📝</span>Note</button>
+  <button onclick="editCurrentDeckNote();closeMenu()"><span class="icon">📝</span>Summary</button>
 
 
     <button onclick="showAddCardModal();closeMenu()"><span class="icon">➕</span>Add</button>
@@ -233,8 +248,6 @@
 
 
   
-
-
 
 <!-- 卡片编辑/添加模态弹窗 -->
 <div id="addCardModal" class="modal">
@@ -349,10 +362,10 @@
     cursor: pointer;
 }
 </style>
-      
 </div>
 
 
+  
 <!-- 卡片移动模态弹窗 -->  
 <div id="moveCardModal" class="modal">
     <div class="modal-content">
@@ -393,6 +406,8 @@
     </div>
 </div>
 
+
+  
   
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
